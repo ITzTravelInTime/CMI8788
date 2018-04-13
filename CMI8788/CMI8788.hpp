@@ -51,8 +51,52 @@
 #include <sys/types.h>
 #include <mach/semaphore.h>
 #include <mach/task.h>
+#include "oxygen_regs.h"
 
-#define OXYGEN_IO_SIZE  0x100
+
+/* 1 << PCM_x == OXYGEN_CHANNEL_x */
+#define PCM_A		0
+#define PCM_B		1
+#define PCM_C		2
+#define PCM_SPDIF	3
+#define PCM_MULTICH	4
+#define PCM_AC97	5
+#define PCM_COUNT	6
+
+#define OXYGEN_MCLKS(f_single, f_double, f_quad) ((MCLK_##f_single << 0) | \
+(MCLK_##f_double << 2) | \
+(MCLK_##f_quad   << 4))
+
+#define OXYGEN_IO_SIZE	0x100
+
+#define OXYGEN_EEPROM_ID	0x434d	/* "CM" */
+
+/* model-specific configuration of outputs/inputs */
+#define PLAYBACK_0_TO_I2S	0x0001
+/* PLAYBACK_0_TO_AC97_0		not implemented */
+#define PLAYBACK_1_TO_SPDIF	0x0004
+#define PLAYBACK_2_TO_AC97_1	0x0008
+#define CAPTURE_0_FROM_I2S_1	0x0010
+#define CAPTURE_0_FROM_I2S_2	0x0020
+/* CAPTURE_0_FROM_AC97_0		not implemented */
+#define CAPTURE_1_FROM_SPDIF	0x0080
+#define CAPTURE_2_FROM_I2S_2	0x0100
+#define CAPTURE_2_FROM_AC97_1	0x0200
+#define CAPTURE_3_FROM_I2S_3	0x0400
+#define MIDI_OUTPUT		0x0800
+#define MIDI_INPUT		0x1000
+#define AC97_CD_INPUT		0x2000
+#define AC97_FMIC_SWITCH	0x4000
+
+enum {
+    CONTROL_SPDIF_PCM,
+    CONTROL_SPDIF_INPUT_BITS,
+    CONTROL_MIC_CAPTURE_SWITCH,
+    CONTROL_LINE_CAPTURE_SWITCH,
+    CONTROL_CD_CAPTURE_SWITCH,
+    CONTROL_AUX_CAPTURE_SWITCH,
+    CONTROL_COUNT
+};
 
 
 typedef struct SamplePCIAudioDeviceRegisters {

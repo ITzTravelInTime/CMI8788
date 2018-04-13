@@ -44,7 +44,6 @@
 #include "SamplePCIAudioEngine.hpp"
 #include "ak4396.h"
 #include "wm8785.h"
-#include "oxygen_regs.h"
 #include <libkern/OSByteOrder.h>
 #include <sys/errno.h>
 #include <i386/limits.h>
