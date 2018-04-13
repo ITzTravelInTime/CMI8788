@@ -95,7 +95,9 @@ bool PCIAudioDevice::initHardware(IOService *provider)
     setDeviceName("ASUS Xonar HDAV1.3 Deluxe");
     setDeviceShortName("CMI8788");
     setManufacturerName("CMedia");
-    
+    deviceRegisters->spdif_input_bits_work.init();
+    deviceRegisters->gpio_work.init();
+    queue_init(&deviceRegisters->ac97_waitqueue);
 //#error Put your own hardware initialization code here...and in other routines!!
     
     if (!createAudioEngine()) {

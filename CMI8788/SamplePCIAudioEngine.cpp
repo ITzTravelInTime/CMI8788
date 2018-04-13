@@ -149,10 +149,12 @@ static int oxygen_ac97_wait(struct oxygen *chip, unsigned int mask)
      * Reading the status register also clears the bits, so we have to save
      * the read bits in status.
      */
+    /*
     wait_event_timeout(chip->ac97_waitqueue,
                        ({ status |= oxygen_read8(chip, OXYGEN_AC97_INTERRUPT_STATUS);
         status & mask; }),
                        msecs_to_jiffies(1) + 1);
+     */
     /*
      * Check even after a timeout because this function should not require
      * the AC'97 interrupt to be enabled.

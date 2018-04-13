@@ -11,11 +11,9 @@
 		CE235FA2207DBA0600AF3203 /* CMI8788.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CE235FA1207DBA0600AF3203 /* CMI8788.cpp */; };
 		CE44242B207FF78500158F35 /* ak4396.h in Headers */ = {isa = PBXBuildFile; fileRef = CE442427207FF78500158F35 /* ak4396.h */; };
 		CE44242C207FF78500158F35 /* oxygen_regs.h in Headers */ = {isa = PBXBuildFile; fileRef = CE442428207FF78500158F35 /* oxygen_regs.h */; };
-		CE44242D207FF78500158F35 /* oxygen.h in Headers */ = {isa = PBXBuildFile; fileRef = CE442429207FF78500158F35 /* oxygen.h */; };
 		CE44242E207FF78500158F35 /* wm8785.h in Headers */ = {isa = PBXBuildFile; fileRef = CE44242A207FF78500158F35 /* wm8785.h */; };
 		CE44242F207FF99000158F35 /* SamplePCIAudioEngine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CE442425207FDBE100158F35 /* SamplePCIAudioEngine.cpp */; };
 		CE442430207FF99200158F35 /* SamplePCIAudioEngine.hpp in Headers */ = {isa = PBXBuildFile; fileRef = CE442426207FDBE100158F35 /* SamplePCIAudioEngine.hpp */; };
-		CE442432207FFE4100158F35 /* oxygen_io.c in Sources */ = {isa = PBXBuildFile; fileRef = CE442431207FFE4100158F35 /* oxygen_io.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -27,9 +25,7 @@
 		CE442426207FDBE100158F35 /* SamplePCIAudioEngine.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = SamplePCIAudioEngine.hpp; sourceTree = "<group>"; };
 		CE442427207FF78500158F35 /* ak4396.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ak4396.h; sourceTree = "<group>"; };
 		CE442428207FF78500158F35 /* oxygen_regs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = oxygen_regs.h; sourceTree = "<group>"; };
-		CE442429207FF78500158F35 /* oxygen.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = oxygen.h; sourceTree = "<group>"; };
 		CE44242A207FF78500158F35 /* wm8785.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = wm8785.h; sourceTree = "<group>"; };
-		CE442431207FFE4100158F35 /* oxygen_io.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = oxygen_io.c; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -62,10 +58,8 @@
 		CE235F9E207DBA0600AF3203 /* CMI8788 */ = {
 			isa = PBXGroup;
 			children = (
-				CE442431207FFE4100158F35 /* oxygen_io.c */,
 				CE442427207FF78500158F35 /* ak4396.h */,
 				CE442428207FF78500158F35 /* oxygen_regs.h */,
-				CE442429207FF78500158F35 /* oxygen.h */,
 				CE44242A207FF78500158F35 /* wm8785.h */,
 				CE442425207FDBE100158F35 /* SamplePCIAudioEngine.cpp */,
 				CE442426207FDBE100158F35 /* SamplePCIAudioEngine.hpp */,
@@ -84,7 +78,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				CE44242E207FF78500158F35 /* wm8785.h in Headers */,
-				CE44242D207FF78500158F35 /* oxygen.h in Headers */,
 				CE442430207FF99200158F35 /* SamplePCIAudioEngine.hpp in Headers */,
 				CE44242B207FF78500158F35 /* ak4396.h in Headers */,
 				CE235FA0207DBA0600AF3203 /* CMI8788.hpp in Headers */,
@@ -161,7 +154,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				CE235FA2207DBA0600AF3203 /* CMI8788.cpp in Sources */,
-				CE442432207FFE4100158F35 /* oxygen_io.c in Sources */,
 				CE44242F207FF99000158F35 /* SamplePCIAudioEngine.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
