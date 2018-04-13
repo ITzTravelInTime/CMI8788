@@ -14,8 +14,8 @@
 		CE44242E207FF78500158F35 /* wm8785.h in Headers */ = {isa = PBXBuildFile; fileRef = CE44242A207FF78500158F35 /* wm8785.h */; };
 		CE44242F207FF99000158F35 /* SamplePCIAudioEngine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CE442425207FDBE100158F35 /* SamplePCIAudioEngine.cpp */; };
 		CE442430207FF99200158F35 /* SamplePCIAudioEngine.hpp in Headers */ = {isa = PBXBuildFile; fileRef = CE442426207FDBE100158F35 /* SamplePCIAudioEngine.hpp */; };
-		CEACF3DF20806BCA00D01190 /* cm9780.h in Headers */ = {isa = PBXBuildFile; fileRef = CEACF3DE20806BCA00D01190 /* cm9780.h */; };
 		CEACF3E120806D6D00D01190 /* ac97.h in Headers */ = {isa = PBXBuildFile; fileRef = CEACF3E020806D6D00D01190 /* ac97.h */; };
+		CEACF3E5208074C200D01190 /* cm9780.h in Headers */ = {isa = PBXBuildFile; fileRef = CEACF3E4208074C200D01190 /* cm9780.h */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -28,8 +28,8 @@
 		CE442427207FF78500158F35 /* ak4396.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ak4396.h; sourceTree = "<group>"; };
 		CE442428207FF78500158F35 /* oxygen_regs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = oxygen_regs.h; sourceTree = "<group>"; };
 		CE44242A207FF78500158F35 /* wm8785.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = wm8785.h; sourceTree = "<group>"; };
-		CEACF3DE20806BCA00D01190 /* cm9780.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cm9780.h; sourceTree = "<group>"; };
 		CEACF3E020806D6D00D01190 /* ac97.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ac97.h; sourceTree = "<group>"; };
+		CEACF3E4208074C200D01190 /* cm9780.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cm9780.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -62,7 +62,7 @@
 		CE235F9E207DBA0600AF3203 /* CMI8788 */ = {
 			isa = PBXGroup;
 			children = (
-				CEACF3DE20806BCA00D01190 /* cm9780.h */,
+				CEACF3E4208074C200D01190 /* cm9780.h */,
 				CE442427207FF78500158F35 /* ak4396.h */,
 				CE442428207FF78500158F35 /* oxygen_regs.h */,
 				CE44242A207FF78500158F35 /* wm8785.h */,
@@ -86,10 +86,10 @@
 				CEACF3E120806D6D00D01190 /* ac97.h in Headers */,
 				CE44242E207FF78500158F35 /* wm8785.h in Headers */,
 				CE442430207FF99200158F35 /* SamplePCIAudioEngine.hpp in Headers */,
-				CEACF3DF20806BCA00D01190 /* cm9780.h in Headers */,
 				CE44242B207FF78500158F35 /* ak4396.h in Headers */,
 				CE235FA0207DBA0600AF3203 /* CMI8788.hpp in Headers */,
 				CE44242C207FF78500158F35 /* oxygen_regs.h in Headers */,
+				CEACF3E5208074C200D01190 /* cm9780.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

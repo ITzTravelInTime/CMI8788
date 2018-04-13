@@ -55,7 +55,7 @@
 #include <sys/errno.h>
 #include <machine/limits.h>
 #include "oxygen_regs.h"
-
+#define dev_err(dev, format, args...) do {IOLog("LinuxI2C(dev_err): " format, ##args);} while (0)
 
 /* 1 << PCM_x == OXYGEN_CHANNEL_x */
 #define PCM_A		0
