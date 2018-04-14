@@ -315,18 +315,6 @@ void PCIAudioDevice::oxygen_init(struct oxygen *chip)
 
 
 
-void PCIAudioDevice::oxygen_write_i2c(struct oxygen *chip, UInt8 device, UInt8 map, UInt8 data)
-{
-    /* should not need more than about 300 us */
-    IODelay(1000);
-    
-    oxygen_write8(chip, OXYGEN_2WIRE_MAP, map);
-    oxygen_write8(chip, OXYGEN_2WIRE_DATA, data);
-    oxygen_write8(chip, OXYGEN_2WIRE_CONTROL,
-                  device | OXYGEN_2WIRE_DIR_WRITE);
-}
-//EXPORT_SYMBOL(oxygen_write_i2c);
-
 
 UInt16 PCIAudioDevice::oxygen_read_eeprom(struct oxygen *chip, unsigned int index)
 {

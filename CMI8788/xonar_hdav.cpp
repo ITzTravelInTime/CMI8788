@@ -46,7 +46,7 @@
 #include <libkern/OSByteOrder.h>
 #include <sys/errno.h>
 #include <i386/limits.h>
-#include </usr/include//libkern/OSAtomic.h>
+#include </usr/include/libkern/OSAtomic.h>
 
 
 #include <IOKit/IOLib.h>
@@ -530,10 +530,24 @@ static inline void pcm1796_write_spi(struct oxygen *chip, unsigned int codec,
                      (reg << 8) | value); 
 }
 
+
+
+void oxygen_write_i2c(struct oxygen *chip, UInt8 device, UInt8 map, UInt8 data)
+{
+    /* should not need more than about 300 us */
+    IODelay(1000);
+    
+    oxygen_write8(chip, OXYGEN_2WIRE_MAP, map);
+    oxygen_write8(chip, OXYGEN_2WIRE_DATA, data);
+    oxygen_write8(chip, OXYGEN_2WIRE_CONTROL,
+                  device | OXYGEN_2WIRE_DIR_WRITE);
+}
+//EXPORT_SYMBOL(oxygen_write_i2c);
+
 static inline void pcm1796_write_i2c(struct oxygen *chip, unsigned int codec,
                                      UInt8 reg, UInt8 value)
 {
-  //  oxygen_write_i2c(chip, I2C_DEVICE_PCM1796(codec), reg, value);
+    oxygen_write_i2c(chip, I2C_DEVICE_PCM1796(codec), reg, value);
 }
 
 static void pcm1796_write(struct oxygen *chip, unsigned int codec,
@@ -564,7 +578,7 @@ static void cs2000_write(struct oxygen *chip, UInt8 reg, UInt8 value)
 {
     struct xonar_pcm179x *data = (struct xonar_pcm179x*)chip->model_data;
     
-   // oxygen_write_i2c(chip, I2C_DEVICE_CS2000, reg, value);
+    oxygen_write_i2c(chip, I2C_DEVICE_CS2000, reg, value);
     data->cs2000_regs[reg] = value;
 }
 
@@ -614,7 +628,7 @@ static void pcm1796_init(struct oxygen *chip)
     data->pcm1796_regs[0][20 - PCM1796_REG_BASE] =
     data->h6 ? PCM1796_OS_64 : PCM1796_OS_128;
     pcm1796_registers_init(chip);
-    data->current_rate = 48000;
+    data->current_rate->whole = 48000;
 }
 
 static void xonar_d2_init(struct oxygen *chip)
@@ -882,29 +896,31 @@ static void xonar_st_resume(struct oxygen *chip)
     xonar_stx_resume(chip);
 }
 
-static void update_pcm1796_oversampling(struct oxygen *chip)
+void SamplePCIAudioEngine::update_pcm1796_oversampling(struct oxygen *chip)
 {
     struct xonar_pcm179x *data = (struct xonar_pcm179x*) chip->model_data;
     unsigned int i;
     UInt8 reg;
     
-    if (data->current_rate <= 48000 && !data->h6)
+    if (data->current_rate->whole <= 48000 && !data->h6)
         reg = PCM1796_OS_128;
     else
         reg = PCM1796_OS_64;
     for (i = 0; i < data->dacs; ++i)
         pcm1796_write_cached(chip, i, 20, reg);
 }
-/*
-static void set_pcm1796_params(struct oxygen *chip,
-                               struct snd_pcm_hw_params *params)
+
+void SamplePCIAudioEngine::set_pcm1796_params(struct oxygen *chip)
 {
-    struct xonar_pcm179x *data = (struct xonar_hdav*) chip->model_data;
+    struct xonar_pcm179x *data = (struct xonar_pcm179x*) chip->model_data;
     
-    msleep(1);
-    data->current_rate = params_rate(params);
+    IODelay(1*1000);
+    //hopefully OSX getSampleRate() for IOAudioEngine objects has
+    // similar behaviour to linux's params_rate...
+    data->current_rate = (IOAudioSampleRate *) this->getSampleRate();
+   // data->current_rate = params_rate(params);
     update_pcm1796_oversampling(chip);
-}*/
+}
 
 static void update_pcm1796_volume(struct oxygen *chip)
 {
@@ -934,6 +950,7 @@ static void update_pcm1796_mute(struct oxygen *chip)
     for (i = 0; i < data->dacs; ++i)
         pcm1796_write_cached(chip, i, 18, value);
 }
+
 
 static void update_cs2000_rate(struct oxygen *chip, unsigned int rate)
 {

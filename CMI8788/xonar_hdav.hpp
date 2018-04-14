@@ -67,7 +67,7 @@ struct xonar_pcm179x {
     struct xonar_generic generic;
     unsigned int dacs;
     UInt8 pcm1796_regs[4][5];
-    unsigned int current_rate;
+    IOAudioSampleRate *current_rate;
     bool h6;
     bool hp_active;
     SInt8 hp_gain_offset;
@@ -158,8 +158,10 @@ public:
     void xonar_hdmi_resume(struct oxygen *chip, struct xonar_hdmi *hdmi);
    // void xonar_hdmi_pcm_hardware_filter(unsigned int channel,
      //                                   struct snd_pcm_hardware *hardware);
-    //void xonar_set_hdmi_params(struct oxygen *chip, struct xonar_hdmi *hdmi,
-    //                           struct snd_pcm_hw_params *params);
+    void update_pcm1796_oversampling(struct oxygen *chip);
+    void set_pcm1796_params(struct oxygen *chip);
+    void xonar_set_hdmi_params(struct oxygen *chip, struct xonar_hdmi *hdmi,
+                               IOAudioSampleRate *params);
     void xonar_hdmi_uart_input(struct oxygen *chip);
 };
 
