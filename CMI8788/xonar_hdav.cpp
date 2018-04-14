@@ -638,7 +638,7 @@ static void pcm1796_init(struct oxygen *chip)
     pcm1796_registers_init(chip);
     data->current_rate->whole = 48000;
 }
-
+/*
 static void xonar_d2_init(struct oxygen *chip)
 {
     struct xonar_pcm179x *data = (struct xonar_pcm179x*) chip->model_data;
@@ -672,8 +672,8 @@ static void xonar_d2x_init(struct oxygen *chip)
     xonar_init_ext_power(chip);
     xonar_d2_init(chip);
 }
-
-static void xonar_hdav_init(struct oxygen *chip)
+*/
+void SamplePCIAudioEngine::xonar_hdav_init(struct oxygen *chip)
 {
     struct xonar_hdav *data = (struct xonar_hdav*) chip->model_data;
     
@@ -712,7 +712,7 @@ static void xonar_st_init_i2c(struct oxygen *chip)
                    OXYGEN_2WIRE_INTERRUPT_MASK |
                    OXYGEN_2WIRE_SPEED_STANDARD);
 }
-
+/*
 static void xonar_st_init_common(struct oxygen *chip)
 {
     struct xonar_pcm179x *data = (struct xonar_pcm179x*) chip->model_data;
@@ -736,7 +736,7 @@ static void xonar_st_init_common(struct oxygen *chip)
  //   snd_component_add(chip->card, "PCM1792A");
   //  snd_component_add(chip->card, "CS5381");
 }
-
+*/
 static void cs2000_registers_init(struct oxygen *chip)
 {
     struct xonar_pcm179x *data = (struct xonar_pcm179x*) chip->model_data;
@@ -761,7 +761,7 @@ static void cs2000_registers_init(struct oxygen *chip)
     cs2000_write(chip, CS2000_GLOBAL_CFG, CS2000_EN_DEV_CFG_2);
     IODelay(3*1000); /* PLL lock delay */
 }
-
+/*
 static void xonar_st_init(struct oxygen *chip)
 {
     struct xonar_pcm179x *data = (struct xonar_pcm179x*)chip->model_data;
@@ -844,7 +844,7 @@ static void xonar_xense_init(struct oxygen *chip)
  //   snd_component_add(chip->card, "CS5381");
   //  snd_component_add(chip->card, "CS2000");
 }
-
+*/
 static void xonar_d2_cleanup(struct oxygen *chip)
 {
     xonar_disable_output(chip);

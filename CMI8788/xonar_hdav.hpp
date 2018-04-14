@@ -144,6 +144,7 @@ public:
     void xonar_disable_output(struct oxygen *chip);
     void xonar_init_ext_power(struct oxygen *chip);
     void xonar_init_cs53x1(struct oxygen *chip);
+    void xonar_hdav_init(struct oxygen *chip);
     void xonar_set_cs53x1_params(struct oxygen *chip);
     
 
