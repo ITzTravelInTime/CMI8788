@@ -313,38 +313,7 @@ void PCIAudioDevice::oxygen_init(struct oxygen *chip)
 
 
 
-static int oxygen_wait_spi(struct oxygen *chip)
-{
-    unsigned int count;
-    
-    /*
-     * Higher timeout to be sure: 200 us;
-     * actual transaction should not need more than 40 us.
-     */
-    for (count = 50; count > 0; count--) {
-        IODelay(4);
-        if ((oxygen_read8(chip, OXYGEN_SPI_CONTROL) &
-             OXYGEN_SPI_BUSY) == 0)
-            return 0;
-    }
-    dev_err(chip->card->dev, "oxygen: SPI wait timeout\n");
-    return -EIO;
-}
 
-int oxygen_write_spi(struct oxygen *chip, UInt8 control, unsigned int data)
-{
-    /*
-     * We need to wait AFTER initiating the SPI transaction,
-     * otherwise read operations will not work.
-     */
-    oxygen_write8(chip, OXYGEN_SPI_DATA1, data);
-    oxygen_write8(chip, OXYGEN_SPI_DATA2, data >> 8);
-    if (control & OXYGEN_SPI_DATA_LENGTH_3)
-        oxygen_write8(chip, OXYGEN_SPI_DATA3, data >> 16);
-    oxygen_write8(chip, OXYGEN_SPI_CONTROL, control);
-    return oxygen_wait_spi(chip);
-}
-//EXPORT_SYMBOL(oxygen_write_spi);
 
 void PCIAudioDevice::oxygen_write_i2c(struct oxygen *chip, UInt8 device, UInt8 map, UInt8 data)
 {
@@ -464,11 +433,12 @@ bool PCIAudioDevice::initHardware(IOService *provider)
     
     oxygen_restore_eeprom(pciDevice,deviceRegisters);
     //following oxygen_pci_probe...
+    /**** MOVED TO AUDIOENGINE (XONAR_HDAV) AS IT FITS BETTER ***
     deviceRegisters->spdif_input_bits_work.init();
     deviceRegisters->gpio_work.init();
     queue_init(&deviceRegisters->ac97_waitqueue);
     deviceRegisters->mutex = OS_SPINLOCK_INIT;
-    
+    *******/
     //hardcoding relevant portions from get_xonar_model for HDAV1.3 for the time being.
     //if i can get a single model to work, i'll add others....
     deviceRegisters->model.dac_channels_mixer = 8;

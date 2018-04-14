@@ -127,6 +127,7 @@ public:
     static void interruptHandler(OSObject *owner, IOInterruptEventSource *source, int count);
     static bool interruptFilter(OSObject *owner, IOFilterInterruptEventSource *source);
     virtual void filterInterrupt(int index);
+    int oxygen_write_spi(struct oxygen *chip, UInt8 control, unsigned int data);
     
     void xonar_enable_output(struct oxygen *chip);
     void xonar_disable_output(struct oxygen *chip);

@@ -488,7 +488,7 @@ class PCIAudioDevice : public IOAudioDevice
     void oxygen_write_ac97_masked(struct oxygen *chip, unsigned int codec,
                                   unsigned int index, UInt16 data, UInt16 mask);
     
-    int oxygen_write_spi(struct oxygen *chip, UInt8 control, unsigned int data);
+
     void oxygen_write_i2c(struct oxygen *chip, UInt8 device, UInt8 map, UInt8 data);
     
     void oxygen_reset_uart(struct oxygen *chip);

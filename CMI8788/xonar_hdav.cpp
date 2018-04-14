@@ -465,6 +465,39 @@ void xonar_set_hdmi_params(struct oxygen *chip, struct xonar_hdmi *hdmi,
 }
 */
 
+static int oxygen_wait_spi(struct oxygen *chip)
+{
+    unsigned int count;
+    
+    /*
+     * Higher timeout to be sure: 200 us;
+     * actual transaction should not need more than 40 us.
+     */
+    for (count = 50; count > 0; count--) {
+        IODelay(4);
+        if ((oxygen_read8(chip, OXYGEN_SPI_CONTROL) &
+             OXYGEN_SPI_BUSY) == 0)
+            return 0;
+    }
+    dev_err(chip->card->dev, "oxygen: SPI wait timeout\n");
+    return -EIO;
+}
+
+int oxygen_write_spi(struct oxygen *chip, UInt8 control, unsigned int data)
+{
+    /*
+     * We need to wait AFTER initiating the SPI transaction,
+     * otherwise read operations will not work.
+     */
+    oxygen_write8(chip, OXYGEN_SPI_DATA1, data);
+    oxygen_write8(chip, OXYGEN_SPI_DATA2, data >> 8);
+    if (control & OXYGEN_SPI_DATA_LENGTH_3)
+        oxygen_write8(chip, OXYGEN_SPI_DATA3, data >> 16);
+    oxygen_write8(chip, OXYGEN_SPI_CONTROL, control);
+    return oxygen_wait_spi(chip);
+}
+//EXPORT_SYMBOL(oxygen_write_spi);
+
 void xonar_hdmi_uart_input(struct oxygen *chip)
 {
     if (chip->uart_input_count >= 2 &&
@@ -488,13 +521,13 @@ static inline void pcm1796_write_spi(struct oxygen *chip, unsigned int codec,
     static const UInt8 codec_map[4] = {
         0, 1, 2, 4
     };
-  /*
+  
     oxygen_write_spi(chip, OXYGEN_SPI_TRIGGER  |
                      OXYGEN_SPI_DATA_LENGTH_2 |
                      OXYGEN_SPI_CLOCK_160 |
                      (codec_map[codec] << OXYGEN_SPI_CODEC_SHIFT) |
                      OXYGEN_SPI_CEN_LATCH_CLOCK_HI,
-                     (reg << 8) | value); */
+                     (reg << 8) | value); 
 }
 
 static inline void pcm1796_write_i2c(struct oxygen *chip, unsigned int codec,
@@ -1301,6 +1334,10 @@ bool SamplePCIAudioEngine::init(struct oxygen *chip)
   //  ak4396_init(chip);
   //  wm8785_init(chip);
     deviceRegisters = (struct xonar_hdav*)chip->model_data;
+ 
+    // the below aren't correct. have to bridge the workqueue calls to IOWorkLoop
+    queue_init(&chip->ac97_waitqueue);
+    chip->mutex = OS_SPINLOCK_INIT;
     
     result = true;
     
