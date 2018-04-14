@@ -17,9 +17,6 @@
 		CEACF3E120806D6D00D01190 /* ac97.h in Headers */ = {isa = PBXBuildFile; fileRef = CEACF3E020806D6D00D01190 /* ac97.h */; };
 		CEACF3E5208074C200D01190 /* cm9780.h in Headers */ = {isa = PBXBuildFile; fileRef = CEACF3E4208074C200D01190 /* cm9780.h */; };
 		CEACF3EC2081216300D01190 /* pcm1796.h in Headers */ = {isa = PBXBuildFile; fileRef = CEACF3E62081216300D01190 /* pcm1796.h */; };
-		CEACF3ED2081216300D01190 /* virtuoso.c in Sources */ = {isa = PBXBuildFile; fileRef = CEACF3E72081216300D01190 /* virtuoso.c */; };
-		CEACF3EE2081216300D01190 /* xonar_hdmi.c in Sources */ = {isa = PBXBuildFile; fileRef = CEACF3E82081216300D01190 /* xonar_hdmi.c */; };
-		CEACF3EF2081216300D01190 /* xonar_lib.c in Sources */ = {isa = PBXBuildFile; fileRef = CEACF3E92081216300D01190 /* xonar_lib.c */; };
 		CEACF3F32081219A00D01190 /* cs2000.h in Headers */ = {isa = PBXBuildFile; fileRef = CEACF3F22081219A00D01190 /* cs2000.h */; };
 /* End PBXBuildFile section */
 
@@ -36,9 +33,6 @@
 		CEACF3E020806D6D00D01190 /* ac97.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ac97.h; sourceTree = "<group>"; };
 		CEACF3E4208074C200D01190 /* cm9780.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cm9780.h; sourceTree = "<group>"; };
 		CEACF3E62081216300D01190 /* pcm1796.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = pcm1796.h; sourceTree = "<group>"; };
-		CEACF3E72081216300D01190 /* virtuoso.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = virtuoso.c; sourceTree = "<group>"; };
-		CEACF3E82081216300D01190 /* xonar_hdmi.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = xonar_hdmi.c; sourceTree = "<group>"; };
-		CEACF3E92081216300D01190 /* xonar_lib.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = xonar_lib.c; sourceTree = "<group>"; };
 		CEACF3F22081219A00D01190 /* cs2000.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cs2000.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -72,21 +66,18 @@
 		CE235F9E207DBA0600AF3203 /* CMI8788 */ = {
 			isa = PBXGroup;
 			children = (
-				CEACF3E4208074C200D01190 /* cm9780.h */,
+				CEACF3E020806D6D00D01190 /* ac97.h */,
 				CE442427207FF78500158F35 /* ak4396.h */,
+				CEACF3E4208074C200D01190 /* cm9780.h */,
+				CEACF3F22081219A00D01190 /* cs2000.h */,
 				CE442428207FF78500158F35 /* oxygen_regs.h */,
+				CEACF3E62081216300D01190 /* pcm1796.h */,
 				CE44242A207FF78500158F35 /* wm8785.h */,
 				CE442425207FDBE100158F35 /* xonar_hdav.cpp */,
 				CE442426207FDBE100158F35 /* xonar_hdav.hpp */,
-				CE235F9F207DBA0600AF3203 /* CMI8788.hpp */,
 				CE235FA1207DBA0600AF3203 /* CMI8788.cpp */,
-				CEACF3E62081216300D01190 /* pcm1796.h */,
-				CEACF3E72081216300D01190 /* virtuoso.c */,
-				CEACF3E82081216300D01190 /* xonar_hdmi.c */,
-				CEACF3E92081216300D01190 /* xonar_lib.c */,
-				CEACF3F22081219A00D01190 /* cs2000.h */,
+				CE235F9F207DBA0600AF3203 /* CMI8788.hpp */,
 				CE235FA3207DBA0600AF3203 /* Info.plist */,
-				CEACF3E020806D6D00D01190 /* ac97.h */,
 			);
 			path = CMI8788;
 			sourceTree = "<group>";
@@ -180,9 +171,6 @@
 			files = (
 				CE235FA2207DBA0600AF3203 /* CMI8788.cpp in Sources */,
 				CE44242F207FF99000158F35 /* xonar_hdav.cpp in Sources */,
-				CEACF3EE2081216300D01190 /* xonar_hdmi.c in Sources */,
-				CEACF3ED2081216300D01190 /* virtuoso.c in Sources */,
-				CEACF3EF2081216300D01190 /* xonar_lib.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -271,13 +259,14 @@
 		CE235FA7207DBA0600AF3203 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = YES;
 				ARCHS = "$(ARCHS_STANDARD)";
 				CLANG_WARN_OBJC_IMPLICIT_ATOMIC_PROPERTIES = NO;
 				CODE_SIGN_IDENTITY = "";
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1.0.0d1;
-				GCC_USE_STANDARD_INCLUDE_SEARCHING = NO;
-				HEADER_SEARCH_PATHS = /usr/include;
+				GCC_USE_STANDARD_INCLUDE_SEARCHING = YES;
+				HEADER_SEARCH_PATHS = "";
 				INFOPLIST_FILE = CMI8788/Info.plist;
 				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				MODULE_NAME = CMedia.CMI8788;
@@ -288,6 +277,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 				SDKROOT = macosx10.11;
+				USER_HEADER_SEARCH_PATHS = "";
 				WRAPPER_EXTENSION = kext;
 			};
 			name = Debug;
@@ -295,13 +285,14 @@
 		CE235FA8207DBA0600AF3203 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = YES;
 				ARCHS = "$(ARCHS_STANDARD)";
 				CLANG_WARN_OBJC_IMPLICIT_ATOMIC_PROPERTIES = NO;
 				CODE_SIGN_IDENTITY = "";
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1.0.0d1;
-				GCC_USE_STANDARD_INCLUDE_SEARCHING = NO;
-				HEADER_SEARCH_PATHS = /usr/include;
+				GCC_USE_STANDARD_INCLUDE_SEARCHING = YES;
+				HEADER_SEARCH_PATHS = "";
 				INFOPLIST_FILE = CMI8788/Info.plist;
 				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				MODULE_NAME = CMedia.CMI8788;
@@ -312,6 +303,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 				SDKROOT = macosx10.11;
+				USER_HEADER_SEARCH_PATHS = "";
 				WRAPPER_EXTENSION = kext;
 			};
 			name = Release;

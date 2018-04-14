@@ -47,17 +47,15 @@
 #include <IOKit/audio/IOAudioToggleControl.h>
 #include <IOKit/audio/IOAudioDefines.h>
 
-//#include <IOKit/IOLib.h>
+#include <IOKit/IOLib.h>
 
-//#include <IOKit/pci/IOPCIDevice.h>
+#include <IOKit/pci/IOPCIDevice.h>
 #include "xonar_hdav.hpp"
 #include "CMI8788.hpp"
 #include "cm9780.h"
 #include "ac97.h"
 
 
-#define IEC958_AES1_CON_DIGDIGCONV_ID   0x02
-#define IEC958_AES1_CON_PCM_CODER       (IEC958_AES1_CON_DIGDIGCONV_ID|0x00)
 
 #define super IOAudioDevice
 
@@ -360,26 +358,6 @@ void PCIAudioDevice::oxygen_write_i2c(struct oxygen *chip, UInt8 device, UInt8 m
 }
 //EXPORT_SYMBOL(oxygen_write_i2c);
 
-void PCIAudioDevice::_write_uart(struct oxygen *chip, unsigned int port, UInt8 data)
-{
-    if (oxygen_read8(chip, OXYGEN_MPU401 + 1) & MPU401_TX_FULL)
-        IODelay(1e3);
-    oxygen_write8(chip, OXYGEN_MPU401 + port, data);
-}
-
-void PCIAudioDevice::oxygen_reset_uart(struct oxygen *chip)
-{
-    _write_uart(chip, 1, MPU401_RESET);
-    IODelay(1e3); /* wait for ACK */
-    _write_uart(chip, 1, MPU401_ENTER_UART);
-}
-//EXPORT_SYMBOL(oxygen_reset_uart);
-
-void PCIAudioDevice::oxygen_write_uart(struct oxygen *chip, UInt8 data)
-{
-    _write_uart(chip, 0, data);
-}
-//EXPORT_SYMBOL(oxygen_write_uart);
 
 UInt16 PCIAudioDevice::oxygen_read_eeprom(struct oxygen *chip, unsigned int index)
 {

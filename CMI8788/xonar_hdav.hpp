@@ -85,7 +85,7 @@ struct xonar_hdav {
 #define GPIO_CS53x1_M_SINGLE    0x0000
 #define GPIO_CS53x1_M_DOUBLE    0x0004
 #define GPIO_CS53x1_M_QUAD      0x0008
-
+#define XONAR_GPIO_BIT_INVERT	(1 << 16)
 
 class IOFilterInterruptEventSource;
 class IOInterruptEventSource;
@@ -94,7 +94,7 @@ class SamplePCIAudioEngine : public IOAudioEngine
 {
     OSDeclareDefaultStructors(SamplePCIAudioEngine)
     
-    struct generic_data                   *deviceRegisters;
+    struct xonar_hdav                   *deviceRegisters;
     
     SInt16							*outputBuffer;
     SInt16							*inputBuffer;
@@ -135,7 +135,7 @@ public:
 //    void xonar_set_cs53x1_params(struct oxygen *chip,
 //                                 struct snd_pcm_hw_params *params);
     
-#define XONAR_GPIO_BIT_INVERT	(1 << 16)
+
     int xonar_gpio_bit_switch_get(struct snd_kcontrol *ctl,
                                   struct snd_ctl_elem_value *value);
     int xonar_gpio_bit_switch_put(struct snd_kcontrol *ctl,

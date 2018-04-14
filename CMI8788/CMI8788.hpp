@@ -54,7 +54,7 @@
 #include <sys/errno.h>
 #include <machine/limits.h>
 #include "oxygen_regs.h"
-#include <libkern/OSAtomic.h>
+//#include <libkern/OSAtomic.h>
 
 #define dev_err(dev, format, args...) do {IOLog("CMI8788: " format, ##args);} while (0)
 
@@ -96,6 +96,11 @@
 #define MSEC_PER_SEC        1000L
 #define HZ                  1024
 #define BUFFER_SIZE			(NUM_SAMPLE_FRAMES * NUM_CHANNELS * BIT_DEPTH / 8)
+
+#define IEC958_AES1_CON_DIGDIGCONV_ID   0x02
+#define IEC958_AES1_CON_PCM_CODER       (IEC958_AES1_CON_DIGDIGCONV_ID|0x00)
+#define IEC958_AES3_CON_FS_48000	(2<<0)	/* 48kHz */
+
 
 enum {
     CONTROL_SPDIF_PCM,
@@ -438,13 +443,13 @@ class PCIAudioDevice : public IOAudioDevice
     static IOReturn inputMuteChangeHandler(IOService *target, IOAudioControl *muteControl, SInt32 oldValue, SInt32 newValue);
     virtual IOReturn inputMuteChanged(IOAudioControl *muteControl, SInt32 oldValue, SInt32 newValue);
 
-    int oxygen_pci_probe(struct pci_dev *pci, int index, char *id,
-                         struct module *owner,
-                         const struct pci_device_id *ids,
-                         int (*get_model)(struct oxygen *chip,
-                                          const struct pci_device_id *id
-                                          )
-                         );
+//    int oxygen_pci_probe(struct pci_dev *pci, int index, char *id,
+//                         struct module *owner,
+//                         const struct pci_device_id *ids,
+//                         int (*get_model)(struct oxygen *chip,
+//                                          const struct pci_device_id *id
+//                                          )
+//                         );
     void oxygen_pci_remove(struct pci_dev *pci);
 #ifdef CONFIG_PM_SLEEP
     extern const struct dev_pm_ops oxygen_pci_pm;

@@ -46,14 +46,17 @@
 #include <libkern/OSByteOrder.h>
 #include <sys/errno.h>
 #include <i386/limits.h>
+#include </usr/include//libkern/OSAtomic.h>
 
-//#include <IOKit/IOLib.h>
+
+#include <IOKit/IOLib.h>
 #include <IOKit/IOFilterInterruptEventSource.h>
 //#include <architecture/i386/pio.h>
 #include "xonar_hdav.hpp"
 #include "pcm1796.h"
 #include "cm9780.h"
-
+#include "cs2000.h"
+#include "ac97.h"
 #define INITIAL_SAMPLE_RATE	44100
 #define NUM_SAMPLE_FRAMES	16384
 #define NUM_CHANNELS		2
@@ -351,6 +354,27 @@ int xonar_gpio_bit_switch_put(struct snd_kcontrol *ctl,
     return changed;
 }
 */
+
+void _write_uart(struct oxygen *chip, unsigned int port, UInt8 data)
+{
+    if (oxygen_read8(chip, OXYGEN_MPU401 + 1) & MPU401_TX_FULL)
+        IODelay(1e3);
+    oxygen_write8(chip, OXYGEN_MPU401 + port, data);
+}
+
+void oxygen_reset_uart(struct oxygen *chip)
+{
+    _write_uart(chip, 1, MPU401_RESET);
+    IODelay(1e3); /* wait for ACK */
+    _write_uart(chip, 1, MPU401_ENTER_UART);
+}
+//EXPORT_SYMBOL(oxygen_reset_uart);
+
+void oxygen_write_uart(struct oxygen *chip, UInt8 data)
+{
+    _write_uart(chip, 0, data);
+}
+//EXPORT_SYMBOL(oxygen_write_uart);
 static void hdmi_write_command(struct oxygen *chip, UInt8 command,
                                unsigned int count, const UInt8 *params)
 {
@@ -374,7 +398,7 @@ static void xonar_hdmi_init_commands(struct oxygen *chip,
 {
     UInt8 param;
     
-    oxygen_reset_uart(chip);
+  //  oxygen_reset_uart(chip);
     param = 0;
     hdmi_write_command(chip, 0x61, 1, &param);
     param = 1;
@@ -446,9 +470,9 @@ void xonar_hdmi_uart_input(struct oxygen *chip)
     if (chip->uart_input_count >= 2 &&
         chip->uart_input[chip->uart_input_count - 2] == 'O' &&
         chip->uart_input[chip->uart_input_count - 1] == 'K') {
-        dev_dbg(chip->card->dev, "message from HDMI chip received:\n");
-        print_hex_dump_bytes("", DUMP_PREFIX_OFFSET,
-                             chip->uart_input, chip->uart_input_count);
+        IOLog("message from HDMI chip received:\n");
+        //print_hex_dump_bytes("", DUMP_PREFIX_OFFSET,
+         //                    chip->uart_input, chip->uart_input_count);
         chip->uart_input_count = 0;
     }
 }
@@ -680,7 +704,7 @@ static void cs2000_registers_init(struct oxygen *chip)
                  data->cs2000_regs[CS2000_FUN_CFG_1]);
     cs2000_write(chip, CS2000_FUN_CFG_2, 0);
     cs2000_write(chip, CS2000_GLOBAL_CFG, CS2000_EN_DEV_CFG_2);
-    msleep(3); /* PLL lock delay */
+    IODelay(3*1000); /* PLL lock delay */
 }
 
 static void xonar_st_init(struct oxygen *chip)
@@ -761,9 +785,9 @@ static void xonar_xense_init(struct oxygen *chip)
     xonar_init_cs53x1(chip);
     xonar_enable_output(chip);
     
-    snd_component_add(chip->card, "PCM1796");
-    snd_component_add(chip->card, "CS5381");
-    snd_component_add(chip->card, "CS2000");
+ //   snd_component_add(chip->card, "PCM1796");
+ //   snd_component_add(chip->card, "CS5381");
+  //  snd_component_add(chip->card, "CS2000");
 }
 
 static void xonar_d2_cleanup(struct oxygen *chip)
@@ -775,7 +799,7 @@ static void xonar_hdav_cleanup(struct oxygen *chip)
 {
     xonar_hdmi_cleanup(chip);
     xonar_disable_output(chip);
-    msleep(2);
+    IODelay(2);
 }
 
 static void xonar_st_cleanup(struct oxygen *chip)
@@ -827,7 +851,7 @@ static void xonar_st_resume(struct oxygen *chip)
 
 static void update_pcm1796_oversampling(struct oxygen *chip)
 {
-    struct xonar_pcm179x *data = (struct xonar_hdav*) chip->model_data;
+    struct xonar_pcm179x *data = (struct xonar_pcm179x*) chip->model_data;
     unsigned int i;
     UInt8 reg;
     
@@ -851,9 +875,9 @@ static void set_pcm1796_params(struct oxygen *chip,
 
 static void update_pcm1796_volume(struct oxygen *chip)
 {
-    struct xonar_pcm179x *data = (struct xonar_hdav*) chip->model_data;
+    struct xonar_pcm179x *data = (struct xonar_pcm179x*) chip->model_data;
     unsigned int i;
-    s8 gain_offset;
+    SInt8 gain_offset;
     
     gain_offset = data->hp_active ? data->hp_gain_offset : 0;
     for (i = 0; i < data->dacs; ++i) {
@@ -867,7 +891,7 @@ static void update_pcm1796_volume(struct oxygen *chip)
 
 static void update_pcm1796_mute(struct oxygen *chip)
 {
-    struct xonar_pcm179x *data = (struct xonar_hdav*) chip->model_data;
+    struct xonar_pcm179x *data = (struct xonar_pcm179x*) chip->model_data;
     unsigned int i;
     UInt8 value;
     
@@ -880,7 +904,7 @@ static void update_pcm1796_mute(struct oxygen *chip)
 
 static void update_cs2000_rate(struct oxygen *chip, unsigned int rate)
 {
-    struct xonar_pcm179x *data = (struct xonar_hdav*) chip->model_data;
+    struct xonar_pcm179x *data = (struct xonar_pcm179x*) chip->model_data;
     UInt8 rate_mclk, reg;
     
     switch (rate) {
@@ -912,7 +936,7 @@ static void update_cs2000_rate(struct oxygen *chip, unsigned int rate)
     oxygen_write16_masked(chip, OXYGEN_I2S_A_FORMAT, rate_mclk,
                           OXYGEN_I2S_RATE_MASK | OXYGEN_I2S_MCLK_MASK);
     cs2000_write_cached(chip, CS2000_FUN_CFG_1, reg);
-    msleep(3); /* PLL lock delay */
+    IODelay(3*1000); /* PLL lock delay */
 }
 /*
 static void set_st_params(struct oxygen *chip,
@@ -1193,11 +1217,11 @@ static void xonar_line_mic_ac97_switch(struct oxygen *chip,
                                        unsigned int reg, unsigned int mute)
 {
     if (reg == AC97_LINE) {
-        spin_lock_irq(&chip->reg_lock);
+        OSSpinLockLock(&chip->reg_lock);
         oxygen_write16_masked(chip, OXYGEN_GPIO_DATA,
                               mute ? GPIO_INPUT_ROUTE : 0,
                               GPIO_INPUT_ROUTE);
-        spin_unlock_irq(&chip->reg_lock);
+        OSSpinLockUnlock(&chip->reg_lock);
     }
 }
 //
@@ -1217,19 +1241,19 @@ static void xonar_line_mic_ac97_switch(struct oxygen *chip,
 //    /* no volume/mute, as I²C to the third DAC does not work */
 //        return 1;
 //    return 0;
-}
+//}
 
 static int add_pcm1796_controls(struct oxygen *chip)
 {
-    struct xonar_pcm179x *data = chip->model_data;
+    struct xonar_pcm179x *data = (struct xonar_pcm179x*)chip->model_data;
     int err;
     
-    if (!data->broken_i2c) {
+    /*if (!data->broken_i2c) {
         err = snd_ctl_add(chip->card,
                           snd_ctl_new1(&rolloff_control, chip));
         if (err < 0)
             return err;
-    }
+    }*/
     return 0;
 }
 
@@ -1237,7 +1261,7 @@ static int xonar_d2_mixer_init(struct oxygen *chip)
 {
     int err;
     
-    err = snd_ctl_add(chip->card, snd_ctl_new1(&alt_switch, chip));
+ //   err = snd_ctl_add(chip->card, snd_ctl_new1(&alt_switch, chip));
     if (err < 0)
         return err;
     err = add_pcm1796_controls(chip);
@@ -1250,7 +1274,7 @@ static int xonar_hdav_mixer_init(struct oxygen *chip)
 {
     int err;
     
-    err = snd_ctl_add(chip->card, snd_ctl_new1(&hdav_hdmi_control, chip));
+  //  err = snd_ctl_add(chip->card, snd_ctl_new1(&hdav_hdmi_control, chip));
     if (err < 0)
         return err;
     err = add_pcm1796_controls(chip);
