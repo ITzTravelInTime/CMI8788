@@ -50,6 +50,43 @@
 
 #define SamplePCIAudioEngine com_MyCompany_driver_SamplePCIAudioEngine
 
+struct xonar_generic {
+    unsigned int anti_pop_delay;
+    UInt16 output_enable_bit;
+    UInt8 ext_power_reg;
+    UInt8 ext_power_int_reg;
+    UInt8 ext_power_bit;
+    UInt8 has_power;
+};
+
+struct xonar_hdmi {
+    UInt8 params[5];
+};
+
+struct xonar_pcm179x {
+    struct xonar_generic generic;
+    unsigned int dacs;
+    UInt8 pcm1796_regs[4][5];
+    unsigned int current_rate;
+    bool h6;
+    bool hp_active;
+    SInt8 hp_gain_offset;
+    bool has_cs2000;
+    UInt8 cs2000_regs[0x1f];
+    bool broken_i2c;
+};
+
+struct xonar_hdav {
+    struct xonar_pcm179x pcm179x;
+    struct xonar_hdmi hdmi;
+};
+
+#define GPIO_CS53x1_M_MASK      0x000c
+#define GPIO_CS53x1_M_SINGLE    0x0000
+#define GPIO_CS53x1_M_DOUBLE    0x0004
+#define GPIO_CS53x1_M_QUAD      0x0008
+
+
 class IOFilterInterruptEventSource;
 class IOInterruptEventSource;
 
@@ -67,59 +104,6 @@ class SamplePCIAudioEngine : public IOAudioEngine
 public:
     
     
-    int oxygen_pci_probe(struct pci_dev *pci, int index, char *id,
-                         struct module *owner,
-                         const struct pci_device_id *ids,
-                         int (*get_model)(struct oxygen *chip,
-                                          const struct pci_device_id *id
-                                          )
-                         );
-    void oxygen_pci_remove(struct pci_dev *pci);
-#ifdef CONFIG_PM_SLEEP
-    extern const struct dev_pm_ops oxygen_pci_pm;
-#endif
-    void oxygen_pci_shutdown(struct pci_dev *pci);
-    
-    /* oxygen_mixer.c */
-    
-    int oxygen_mixer_init(struct oxygen *chip);
-    void oxygen_update_dac_routing(struct oxygen *chip);
-    void oxygen_update_spdif_source(struct oxygen *chip);
-    
-    /* oxygen_pcm.c */
-    
-    int oxygen_pcm_init(struct oxygen *chip);
-    
-    /* oxygen_io.c */
-    
-    UInt8 oxygen_read8(struct oxygen *chip, unsigned int reg);
-    UInt16 oxygen_read16(struct oxygen *chip, unsigned int reg);
-    UInt32 oxygen_read32(struct oxygen *chip, unsigned int reg);
-    void oxygen_write8(struct oxygen *chip, unsigned int reg, UInt8 value);
-    void oxygen_write16(struct oxygen *chip, unsigned int reg, UInt16 value);
-    void oxygen_write32(struct oxygen *chip, unsigned int reg, UInt32 value);
-    void oxygen_write8_masked(struct oxygen *chip, unsigned int reg,
-                              UInt8 value, UInt8 mask);
-    void oxygen_write16_masked(struct oxygen *chip, unsigned int reg,
-                               UInt16 value, UInt16 mask);
-    void oxygen_write32_masked(struct oxygen *chip, unsigned int reg,
-                               UInt32 value, UInt32 mask);
-    
-    UInt16 oxygen_read_ac97(struct oxygen *chip, unsigned int codec,
-                         unsigned int index);
-    void oxygen_write_ac97(struct oxygen *chip, unsigned int codec,
-                           unsigned int index, UInt16 data);
-    void oxygen_write_ac97_masked(struct oxygen *chip, unsigned int codec,
-                                  unsigned int index, UInt16 data, UInt16 mask);
-    
-    int oxygen_write_spi(struct oxygen *chip, UInt8 control, unsigned int data);
-    void oxygen_write_i2c(struct oxygen *chip, UInt8 device, UInt8 map, UInt8 data);
-    
-    void oxygen_reset_uart(struct oxygen *chip);
-    void oxygen_write_uart(struct oxygen *chip, UInt8 data);
-    
-    UInt16 oxygen_read_eeprom(struct oxygen *chip, unsigned int index);
-    void oxygen_write_eeprom(struct oxygen *chip, unsigned int index, UInt16 value);
     
         
     virtual bool init(struct oxygen *regs);
@@ -143,6 +127,39 @@ public:
     static void interruptHandler(OSObject *owner, IOInterruptEventSource *source, int count);
     static bool interruptFilter(OSObject *owner, IOFilterInterruptEventSource *source);
     virtual void filterInterrupt(int index);
+    
+    void xonar_enable_output(struct oxygen *chip);
+    void xonar_disable_output(struct oxygen *chip);
+    void xonar_init_ext_power(struct oxygen *chip);
+    void xonar_init_cs53x1(struct oxygen *chip);
+//    void xonar_set_cs53x1_params(struct oxygen *chip,
+//                                 struct snd_pcm_hw_params *params);
+    
+#define XONAR_GPIO_BIT_INVERT	(1 << 16)
+    int xonar_gpio_bit_switch_get(struct snd_kcontrol *ctl,
+                                  struct snd_ctl_elem_value *value);
+    int xonar_gpio_bit_switch_put(struct snd_kcontrol *ctl,
+                                  struct snd_ctl_elem_value *value);
+    
+    /* model-specific card drivers */
+    
+    int get_xonar_pcm179x_model(struct oxygen *chip,
+                                const struct pci_device_id *id);
+    int get_xonar_cs43xx_model(struct oxygen *chip,
+                               const struct pci_device_id *id);
+    int get_xonar_wm87x6_model(struct oxygen *chip,
+                               const struct pci_device_id *id);
+    
+    /* HDMI helper functions */
+    
+    void xonar_hdmi_init(struct oxygen *chip, struct xonar_hdmi *data);
+    void xonar_hdmi_cleanup(struct oxygen *chip);
+    void xonar_hdmi_resume(struct oxygen *chip, struct xonar_hdmi *hdmi);
+   // void xonar_hdmi_pcm_hardware_filter(unsigned int channel,
+     //                                   struct snd_pcm_hardware *hardware);
+    //void xonar_set_hdmi_params(struct oxygen *chip, struct xonar_hdmi *hdmi,
+    //                           struct snd_pcm_hw_params *params);
+    void xonar_hdmi_uart_input(struct oxygen *chip);
 };
 
 #endif /* _SAMPLEPCIAUDIOENGINE_H */

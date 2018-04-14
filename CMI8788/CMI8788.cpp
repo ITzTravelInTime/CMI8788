@@ -40,16 +40,17 @@
  
  */
 
+//#include <libkern/OSAtomic.h>
 
 #include <IOKit/audio/IOAudioControl.h>
 #include <IOKit/audio/IOAudioLevelControl.h>
 #include <IOKit/audio/IOAudioToggleControl.h>
 #include <IOKit/audio/IOAudioDefines.h>
 
-#include <IOKit/IOLib.h>
+//#include <IOKit/IOLib.h>
 
-#include <IOKit/pci/IOPCIDevice.h>
-#include "SamplePCIAudioEngine.hpp"
+//#include <IOKit/pci/IOPCIDevice.h>
+#include "xonar_hdav.hpp"
 #include "CMI8788.hpp"
 #include "cm9780.h"
 #include "ac97.h"
@@ -63,7 +64,51 @@
 OSDefineMetaClassAndStructors(PCIAudioDevice, IOAudioDevice)
 
 
-static void oxygen_init(struct oxygen *chip)
+
+//static void oxygen_gpio_changed(struct work_struct *work)
+//{
+//    struct oxygen *chip = container_of(work, struct oxygen, gpio_work);
+//    
+//    if (chip->model.gpio_changed)
+//        chip->model.gpio_changed(chip);
+//}
+
+
+//const struct pci_device_id *
+//PCIAudioDevice::oxygen_search_pci_id(struct oxygen *chip, const struct pci_device_id ids[])
+//{
+//    UInt16 subdevice;
+//    
+//    /*
+//     * Make sure the EEPROM pins are available, i.e., not used for SPI.
+//     * (This function is called before we initialize or use SPI.)
+//     */
+//    oxygen_clear_bits8(chip, OXYGEN_FUNCTION,
+//                       OXYGEN_FUNCTION_ENABLE_SPI_4_5);
+//    /*
+//     * Read the subsystem device ID directly from the EEPROM, because the
+//     * chip didn't if the first EEPROM word was overwritten.
+//     */
+//    subdevice = oxygen_read_eeprom(chip, 2);
+//    /* use default ID if EEPROM is missing */
+//    if (subdevice == 0xffff && oxygen_read_eeprom(chip, 1) == 0xffff)
+//        subdevice = 0x8788;
+//    /*
+//     * We use only the subsystem device ID for searching because it is
+//     * unique even without the subsystem vendor ID, which may have been
+//     * overwritten in the EEPROM.
+//     */
+//    for (; ids->vendor; ++ids)
+//        if (ids->subdevice == subdevice &&
+//            ids->driver_data != BROKEN_EEPROM_DRIVER_DATA)
+//            return ids;
+//    return NULL;
+//}
+
+
+
+
+void PCIAudioDevice::oxygen_init(struct oxygen *chip)
 {
     unsigned int i;
     
@@ -270,6 +315,136 @@ static void oxygen_init(struct oxygen *chip)
 
 
 
+static int oxygen_wait_spi(struct oxygen *chip)
+{
+    unsigned int count;
+    
+    /*
+     * Higher timeout to be sure: 200 us;
+     * actual transaction should not need more than 40 us.
+     */
+    for (count = 50; count > 0; count--) {
+        IODelay(4);
+        if ((oxygen_read8(chip, OXYGEN_SPI_CONTROL) &
+             OXYGEN_SPI_BUSY) == 0)
+            return 0;
+    }
+    dev_err(chip->card->dev, "oxygen: SPI wait timeout\n");
+    return -EIO;
+}
+
+int oxygen_write_spi(struct oxygen *chip, UInt8 control, unsigned int data)
+{
+    /*
+     * We need to wait AFTER initiating the SPI transaction,
+     * otherwise read operations will not work.
+     */
+    oxygen_write8(chip, OXYGEN_SPI_DATA1, data);
+    oxygen_write8(chip, OXYGEN_SPI_DATA2, data >> 8);
+    if (control & OXYGEN_SPI_DATA_LENGTH_3)
+        oxygen_write8(chip, OXYGEN_SPI_DATA3, data >> 16);
+    oxygen_write8(chip, OXYGEN_SPI_CONTROL, control);
+    return oxygen_wait_spi(chip);
+}
+//EXPORT_SYMBOL(oxygen_write_spi);
+
+void PCIAudioDevice::oxygen_write_i2c(struct oxygen *chip, UInt8 device, UInt8 map, UInt8 data)
+{
+    /* should not need more than about 300 us */
+    IODelay(1000);
+    
+    oxygen_write8(chip, OXYGEN_2WIRE_MAP, map);
+    oxygen_write8(chip, OXYGEN_2WIRE_DATA, data);
+    oxygen_write8(chip, OXYGEN_2WIRE_CONTROL,
+                  device | OXYGEN_2WIRE_DIR_WRITE);
+}
+//EXPORT_SYMBOL(oxygen_write_i2c);
+
+void PCIAudioDevice::_write_uart(struct oxygen *chip, unsigned int port, UInt8 data)
+{
+    if (oxygen_read8(chip, OXYGEN_MPU401 + 1) & MPU401_TX_FULL)
+        IODelay(1e3);
+    oxygen_write8(chip, OXYGEN_MPU401 + port, data);
+}
+
+void PCIAudioDevice::oxygen_reset_uart(struct oxygen *chip)
+{
+    _write_uart(chip, 1, MPU401_RESET);
+    IODelay(1e3); /* wait for ACK */
+    _write_uart(chip, 1, MPU401_ENTER_UART);
+}
+//EXPORT_SYMBOL(oxygen_reset_uart);
+
+void PCIAudioDevice::oxygen_write_uart(struct oxygen *chip, UInt8 data)
+{
+    _write_uart(chip, 0, data);
+}
+//EXPORT_SYMBOL(oxygen_write_uart);
+
+UInt16 PCIAudioDevice::oxygen_read_eeprom(struct oxygen *chip, unsigned int index)
+{
+    unsigned int timeout;
+    
+    oxygen_write8(chip, OXYGEN_EEPROM_CONTROL,
+                  index | OXYGEN_EEPROM_DIR_READ);
+    for (timeout = 0; timeout < 100; ++timeout) {
+        IODelay(1);
+        if (!(oxygen_read8(chip, OXYGEN_EEPROM_STATUS)
+              & OXYGEN_EEPROM_BUSY))
+            break;
+    }
+    return oxygen_read16(chip, OXYGEN_EEPROM_DATA);
+}
+
+void PCIAudioDevice::oxygen_write_eeprom(struct oxygen *chip, unsigned int index, UInt16 value)
+{
+    unsigned int timeout;
+    
+    oxygen_write16(chip, OXYGEN_EEPROM_DATA, value);
+    oxygen_write8(chip, OXYGEN_EEPROM_CONTROL,
+                  index | OXYGEN_EEPROM_DIR_WRITE);
+    for (timeout = 0; timeout < 10; ++timeout) {
+        IODelay(1e3);
+        if (!(oxygen_read8(chip, OXYGEN_EEPROM_STATUS)
+              & OXYGEN_EEPROM_BUSY))
+            return;
+    }
+    dev_err(chip->card->dev, "EEPROM write timeout\n");
+}
+
+
+void PCIAudioDevice::oxygen_restore_eeprom(IOPCIDevice *device, struct oxygen *chip)
+                                 // const struct pci_device_id *id)
+{
+    UInt16 eeprom_id;
+    
+    eeprom_id = oxygen_read_eeprom(chip, 0);
+    if (eeprom_id != OXYGEN_EEPROM_ID &&
+        (eeprom_id != 0xffff)) { //|| device-> != 0x8788)) {
+        /*
+         * This function gets called only when a known card model has
+         * been detected, i.e., we know there is a valid subsystem
+         * product ID at index 2 in the EEPROM.  Therefore, we have
+         * been able to deduce the correct subsystem vendor ID, and
+         * this is enough information to restore the original EEPROM
+         * contents.
+         */
+        oxygen_write_eeprom(chip, 1, 0x1043);
+        oxygen_write_eeprom(chip, 0, OXYGEN_EEPROM_ID);
+        oxygen_set_bits8(chip, OXYGEN_MISC,
+                         OXYGEN_MISC_WRITE_PCI_SUBID);
+        device->configWrite16(PCI_SUBSYSTEM_VENDOR_ID,
+                              0x1043);
+        device->configWrite16(PCI_SUBSYSTEM_ID,
+                              0x8314);
+        oxygen_clear_bits8(chip, OXYGEN_MISC,
+                           OXYGEN_MISC_WRITE_PCI_SUBID);
+        
+        IOLog("PCIAudioDevice[%p]::oxygen_restore_eeprom EEPROM ID restored\n", this);
+    }
+}
+
+
 bool PCIAudioDevice::initHardware(IOService *provider)
 {
     bool result = false;
@@ -309,11 +484,32 @@ bool PCIAudioDevice::initHardware(IOService *provider)
     setDeviceShortName("CMI8788");
     setManufacturerName("CMedia");
     
+    oxygen_restore_eeprom(pciDevice,deviceRegisters);
     //following oxygen_pci_probe...
     deviceRegisters->spdif_input_bits_work.init();
     deviceRegisters->gpio_work.init();
     queue_init(&deviceRegisters->ac97_waitqueue);
     deviceRegisters->mutex = OS_SPINLOCK_INIT;
+    
+    //hardcoding relevant portions from get_xonar_model for HDAV1.3 for the time being.
+    //if i can get a single model to work, i'll add others....
+    deviceRegisters->model.dac_channels_mixer = 8;
+    deviceRegisters->model.dac_mclks = OXYGEN_MCLKS(256, 128, 128);
+    deviceRegisters->model.device_config = PLAYBACK_0_TO_I2S |
+			 PLAYBACK_1_TO_SPDIF |
+			 CAPTURE_0_FROM_I2S_2 |
+			 CAPTURE_1_FROM_SPDIF;
+    deviceRegisters->model.dac_channels_pcm = 8;
+    deviceRegisters->model.dac_channels_mixer = 2;
+    deviceRegisters->model.dac_volume_min = 255 - 2*60;
+    deviceRegisters->model.dac_volume_max = 255;
+    deviceRegisters->model.misc_flags = OXYGEN_MISC_MIDI;
+    deviceRegisters->model.function_flags = OXYGEN_FUNCTION_2WIRE;
+    deviceRegisters->model.dac_mclks = OXYGEN_MCLKS(512, 128, 128);
+    deviceRegisters->model.adc_mclks = OXYGEN_MCLKS(256, 128, 128);
+    deviceRegisters->model.dac_i2s_format = OXYGEN_I2S_FORMAT_I2S;
+    deviceRegisters->model.adc_i2s_format = OXYGEN_I2S_FORMAT_LJUST;
+    
     oxygen_init(deviceRegisters);
     
 //#error Put your own hardware initialization code here...and in other routines!!

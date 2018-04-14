@@ -45,7 +45,6 @@
 #define _SAMPLEPCIAUDIODEVICE_H
 
 #include <IOKit/audio/IOAudioDevice.h>
-#include <libkern/OSAtomic.h>
 #include <IOKit/IOWorkLoop.h>
 #include <IOKit/IOLocks.h>
 #include <sys/types.h>
@@ -55,7 +54,9 @@
 #include <sys/errno.h>
 #include <machine/limits.h>
 #include "oxygen_regs.h"
-#define dev_err(dev, format, args...) do {IOLog("LinuxI2C(dev_err): " format, ##args);} while (0)
+#include <libkern/OSAtomic.h>
+
+#define dev_err(dev, format, args...) do {IOLog("CMI8788: " format, ##args);} while (0)
 
 /* 1 << PCM_x == OXYGEN_CHANNEL_x */
 #define PCM_A		0
@@ -65,6 +66,8 @@
 #define PCM_MULTICH	4
 #define PCM_AC97	5
 #define PCM_COUNT	6
+#define PCI_SUBSYSTEM_ID	0x2e
+#define PCI_SUBSYSTEM_VENDOR_ID	0x2c
 
 #define OXYGEN_MCLKS(f_single, f_double, f_quad) ((MCLK_##f_single << 0) | \
 (MCLK_##f_double << 2) | \
@@ -135,7 +138,7 @@ struct oxygen_model {
     UInt8 adc_mclks;
     UInt16 dac_i2s_format;
     UInt16 adc_i2s_format;
-    
+    void (*gpio_changed)(struct oxygen *chip);
 };
 
 struct oxygen {
@@ -153,6 +156,7 @@ struct oxygen {
     UInt8 pcm_active;
     UInt8 pcm_running;
     UInt8 dac_routing;
+   // void (*gpio_changed)(struct oxygen *chip);
     UInt8 spdif_playback_enable;
     UInt8 has_ac97_0;
     UInt8 has_ac97_1;
@@ -214,7 +218,7 @@ void oxygen_write16(struct oxygen *chip, unsigned int reg, UInt16 value)
 void oxygen_write32(struct oxygen *chip, unsigned int reg, UInt32 value)
 {
     outl(value, chip->addr + reg);
-    chip->saved_registers._32[reg / 4] = OSSwapHostToLittleInt16(value);
+    chip->saved_registers._32[reg / 4] = OSSwapHostToLittleInt32(value);
 }
 //EXPORT_SYMBOL(oxygen_write32);
 
@@ -350,102 +354,6 @@ void oxygen_write_ac97_masked(struct oxygen *chip, unsigned int codec,
 }
 //EXPORT_SYMBOL(oxygen_write_ac97_masked);
 
-static int oxygen_wait_spi(struct oxygen *chip)
-{
-    unsigned int count;
-    
-    /*
-     * Higher timeout to be sure: 200 us;
-     * actual transaction should not need more than 40 us.
-     */
-    for (count = 50; count > 0; count--) {
-        IODelay(4);
-        if ((oxygen_read8(chip, OXYGEN_SPI_CONTROL) &
-             OXYGEN_SPI_BUSY) == 0)
-            return 0;
-    }
-    dev_err(chip->card->dev, "oxygen: SPI wait timeout\n");
-    return -EIO;
-}
-
-int oxygen_write_spi(struct oxygen *chip, UInt8 control, unsigned int data)
-{
-    /*
-     * We need to wait AFTER initiating the SPI transaction,
-     * otherwise read operations will not work.
-     */
-    oxygen_write8(chip, OXYGEN_SPI_DATA1, data);
-    oxygen_write8(chip, OXYGEN_SPI_DATA2, data >> 8);
-    if (control & OXYGEN_SPI_DATA_LENGTH_3)
-        oxygen_write8(chip, OXYGEN_SPI_DATA3, data >> 16);
-    oxygen_write8(chip, OXYGEN_SPI_CONTROL, control);
-    return oxygen_wait_spi(chip);
-}
-//EXPORT_SYMBOL(oxygen_write_spi);
-
-void oxygen_write_i2c(struct oxygen *chip, UInt8 device, UInt8 map, UInt8 data)
-{
-    /* should not need more than about 300 us */
-    IODelay(1000);
-    
-    oxygen_write8(chip, OXYGEN_2WIRE_MAP, map);
-    oxygen_write8(chip, OXYGEN_2WIRE_DATA, data);
-    oxygen_write8(chip, OXYGEN_2WIRE_CONTROL,
-                  device | OXYGEN_2WIRE_DIR_WRITE);
-}
-//EXPORT_SYMBOL(oxygen_write_i2c);
-
-static void _write_uart(struct oxygen *chip, unsigned int port, UInt8 data)
-{
-    if (oxygen_read8(chip, OXYGEN_MPU401 + 1) & MPU401_TX_FULL)
-        IODelay(1e3);
-    oxygen_write8(chip, OXYGEN_MPU401 + port, data);
-}
-
-void oxygen_reset_uart(struct oxygen *chip)
-{
-    _write_uart(chip, 1, MPU401_RESET);
-    IODelay(1e3); /* wait for ACK */
-    _write_uart(chip, 1, MPU401_ENTER_UART);
-}
-//EXPORT_SYMBOL(oxygen_reset_uart);
-
-void oxygen_write_uart(struct oxygen *chip, UInt8 data)
-{
-    _write_uart(chip, 0, data);
-}
-//EXPORT_SYMBOL(oxygen_write_uart);
-
-UInt16 oxygen_read_eeprom(struct oxygen *chip, unsigned int index)
-{
-    unsigned int timeout;
-    
-    oxygen_write8(chip, OXYGEN_EEPROM_CONTROL,
-                  index | OXYGEN_EEPROM_DIR_READ);
-    for (timeout = 0; timeout < 100; ++timeout) {
-        //    udelay(1);
-        if (!(oxygen_read8(chip, OXYGEN_EEPROM_STATUS)
-              & OXYGEN_EEPROM_BUSY))
-            break;
-    }
-    return oxygen_read16(chip, OXYGEN_EEPROM_DATA);
-}
-
-void oxygen_write_eeprom(struct oxygen *chip, unsigned int index, UInt16 value)
-{
-    unsigned int timeout;
-    
-    oxygen_write16(chip, OXYGEN_EEPROM_DATA, value);
-    oxygen_write8(chip, OXYGEN_EEPROM_CONTROL,
-                  index | OXYGEN_EEPROM_DIR_WRITE);
-    for (timeout = 0; timeout < 10; ++timeout) {
-        IODelay(1e3);
-        if (!(oxygen_read8(chip, OXYGEN_EEPROM_STATUS)
-              & OXYGEN_EEPROM_BUSY))
-            return;
-    }
-    //dev_err(chip->card->dev, "EEPROM write timeout\n");
-}
 
 
 static inline void oxygen_set_bits8(struct oxygen *chip,
@@ -529,6 +437,65 @@ class PCIAudioDevice : public IOAudioDevice
     
     static IOReturn inputMuteChangeHandler(IOService *target, IOAudioControl *muteControl, SInt32 oldValue, SInt32 newValue);
     virtual IOReturn inputMuteChanged(IOAudioControl *muteControl, SInt32 oldValue, SInt32 newValue);
+
+    int oxygen_pci_probe(struct pci_dev *pci, int index, char *id,
+                         struct module *owner,
+                         const struct pci_device_id *ids,
+                         int (*get_model)(struct oxygen *chip,
+                                          const struct pci_device_id *id
+                                          )
+                         );
+    void oxygen_pci_remove(struct pci_dev *pci);
+#ifdef CONFIG_PM_SLEEP
+    extern const struct dev_pm_ops oxygen_pci_pm;
+#endif
+    void oxygen_pci_shutdown(struct pci_dev *pci);
+    
+    /* oxygen_mixer.c */
+    
+    int oxygen_mixer_init(struct oxygen *chip);
+    void oxygen_update_dac_routing(struct oxygen *chip);
+    void oxygen_update_spdif_source(struct oxygen *chip);
+    
+    /* oxygen_pcm.c */
+    
+    int oxygen_pcm_init(struct oxygen *chip);
+    
+    /* oxygen_io.c */
+    
+    UInt8 oxygen_read8(struct oxygen *chip, unsigned int reg);
+    UInt16 oxygen_read16(struct oxygen *chip, unsigned int reg);
+    UInt32 oxygen_read32(struct oxygen *chip, unsigned int reg);
+    void oxygen_write8(struct oxygen *chip, unsigned int reg, UInt8 value);
+    void oxygen_write16(struct oxygen *chip, unsigned int reg, UInt16 value);
+    void oxygen_write32(struct oxygen *chip, unsigned int reg, UInt32 value);
+    void oxygen_write8_masked(struct oxygen *chip, unsigned int reg,
+                              UInt8 value, UInt8 mask);
+    void oxygen_write16_masked(struct oxygen *chip, unsigned int reg,
+                               UInt16 value, UInt16 mask);
+    void oxygen_write32_masked(struct oxygen *chip, unsigned int reg,
+                               UInt32 value, UInt32 mask);
+    
+    UInt16 oxygen_read_ac97(struct oxygen *chip, unsigned int codec,
+                            unsigned int index);
+    void oxygen_write_ac97(struct oxygen *chip, unsigned int codec,
+                           unsigned int index, UInt16 data);
+    void oxygen_write_ac97_masked(struct oxygen *chip, unsigned int codec,
+                                  unsigned int index, UInt16 data, UInt16 mask);
+    
+    int oxygen_write_spi(struct oxygen *chip, UInt8 control, unsigned int data);
+    void oxygen_write_i2c(struct oxygen *chip, UInt8 device, UInt8 map, UInt8 data);
+    
+    void oxygen_reset_uart(struct oxygen *chip);
+    void oxygen_write_uart(struct oxygen *chip, UInt8 data);
+    
+    UInt16 oxygen_read_eeprom(struct oxygen *chip, unsigned int index);
+    void oxygen_write_eeprom(struct oxygen *chip, unsigned int index, UInt16 value);
+    void oxygen_restore_eeprom(IOPCIDevice *device, struct oxygen *chip);
+    void oxygen_init(struct oxygen *chip);
+   // const struct * oxygen_search_pci_id(struct oxygen *chip, const struct pci_device_id ids[]);
+    void _write_uart(struct oxygen *chip, unsigned int port, UInt8 data);
+    
 };
 
 #endif /* _SAMPLEPCIAUDIODEVICE_H */
