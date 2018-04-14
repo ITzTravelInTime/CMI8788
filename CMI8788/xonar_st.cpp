@@ -298,27 +298,28 @@ void xonar_init_ext_power(struct oxygen *chip)
                          & data->ext_power_bit);
 }
 
-void SamplePCIAudioEngine::xonar_init_cs53x1(struct oxygen *chip)
+void xonar_init_cs53x1(struct oxygen *chip)
 {
     oxygen_set_bits16(chip, OXYGEN_GPIO_CONTROL, GPIO_CS53x1_M_MASK);
     oxygen_write16_masked(chip, OXYGEN_GPIO_DATA,
                           GPIO_CS53x1_M_SINGLE, GPIO_CS53x1_M_MASK);
 }
-
-void SamplePCIAudioEngine::xonar_set_cs53x1_params(struct oxygen *chip)
+/*
+void xonar_set_cs53x1_params(struct oxygen *chip,
+                             struct snd_pcm_hw_params *params)
 {
     unsigned int value;
     
-    if (this->getSampleRate()->whole <= 54000)
+    if (params_rate(params) <= 54000)
         value = GPIO_CS53x1_M_SINGLE;
-    else if (this->getSampleRate()->whole <= 108000)
+    else if (params_rate(params) <= 108000)
         value = GPIO_CS53x1_M_DOUBLE;
     else
         value = GPIO_CS53x1_M_QUAD;
     oxygen_write16_masked(chip, OXYGEN_GPIO_DATA,
                           value, GPIO_CS53x1_M_MASK);
 }
-/*
+
 int xonar_gpio_bit_switch_get(struct snd_kcontrol *ctl,
                               struct snd_ctl_elem_value *value)
 {
@@ -850,13 +851,6 @@ static void xonar_d2_cleanup(struct oxygen *chip)
     xonar_disable_output(chip);
 }
 
-static void xonar_hdav_cleanup(struct oxygen *chip)
-{
-    xonar_hdmi_cleanup(chip);
-    xonar_disable_output(chip);
-    IODelay(2);
-}
-
 static void xonar_st_cleanup(struct oxygen *chip)
 {
     xonar_disable_output(chip);
@@ -867,11 +861,6 @@ static void xonar_d2_suspend(struct oxygen *chip)
     xonar_d2_cleanup(chip);
 }
 
-static void xonar_hdav_suspend(struct oxygen *chip)
-{
-    xonar_hdav_cleanup(chip);
-}
-
 static void xonar_st_suspend(struct oxygen *chip)
 {
     xonar_st_cleanup(chip);
@@ -880,15 +869,6 @@ static void xonar_st_suspend(struct oxygen *chip)
 static void xonar_d2_resume(struct oxygen *chip)
 {
     pcm1796_registers_init(chip);
-    xonar_enable_output(chip);
-}
-
-static void xonar_hdav_resume(struct oxygen *chip)
-{
-    struct xonar_hdav *data = (struct xonar_hdav*) chip->model_data;
-    
-    pcm1796_registers_init(chip);
-    xonar_hdmi_resume(chip, &data->hdmi);
     xonar_enable_output(chip);
 }
 
@@ -1313,19 +1293,19 @@ static int add_pcm1796_controls(struct oxygen *chip)
     }*/
     return 0;
 }
-//
-//static int xonar_d2_mixer_init(struct oxygen *chip)
-//{
-//    int err;
-//    
-// //   err = snd_ctl_add(chip->card, snd_ctl_new1(&alt_switch, chip));
-//    if (err < 0)
-//        return err;
-//    err = add_pcm1796_controls(chip);
-//    if (err < 0)
-//        return err;
-//    return 0;
-//}
+
+static int xonar_d2_mixer_init(struct oxygen *chip)
+{
+    int err;
+    
+ //   err = snd_ctl_add(chip->card, snd_ctl_new1(&alt_switch, chip));
+    if (err < 0)
+        return err;
+    err = add_pcm1796_controls(chip);
+    if (err < 0)
+        return err;
+    return 0;
+}
 
 static int xonar_hdav_mixer_init(struct oxygen *chip)
 {

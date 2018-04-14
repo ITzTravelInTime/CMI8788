@@ -144,7 +144,8 @@ public:
     void xonar_disable_output(struct oxygen *chip);
     void xonar_init_ext_power(struct oxygen *chip);
     void xonar_init_cs53x1(struct oxygen *chip);
-    void xonar_set_cs53x1_params(struct oxygen *chip);
+//    void xonar_set_cs53x1_params(struct oxygen *chip,
+//                                 struct snd_pcm_hw_params *params);
     
 
     int xonar_gpio_bit_switch_get(struct snd_kcontrol *ctl,
