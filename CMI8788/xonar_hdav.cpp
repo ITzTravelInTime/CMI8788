@@ -1004,16 +1004,15 @@ static void set_st_params(struct oxygen *chip,
     update_cs2000_rate(chip, params_rate(params));
     set_pcm1796_params(chip, params);
 }
-
-static void set_hdav_params(struct oxygen *chip,
-                            struct snd_pcm_hw_params *params)
+*/
+void SamplePCIAudioEngine::set_hdav_params(struct oxygen *chip)
 {
     struct xonar_hdav *data = (struct xonar_hdav*) chip->model_data;
     
-    set_pcm1796_params(chip, params);
-    xonar_set_hdmi_params(chip, &data->hdmi, params);
+    set_pcm1796_params(chip);
+    xonar_set_hdmi_params(chip, &data->hdmi);
 }
-*/
+
 //static const struct snd_kcontrol_new alt_switch = {
 //    .iface = SNDRV_CTL_ELEM_IFACE_MIXER,
 //    .name = "Analog Loopback Switch",

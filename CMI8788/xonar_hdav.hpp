@@ -171,6 +171,7 @@ public:
      //                                   struct snd_pcm_hardware *hardware);
     void update_pcm1796_oversampling(struct oxygen *chip);
     void set_pcm1796_params(struct oxygen *chip);
+    void set_hdav_params(struct oxygen *chip);
     void xonar_set_hdmi_params(struct oxygen *chip, struct xonar_hdmi *hdmi);
     void xonar_hdmi_uart_input(struct oxygen *chip);
 };
