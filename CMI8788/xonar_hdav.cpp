@@ -436,12 +436,11 @@ void xonar_hdmi_pcm_hardware_filter(unsigned int channel,
         hardware->rate_min = 44100;
     }
 }
-
-void xonar_set_hdmi_params(struct oxygen *chip, struct xonar_hdmi *hdmi,
-                           struct snd_pcm_hw_params *params)
+*/
+void SamplePCIAudioEngine::xonar_set_hdmi_params(struct oxygen *chip, struct xonar_hdmi *hdmi)
 {
     hdmi->params[0] = 0; // 1 = non-audio
-    switch (params_rate(params)) {
+    switch (this->getSampleRate()->whole) {
         case 44100:
             hdmi->params[1] = IEC958_AES3_CON_FS_44100;
             break;
@@ -455,15 +454,25 @@ void xonar_set_hdmi_params(struct oxygen *chip, struct xonar_hdmi *hdmi,
             hdmi->params[1] = IEC958_AES3_CON_FS_192000;
             break;
     }
-    hdmi->params[2] = params_channels(params) / 2 - 1;
-    if (params_format(params) == SNDRV_PCM_FORMAT_S16_LE)
+    //Linux call:
+    //hdmi->params[2] = params_channels(params) / 2 - 1;
+    //Mac Call:
+    hdmi->params[2] = this->inputs[0]->maxNumChannels / 2 - 1;
+    //^ this is wrong because it should be NumChannels, not MaxNum
+    //however since IOAudioStream calls are deprecated as of 10.10,
+    //i'm going to use this is a placeholder/semi-correct call.
+    
+    //Linux call:
+    //if (params_format(params) == SNDRV_PCM_FORMAT_S16_LE)
+    //Mac Call:
+    if(this->inputs[0]->format.fSampleFormat == SNDRV_PCM_FORMAT_S16_LE)
         hdmi->params[3] = 0;
     else
         hdmi->params[3] = 0xc0;
     hdmi->params[4] = 1; // ?
     hdmi_write_command(chip, 0x54, 5, hdmi->params);
 }
-*/
+
 
 static int oxygen_wait_spi(struct oxygen *chip)
 {

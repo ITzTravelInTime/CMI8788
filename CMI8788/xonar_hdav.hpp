@@ -86,6 +86,13 @@ struct xonar_hdav {
 #define GPIO_CS53x1_M_DOUBLE    0x0004
 #define GPIO_CS53x1_M_QUAD      0x0008
 #define XONAR_GPIO_BIT_INVERT	(1 << 16)
+//objective C does not use the bitwise operator
+// so i am simply declaring SNDRV_PCM_FORMAT as-is
+//Linux Def below for reference:
+//typedef int __bitwise snd_pcm_format_t;
+//#define	SNDRV_PCM_FORMAT_S16_LE	((__force snd_pcm_format_t) 2)
+//OSX Def (may be wrong, but may not be [not sure about significance of bitwise here]):
+#define SNDRV_PCM_FORMAT_S16_LE 2
 
 class IOFilterInterruptEventSource;
 class IOInterruptEventSource;
@@ -95,7 +102,11 @@ class SamplePCIAudioEngine : public IOAudioEngine
     OSDeclareDefaultStructors(SamplePCIAudioEngine)
     
     struct xonar_hdav                   *deviceRegisters;
-    
+    //right now i've created 4 since there are 4 I2S input buffers
+    // however, i am not sure how to incorporate them yet,
+    // as i have to (probably) create an ioaudiostream for each
+    // and then add the attributes.
+    IOAudioStream                   *inputs[4];
     SInt16							*outputBuffer;
     SInt16							*inputBuffer;
     
@@ -160,8 +171,7 @@ public:
      //                                   struct snd_pcm_hardware *hardware);
     void update_pcm1796_oversampling(struct oxygen *chip);
     void set_pcm1796_params(struct oxygen *chip);
-    void xonar_set_hdmi_params(struct oxygen *chip, struct xonar_hdmi *hdmi,
-                               IOAudioSampleRate *params);
+    void xonar_set_hdmi_params(struct oxygen *chip, struct xonar_hdmi *hdmi);
     void xonar_hdmi_uart_input(struct oxygen *chip);
 };
 

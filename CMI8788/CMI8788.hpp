@@ -100,6 +100,9 @@
 #define IEC958_AES1_CON_DIGDIGCONV_ID   0x02
 #define IEC958_AES1_CON_PCM_CODER       (IEC958_AES1_CON_DIGDIGCONV_ID|0x00)
 #define IEC958_AES3_CON_FS_48000	(2<<0)	/* 48kHz */
+#define IEC958_AES3_CON_FS_44100        (0<<0)  /* 44.1kHz */
+#define IEC958_AES3_CON_FS_96000        (10<<0) /* 96kHz */
+#define IEC958_AES3_CON_FS_192000       (14<<0) /* 192kHz */
 
 
 enum {
