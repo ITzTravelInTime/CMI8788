@@ -235,14 +235,14 @@ int xonar_gpio_bit_switch_put(struct snd_kcontrol *ctl,
 }
 */
 
-void _write_uart(struct oxygen *chip, unsigned int port, UInt8 data)
+static void _write_uart(struct oxygen *chip, unsigned int port, UInt8 data)
 {
     if (oxygen_read8(chip, OXYGEN_MPU401 + 1) & MPU401_TX_FULL)
         IODelay(1e3);
     oxygen_write8(chip, OXYGEN_MPU401 + port, data);
 }
 
-void oxygen_reset_uart(struct oxygen *chip)
+void XonarAudioEngine::oxygen_reset_uart(struct oxygen *chip)
 {
     _write_uart(chip, 1, MPU401_RESET);
     IODelay(1e3); /* wait for ACK */
@@ -250,7 +250,7 @@ void oxygen_reset_uart(struct oxygen *chip)
 }
 //EXPORT_SYMBOL(oxygen_reset_uart);
 
-void oxygen_write_uart(struct oxygen *chip, UInt8 data)
+void XonarAudioEngine::oxygen_write_uart(struct oxygen *chip, UInt8 data)
 {
     _write_uart(chip, 0, data);
 }

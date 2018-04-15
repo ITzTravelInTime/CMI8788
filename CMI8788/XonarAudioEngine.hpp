@@ -217,8 +217,7 @@ public:
 //    void set_hdav_params(struct oxygen *chip, XonarAudioEngine *instance);
 //    void xonar_set_hdmi_params(struct oxygen *chip, struct xonar_hdmi *hdmi);
 //    void xonar_hdmi_uart_input(struct oxygen *chip);
-    
-    void _write_uart(struct oxygen *chip, unsigned int port, UInt8 data);
+   // static void _write_uart(struct oxygen *chip, unsigned int port, UInt8 data);
     void oxygen_reset_uart(struct oxygen *chip);
     static void oxygen_write_uart(struct oxygen *chip, UInt8 data);
 };

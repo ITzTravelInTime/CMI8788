@@ -50,7 +50,7 @@
 #include <IOKit/IOLib.h>
 
 #include <IOKit/pci/IOPCIDevice.h>
-#include "XonarAudioEngine.hpp"
+#include "XonarHDAVAudioEngine.hpp"
 //#include "CMI8788.hpp"
 #include "cm9780.h"
 #include "ac97.h"
@@ -484,12 +484,13 @@ void PCIAudioDevice::free()
 bool PCIAudioDevice::createAudioEngine()
 {
     bool result = false;
-    XonarAudioEngine *audioEngine = NULL;
+    XonarAudioEngine *AudioEngineInstance = NULL;
+    XonarHDAVAudioEngine *audioEngine = NULL;
     IOAudioControl *control;
     
     IOLog("SamplePCIAudioDevice[%p]::createAudioEngine()\n", this);
-    
-    audioEngine = new XonarAudioEngine;
+    AudioEngineInstance = new XonarAudioEngine;
+    audioEngine = new XonarHDAVAudioEngine;
     if (!audioEngine) {
         goto Done;
     }
@@ -497,7 +498,7 @@ bool PCIAudioDevice::createAudioEngine()
     // Init the new audio engine with the device registers so it can access them if necessary
     // The audio engine subclass could be defined to take any number of parameters for its
     // initialization - use it like a constructor
-    if (!audioEngine->init(deviceRegisters,0)) {
+    if (!audioEngine->init(AudioEngineInstance,deviceRegisters)) {
         goto Done;
     }
     

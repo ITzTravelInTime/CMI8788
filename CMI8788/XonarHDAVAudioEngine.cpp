@@ -75,16 +75,16 @@ void XonarHDAVAudioEngine::hdmi_write_command(struct oxygen *chip, UInt8 command
     unsigned int i;
     UInt8 checksum;
     
-    XonarAudioEngine::oxygen_write_uart(chip, 0xfb);
-    XonarAudioEngine::oxygen_write_uart(chip, 0xef);
-    XonarAudioEngine::oxygen_write_uart(chip, command);
-    XonarAudioEngine::oxygen_write_uart(chip, count);
+    this->engineInstance->oxygen_write_uart(chip, 0xfb);
+    this->engineInstance->oxygen_write_uart(chip, 0xef);
+    this->engineInstance->oxygen_write_uart(chip, command);
+    this->engineInstance->oxygen_write_uart(chip, count);
     for (i = 0; i < count; ++i)
-        XonarAudioEngine::oxygen_write_uart(chip, params[i]);
+        this->engineInstance->oxygen_write_uart(chip, params[i]);
     checksum = 0xfb + 0xef + command + count;
     for (i = 0; i < count; ++i)
         checksum += params[i];
-    XonarAudioEngine::oxygen_write_uart(chip, checksum);
+    this->engineInstance->oxygen_write_uart(chip, checksum);
 }
 
 void XonarHDAVAudioEngine::xonar_hdmi_init_commands(struct oxygen *chip,
@@ -172,7 +172,7 @@ void XonarHDAVAudioEngine::set_hdav_params(struct oxygen *chip, XonarAudioEngine
 {
     struct xonar_hdav *data = (struct xonar_hdav*) chip->model_data;
     
-    XonarAudioEngine::set_pcm1796_params(chip, engine);
+    this->engineInstance->set_pcm1796_params(chip, engine);
     xonar_set_hdmi_params(engine, chip, &data->hdmi);
 }
 
@@ -191,36 +191,64 @@ void XonarHDAVAudioEngine::xonar_hdmi_uart_input(struct oxygen *chip)
 
 
 
-void XonarHDAVAudioEngine::xonar_hdav_init(struct oxygen *chip)
+bool XonarHDAVAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip)
 {
-    struct xonar_hdav *data = (struct xonar_hdav*) chip->model_data;
+    
+    bool result = false;
+    
+    IOLog("XonarHDAVAudioEngine[%p]::init(%p)\n", this, chip);
+    
+    if (!chip) {
+        goto Done;
+    }
+    
+    if (!super::init(NULL)) {
+        goto Done;
+    }
+    //  ak4396_init(chip);
+    //  wm8785_init(chip);
+    deviceRegisters = (struct xonar_hdav*)chip->model_data;
+    
+    // the below aren't correct. have to bridge the workqueue calls to IOWorkLoop
+    queue_init(&chip->ac97_waitqueue);
+    chip->mutex = OS_SPINLOCK_INIT;
+    this->engineInstance = engine;
+    xonar_hdav_init(chip);
     
     oxygen_write16(chip, OXYGEN_2WIRE_BUS_STATUS,
                    OXYGEN_2WIRE_LENGTH_8 |
                    OXYGEN_2WIRE_INTERRUPT_MASK |
                    OXYGEN_2WIRE_SPEED_STANDARD);
     
-    data->pcm179x.generic.anti_pop_delay = 100;
-    data->pcm179x.generic.output_enable_bit = GPIO_HDAV_OUTPUT_ENABLE;
-    data->pcm179x.generic.ext_power_reg = OXYGEN_GPI_DATA;
-    data->pcm179x.generic.ext_power_int_reg = OXYGEN_GPI_INTERRUPT_MASK;
-    data->pcm179x.generic.ext_power_bit = GPI_EXT_POWER;
-    data->pcm179x.dacs = chip->model.dac_channels_mixer / 2;
-    data->pcm179x.h6 = chip->model.dac_channels_mixer > 2;
+    deviceRegisters->pcm179x.generic.anti_pop_delay = 100;
+    deviceRegisters->pcm179x.generic.output_enable_bit = GPIO_HDAV_OUTPUT_ENABLE;
+    deviceRegisters->pcm179x.generic.ext_power_reg = OXYGEN_GPI_DATA;
+    deviceRegisters->pcm179x.generic.ext_power_int_reg = OXYGEN_GPI_INTERRUPT_MASK;
+    deviceRegisters->pcm179x.generic.ext_power_bit = GPI_EXT_POWER;
+    deviceRegisters->pcm179x.dacs = chip->model.dac_channels_mixer / 2;
+    deviceRegisters->pcm179x.h6 = chip->model.dac_channels_mixer > 2;
     
-    XonarAudioEngine::pcm1796_init(chip);
+    this->engineInstance->pcm1796_init(chip);
     
     oxygen_set_bits16(chip, OXYGEN_GPIO_CONTROL,
                       GPIO_HDAV_MAGIC | GPIO_INPUT_ROUTE);
     oxygen_clear_bits16(chip, OXYGEN_GPIO_DATA, GPIO_INPUT_ROUTE);
     
-    XonarAudioEngine::xonar_init_cs53x1(chip);
-    XonarAudioEngine::xonar_init_ext_power(chip);
-    xonar_hdmi_init(chip, &data->hdmi);
-    XonarAudioEngine::xonar_enable_output(chip);
-    
+    this->engineInstance->xonar_init_cs53x1(chip);
+    this->engineInstance->xonar_init_ext_power(chip);
+    xonar_hdmi_init(chip, &deviceRegisters->hdmi);
+    this->engineInstance->xonar_enable_output(chip);
+    result = true;
+
+    goto Done;
    // snd_component_add(chip->card, "PCM1796");
    // snd_component_add(chip->card, "CS5381");
+    
+Done:
+    return result;
+    
+
+
 }
 
 
@@ -255,34 +283,34 @@ int XonarHDAVAudioEngine::xonar_hdav_mixer_init(struct oxygen *chip)
 
 
 
-bool XonarHDAVAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip)
-{
-    bool result = false;
-    
-    IOLog("XonarHDAVAudioEngine[%p]::init(%p)\n", this, chip);
-    
-    if (!chip) {
-        goto Done;
-    }
-    
-    if (!super::init(NULL)) {
-        goto Done;
-    }
-  //  ak4396_init(chip);
-  //  wm8785_init(chip);
-    deviceRegisters = (struct xonar_hdav*)chip->model_data;
- 
-    // the below aren't correct. have to bridge the workqueue calls to IOWorkLoop
-    queue_init(&chip->ac97_waitqueue);
-    chip->mutex = OS_SPINLOCK_INIT;
-    this->engineInstance = engine;
-    xonar_hdav_init(chip);
-    result = true;
-    
-Done:
-    
-    return result;
-}
+//bool XonarHDAVAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip)
+//{
+//    bool result = false;
+//    
+//    IOLog("XonarHDAVAudioEngine[%p]::init(%p)\n", this, chip);
+//    
+//    if (!chip) {
+//        goto Done;
+//    }
+//    
+//    if (!super::init(NULL)) {
+//        goto Done;
+//    }
+//  //  ak4396_init(chip);
+//  //  wm8785_init(chip);
+//    deviceRegisters = (struct xonar_hdav*)chip->model_data;
+// 
+//    // the below aren't correct. have to bridge the workqueue calls to IOWorkLoop
+//    queue_init(&chip->ac97_waitqueue);
+//    chip->mutex = OS_SPINLOCK_INIT;
+//    this->engineInstance = engine;
+//    xonar_hdav_init(chip);
+//    result = true;
+//    
+//Done:
+//    
+//    return result;
+//}
 
 bool XonarHDAVAudioEngine::initHardware(IOService *provider)
 {
