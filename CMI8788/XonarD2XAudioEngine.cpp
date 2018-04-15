@@ -1,5 +1,5 @@
 /*
- File:XonarSTAudioEngine.cpp
+ File:XonarD2XAudioEngine.cpp
  
  Contains:
  
@@ -52,7 +52,7 @@
 #include <IOKit/IOLib.h>
 #include <IOKit/IOFilterInterruptEventSource.h>
 //#include <architecture/i386/pio.h>
-#include "XonarSTAudioEngine.hpp"
+#include "XonarD2XAudioEngine.hpp"
 
 #include "pcm1796.h"
 #include "cm9780.h"
@@ -66,335 +66,201 @@
 
 #define super IOAudioEngine
 
-OSDefineMetaClassAndStructors(XonarSTAudioEngine, IOAudioEngine)
+OSDefineMetaClassAndStructors(XonarD2XAudioEngine, IOAudioEngine)
 
 
 
-void XonarSTAudioEngine::xonar_st_init_i2c(struct oxygen *chip)
-{
-    oxygen_write16(chip, OXYGEN_2WIRE_BUS_STATUS,
-                   OXYGEN_2WIRE_LENGTH_8 |
-                   OXYGEN_2WIRE_INTERRUPT_MASK |
-                   OXYGEN_2WIRE_SPEED_STANDARD);
-}
 
 
-void XonarSTAudioEngine::xonar_st_init_common(struct oxygen *chip)
+void XonarD2XAudioEngine::xonar_d2_init(struct oxygen *chip)
 {
     struct xonar_pcm179x *data = (struct xonar_pcm179x*) chip->model_data;
     
-    data->generic.output_enable_bit = GPIO_ST_OUTPUT_ENABLE;
-    data->dacs = chip->model.dac_channels_mixer / 2;
-    data->h6 = chip->model.dac_channels_mixer > 2;
-    data->hp_gain_offset = 2*-18;
- 
+    data->generic.anti_pop_delay = 300;
+    data->generic.output_enable_bit = GPIO_D2_OUTPUT_ENABLE;
+    data->dacs = 4;
+    
     XonarAudioEngine::pcm1796_init(chip);
     
-    oxygen_set_bits16(chip, OXYGEN_GPIO_CONTROL,
-                      GPIO_INPUT_ROUTE | GPIO_ST_HP_REAR |
-                      GPIO_ST_MAGIC | GPIO_ST_HP);
-    oxygen_clear_bits16(chip, OXYGEN_GPIO_DATA,
-                        GPIO_INPUT_ROUTE | GPIO_ST_HP_REAR | GPIO_ST_HP);
+    oxygen_set_bits16(chip, OXYGEN_GPIO_CONTROL, GPIO_D2_ALT);
+    oxygen_clear_bits16(chip, OXYGEN_GPIO_DATA, GPIO_D2_ALT);
     
-    //still need to figure out how to instantiate the device
-    //when calling the constructor for this object, but definitely
-    // we can't call init from this function (needs to be other way around).
-    //init(chip);
+    oxygen_ac97_set_bits(chip, 0, CM9780_JACK, CM9780_FMIC2MIC);
+    
+    XonarAudioEngine::xonar_init_cs53x1(chip);
     XonarAudioEngine::xonar_enable_output(chip);
     
- //   snd_component_add(chip->card, "PCM1792A");
-  //  snd_component_add(chip->card, "CS5381");
+    //  snd_component_add(chip->card, "PCM1796");
+    // snd_component_add(chip->card, "CS5381");
 }
 
-void XonarSTAudioEngine::xonar_st_init(struct oxygen *chip)
+void XonarD2XAudioEngine::xonar_d2x_init(struct oxygen *chip)
+{
+    struct xonar_pcm179x *data = (struct xonar_pcm179x*) chip->model_data;
+    
+    data->generic.ext_power_reg = OXYGEN_GPIO_DATA;
+    data->generic.ext_power_int_reg = OXYGEN_GPIO_INTERRUPT_MASK;
+    data->generic.ext_power_bit = GPIO_D2X_EXT_POWER;
+    oxygen_clear_bits16(chip, OXYGEN_GPIO_CONTROL, GPIO_D2X_EXT_POWER);
+    XonarAudioEngine::xonar_init_ext_power(chip);
+    xonar_d2_init(chip);
+}
+
+
+void XonarD2XAudioEngine::xonar_xense_init(struct oxygen *chip)
 {
     struct xonar_pcm179x *data = (struct xonar_pcm179x*)chip->model_data;
     
-    data->generic.anti_pop_delay = 100;
-    data->h6 = chip->model.dac_channels_mixer > 2;
-    data->has_cs2000 = 1;
-    data->cs2000_regs[CS2000_FUN_CFG_1] = CS2000_REF_CLK_DIV_1;
-    data->broken_i2c = true;
-    
-    oxygen_write16(chip, OXYGEN_I2S_A_FORMAT,
-                   OXYGEN_RATE_48000 |
-                   OXYGEN_I2S_FORMAT_I2S |
-                   OXYGEN_I2S_MCLK(data->h6 ? MCLK_256 : MCLK_512) |
-                   OXYGEN_I2S_BITS_16 |
-                   OXYGEN_I2S_MASTER |
-                   OXYGEN_I2S_BCLK_64);
-    
-    xonar_st_init_i2c(chip);
-    XonarAudioEngine::cs2000_registers_init(chip);
-    xonar_st_init_common(chip);
-    
-  //  snd_component_add(chip->card, "CS2000");
-}
-
-void XonarSTAudioEngine::xonar_stx_init(struct oxygen *chip)
-{
-    struct xonar_pcm179x *data = (struct xonar_pcm179x*)chip->model_data;
-    
-    xonar_st_init_i2c(chip);
-    data->generic.anti_pop_delay = 800;
     data->generic.ext_power_reg = OXYGEN_GPI_DATA;
     data->generic.ext_power_int_reg = OXYGEN_GPI_INTERRUPT_MASK;
     data->generic.ext_power_bit = GPI_EXT_POWER;
     XonarAudioEngine::xonar_init_ext_power(chip);
-    xonar_st_init_common(chip);
+    
+    data->generic.anti_pop_delay = 100;
+    data->has_cs2000 = 1;
+    data->cs2000_regs[CS2000_FUN_CFG_1] = CS2000_REF_CLK_DIV_1;
+    
+    oxygen_write16(chip, OXYGEN_I2S_A_FORMAT,
+                   OXYGEN_RATE_48000 |
+                   OXYGEN_I2S_FORMAT_I2S |
+                   OXYGEN_I2S_MCLK(MCLK_512) |
+                   OXYGEN_I2S_BITS_16 |
+                   OXYGEN_I2S_MASTER |
+                   OXYGEN_I2S_BCLK_64);
+    
+    XonarSTAudioEngine::xonar_st_init_i2c(chip);
+    XonarAudioEngine::cs2000_registers_init(chip);
+    
+    data->generic.output_enable_bit = GPIO_XENSE_OUTPUT_ENABLE;
+    data->dacs = 1;
+    data->hp_gain_offset = 2*-18;
+    
+    XonarAudioEngine::pcm1796_init(chip);
+    
+    oxygen_set_bits16(chip, OXYGEN_GPIO_CONTROL,
+                      GPIO_INPUT_ROUTE | GPIO_ST_HP_REAR |
+                      GPIO_ST_MAGIC | GPIO_XENSE_SPEAKERS);
+    oxygen_clear_bits16(chip, OXYGEN_GPIO_DATA,
+                        GPIO_INPUT_ROUTE | GPIO_ST_HP_REAR |
+                        GPIO_XENSE_SPEAKERS);
+    
+    XonarAudioEngine::xonar_init_cs53x1(chip);
+    XonarAudioEngine::xonar_enable_output(chip);
+    
+    //   snd_component_add(chip->card, "PCM1796");
+    //   snd_component_add(chip->card, "CS5381");
+    //  snd_component_add(chip->card, "CS2000");
 }
 
-void XonarSTAudioEngine::xonar_st_cleanup(struct oxygen *chip)
+void XonarD2XAudioEngine::xonar_d2_cleanup(struct oxygen *chip)
 {
     XonarAudioEngine::xonar_disable_output(chip);
 }
 
-void XonarSTAudioEngine::xonar_st_suspend(struct oxygen *chip)
+void XonarD2XAudioEngine::xonar_d2_suspend(struct oxygen *chip)
 {
-    xonar_st_cleanup(chip);
+    xonar_d2_cleanup(chip);
 }
 
 
-
-void XonarSTAudioEngine::xonar_stx_resume(struct oxygen *chip)
+void XonarD2XAudioEngine::xonar_d2_resume(struct oxygen *chip)
 {
     XonarAudioEngine::pcm1796_registers_init(chip);
     XonarAudioEngine::xonar_enable_output(chip);
 }
 
-void XonarSTAudioEngine::xonar_st_resume(struct oxygen *chip)
+/*
+static int xense_output_switch_get(struct snd_kcontrol *ctl,
+                                   struct snd_ctl_elem_value *value)
 {
-    XonarAudioEngine::cs2000_registers_init(chip);
-    xonar_stx_resume(chip);
+    struct oxygen *chip = ctl->private_data;
+    UInt16 gpio;
+    
+    gpio = oxygen_read16(chip, OXYGEN_GPIO_DATA);
+    if (gpio & GPIO_XENSE_SPEAKERS)
+        value->value.enumerated.item[0] = 0;
+    else if (!(gpio & GPIO_XENSE_SPEAKERS) && (gpio & GPIO_ST_HP_REAR))
+        value->value.enumerated.item[0] = 1;
+    else
+        value->value.enumerated.item[0] = 2;
+    return 0;
 }
 
-void XonarSTAudioEngine::set_st_params(struct oxygen *chip,
-                          XonarAudioEngine *instance)
+static int xense_output_switch_put(struct snd_kcontrol *ctl,
+                                   struct snd_ctl_elem_value *value)
 {
-    XonarAudioEngine::update_cs2000_rate(chip, instance->getSampleRate()->whole);
-    //original call also sends params struct. need to stay on top of this
-    //with the IOAudioStream/Engine classes. will figure that out after
-    //the skeleton OOP setup is finished.
-    //Linux Call:
-    //set_pcm1796_params(chip, params);
-    //Mac Call:
-    XonarAudioEngine::set_pcm1796_params(chip, instance);
+    struct oxygen *chip = ctl->private_data;
+    struct xonar_pcm179x *data = chip->model_data;
+    UInt16 gpio_old, gpio;
+    
+    mutex_lock(&chip->mutex);
+    gpio_old = oxygen_read16(chip, OXYGEN_GPIO_DATA);
+    gpio = gpio_old;
+    switch (value->value.enumerated.item[0]) {
+        case 0:
+            gpio |= GPIO_XENSE_SPEAKERS | GPIO_ST_HP_REAR;
+            break;
+        case 1:
+            gpio = (gpio | GPIO_ST_HP_REAR) & ~GPIO_XENSE_SPEAKERS;
+            break;
+        case 2:
+            gpio &= ~(GPIO_XENSE_SPEAKERS | GPIO_ST_HP_REAR);
+            break;
+    }
+    oxygen_write16(chip, OXYGEN_GPIO_DATA, gpio);
+    data->hp_active = !(gpio & GPIO_XENSE_SPEAKERS);
+    update_pcm1796_volume(chip);
+    mutex_unlock(&chip->mutex);
+    return gpio != gpio_old;
 }
 
-
-//static const struct snd_kcontrol_new alt_switch = {
-//    .iface = SNDRV_CTL_ELEM_IFACE_MIXER,
-//    .name = "Analog Loopback Switch",
-//    .info = snd_ctl_boolean_mono_info,
-//    .get = xonar_gpio_bit_switch_get,
-//    .put = xonar_gpio_bit_switch_put,
-//    .private_value = GPIO_D2_ALT,
-//};
-//
-//static int rolloff_info(struct snd_kcontrol *ctl,
-//                        struct snd_ctl_elem_info *info)
-//{
-//    static const char *const names[2] = {
-//        "Sharp Roll-off", "Slow Roll-off"
-//    };
-//    
-//    return snd_ctl_enum_info(info, 1, 2, names);
-//}
-//
-//static int rolloff_get(struct snd_kcontrol *ctl,
-//                       struct snd_ctl_elem_value *value)
-//{
-//    struct oxygen *chip = ctl->private_data;
-//    struct xonar_pcm179x *data = chip->model_data;
-//    
-//    value->value.enumerated.item[0] =
-//    (data->pcm1796_regs[0][19 - PCM1796_REG_BASE] &
-//     PCM1796_FLT_MASK) != PCM1796_FLT_SHARP;
-//    return 0;
-//}
-//
-//static int rolloff_put(struct snd_kcontrol *ctl,
-//                       struct snd_ctl_elem_value *value)
-//{
-//    struct oxygen *chip = ctl->private_data;
-//    struct xonar_pcm179x *data = chip->model_data;
-//    unsigned int i;
-//    int changed;
-//    UInt8 reg;
-//    
-//    mutex_lock(&chip->mutex);
-//    reg = data->pcm1796_regs[0][19 - PCM1796_REG_BASE];
-//    reg &= ~PCM1796_FLT_MASK;
-//    if (!value->value.enumerated.item[0])
-//        reg |= PCM1796_FLT_SHARP;
-//    else
-//        reg |= PCM1796_FLT_SLOW;
-//    changed = reg != data->pcm1796_regs[0][19 - PCM1796_REG_BASE];
-//    if (changed) {
-//        for (i = 0; i < data->dacs; ++i)
-//            pcm1796_write(chip, i, 19, reg);
-//    }
-//    mutex_unlock(&chip->mutex);
-//    return changed;
-//}
-//
-//static const struct snd_kcontrol_new rolloff_control = {
-//    .iface = SNDRV_CTL_ELEM_IFACE_MIXER,
-//    .name = "DAC Filter Playback Enum",
-//    .info = rolloff_info,
-//    .get = rolloff_get,
-//    .put = rolloff_put,
-//};
-//
-//static const struct snd_kcontrol_new hdav_hdmi_control = {
-//    .iface = SNDRV_CTL_ELEM_IFACE_MIXER,
-//    .name = "HDMI Playback Switch",
-//    .info = snd_ctl_boolean_mono_info,
-//    .get = xonar_gpio_bit_switch_get,
-//    .put = xonar_gpio_bit_switch_put,
-//    .private_value = GPIO_HDAV_OUTPUT_ENABLE | XONAR_GPIO_BIT_INVERT,
-//};
-//
-//
-//
-//int XonarSTAudioEngine::st_output_switch_info(struct snd_kcontrol *ctl,
-//                                 struct snd_ctl_elem_info *info)
-//{
-//    static const char *const names[3] = {
-//        "Speakers", "Headphones", "FP Headphones"
-//    };
-//    
-//    return snd_ctl_enum_info(info, 1, 3, names);
-//}
-//
-//int XonarSTAudioEnginest_output_switch_get(struct snd_kcontrol *ctl,
-//                                struct snd_ctl_elem_value *value)
-//{
-//    struct oxygen *chip = ctl->private_data;
-//    UInt16 gpio;
-//    
-//    gpio = oxygen_read16(chip, OXYGEN_GPIO_DATA);
-//    if (!(gpio & GPIO_ST_HP))
-//        value->value.enumerated.item[0] = 0;
-//    else if (gpio & GPIO_ST_HP_REAR)
-//        value->value.enumerated.item[0] = 1;
-//    else
-//        value->value.enumerated.item[0] = 2;
-//    return 0;
-//}
-//
-//
-//int XonarSTAudioEngine::st_output_switch_put(struct snd_kcontrol *ctl,
-//                                struct snd_ctl_elem_value *value)
-//{
-//    struct oxygen *chip = ctl->private_data;
-//    struct xonar_pcm179x *data = chip->model_data;
-//    UInt16 gpio_old, gpio;
-//    
-//    mutex_lock(&chip->mutex);
-//    gpio_old = oxygen_read16(chip, OXYGEN_GPIO_DATA);
-//    gpio = gpio_old;
-//    switch (value->value.enumerated.item[0]) {
-//        case 0:
-//            gpio &= ~(GPIO_ST_HP | GPIO_ST_HP_REAR);
-//            break;
-//        case 1:
-//            gpio |= GPIO_ST_HP | GPIO_ST_HP_REAR;
-//            break;
-//        case 2:
-//            gpio = (gpio | GPIO_ST_HP) & ~GPIO_ST_HP_REAR;
-//            break;
-//    }
-//    oxygen_write16(chip, OXYGEN_GPIO_DATA, gpio);
-//    data->hp_active = gpio & GPIO_ST_HP;
-//    update_pcm1796_volume(chip);
-//    mutex_unlock(&chip->mutex);
-//    return gpio != gpio_old;
-//}
-//
-//int XonarSTAudioEngine::st_hp_volume_offset_info(struct snd_kcontrol *ctl,
-//                                    struct snd_ctl_elem_info *info)
-//{
-//    static const char *const names[4] = {
-//        "< 32 ohms", "32-64 ohms", "64-300 ohms", "300-600 ohms"
-//    };
-//    
-//    return snd_ctl_enum_info(info, 1, 4, names);
-//}
-//
-//static int st_hp_volume_offset_get(struct snd_kcontrol *ctl,
-//                                   struct snd_ctl_elem_value *value)
-//{
-//    struct oxygen *chip = ctl->private_data;
-//    struct xonar_pcm179x *data = chip->model_data;
-//    
-//    mutex_lock(&chip->mutex);
-//    if (data->hp_gain_offset < 2*-12)
-//        value->value.enumerated.item[0] = 0;
-//    else if (data->hp_gain_offset < 2*-6)
-//        value->value.enumerated.item[0] = 1;
-//    else if (data->hp_gain_offset < 0)
-//        value->value.enumerated.item[0] = 2;
-//    else
-//        value->value.enumerated.item[0] = 3;
-//    mutex_unlock(&chip->mutex);
-//    return 0;
-//}
-//
-//
-//static int st_hp_volume_offset_put(struct snd_kcontrol *ctl,
-//                                   struct snd_ctl_elem_value *value)
-//{
-//    static const s8 offsets[] = { 2*-18, 2*-12, 2*-6, 0 };
-//    struct oxygen *chip = ctl->private_data;
-//    struct xonar_pcm179x *data = chip->model_data;
-//    s8 offset;
-//    int changed;
-//    
-//    if (value->value.enumerated.item[0] > 3)
-//        return -EINVAL;
-//    offset = offsets[value->value.enumerated.item[0]];
-//    mutex_lock(&chip->mutex);
-//    changed = offset != data->hp_gain_offset;
-//    if (changed) {
-//        data->hp_gain_offset = offset;
-//        update_pcm1796_volume(chip);
-//    }
-//    mutex_unlock(&chip->mutex);
-//    return changed;
-//}
-//
-//static const struct snd_kcontrol_new st_controls[] = {
-//    {
-//        .iface = SNDRV_CTL_ELEM_IFACE_MIXER,
-//        .name = "Analog Output",
-//        .info = st_output_switch_info,
-//        .get = st_output_switch_get,
-//        .put = st_output_switch_put,
-//    },
-//    {
-//        .iface = SNDRV_CTL_ELEM_IFACE_MIXER,
-//        .name = "Headphones Impedance Playback Enum",
-//        .info = st_hp_volume_offset_info,
-//        .get = st_hp_volume_offset_get,
-//        .put = st_hp_volume_offset_put,
-//    },
-//};
-//
-//int XonarSTAudioEngine::xonar_st_h6_control_filter(struct snd_kcontrol_new *template)
-//{
-//    if (!strncmp(template->name, "Master Playback ", 16))
-//    // no volume/mute, as I²C to the third DAC does not work
-//        return 1;
-//    return 0;
-//}
+static const struct snd_kcontrol_new xense_controls[] = {
+    {
+        .iface = SNDRV_CTL_ELEM_IFACE_MIXER,
+        .name = "Analog Output",
+        .info = st_output_switch_info,
+        .get = xense_output_switch_get,
+        .put = xense_output_switch_put,
+    },
+    {
+        .iface = SNDRV_CTL_ELEM_IFACE_MIXER,
+        .name = "Headphones Impedance Playback Enum",
+        .info = st_hp_volume_offset_info,
+        .get = st_hp_volume_offset_get,
+        .put = st_hp_volume_offset_put,
+    },
+};
 
 
-bool XonarSTAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip)
+
+
+static int xonar_d2_control_filter(struct snd_kcontrol_new *template)
+{
+    if (!strncmp(template->name, "CD Capture ", 11))
+    // CD in is actually connected to the video in pin
+        template->private_value ^= AC97_CD ^ AC97_VIDEO;
+    return 0;
+}
+*/
+
+int XonarD2XAudioEngine::xonar_d2_mixer_init(struct oxygen *chip)
+{
+    int err;
+    
+    //   err = snd_ctl_add(chip->card, snd_ctl_new1(&alt_switch, chip));
+    if (err < 0)
+        return err;
+    err = XonarAudioEngine::add_pcm1796_controls(chip);
+    if (err < 0)
+        return err;
+    return 0;
+}
+
+bool XonarD2XAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip)
 {
     bool result = false;
     
-    IOLog("XonarSTAudioEngine[%p]::init(%p)\n", this, chip);
+    IOLog("XonarD2XAudioEngine[%p]::init(%p)\n", this, chip);
     
     if (!chip) {
         goto Done;
@@ -403,10 +269,10 @@ bool XonarSTAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip)
     if (!super::init(NULL)) {
         goto Done;
     }
-  //  ak4396_init(chip);
-  //  wm8785_init(chip);
+    //  ak4396_init(chip);
+    //  wm8785_init(chip);
     deviceRegisters = (struct xonar_hdav*)chip->model_data;
- 
+    
     // the below aren't correct. have to bridge the workqueue calls to IOWorkLoop
     queue_init(&chip->ac97_waitqueue);
     chip->mutex = OS_SPINLOCK_INIT;
@@ -420,14 +286,14 @@ Done:
     return result;
 }
 
-bool XonarSTAudioEngine::initHardware(IOService *provider)
+bool XonarD2XAudioEngine::initHardware(IOService *provider)
 {
     bool result = false;
     IOAudioSampleRate initialSampleRate;
     IOAudioStream *audioStream;
     IOWorkLoop *workLoop;
     
-    IOLog("XonarSTAudioEngine[%p]::initHardware(%p)\n", this, provider);
+    IOLog("XonarD2XAudioEngine[%p]::initHardware(%p)\n", this, provider);
     
     if (!super::initHardware(provider)) {
         goto Done;
@@ -457,8 +323,8 @@ bool XonarSTAudioEngine::initHardware(IOService *provider)
     // can do the work in the filter routine and then return false to
     // indicate that we do not want our secondary handler called
     interruptEventSource = IOFilterInterruptEventSource::filterInterruptEventSource(this,
-                                                                                    XonarSTAudioEngine::interruptHandler,
-                                                                                    XonarSTAudioEngine::interruptFilter,
+                                                                                    XonarD2XAudioEngine::interruptHandler,
+                                                                                    XonarD2XAudioEngine::interruptFilter,
                                                                                     audioDevice->getProvider());
     if (!interruptEventSource) {
         goto Done;
@@ -509,9 +375,9 @@ Done:
     return result;
 }
 
-void XonarSTAudioEngine::free()
+void XonarD2XAudioEngine::free()
 {
-    IOLog("XonarSTAudioEngine[%p]::free()\n", this);
+    IOLog("XonarD2XAudioEngine[%p]::free()\n", this);
     
     // We need to free our resources when we're going away
     
@@ -533,7 +399,7 @@ void XonarSTAudioEngine::free()
     super::free();
 }
 
-IOAudioStream *XonarSTAudioEngine::createNewAudioStream(IOAudioStreamDirection direction, void *sampleBuffer, UInt32 sampleBufferSize)
+IOAudioStream *XonarD2XAudioEngine::createNewAudioStream(IOAudioStreamDirection direction, void *sampleBuffer, UInt32 sampleBufferSize)
 {
     IOAudioStream *audioStream;
     
@@ -575,9 +441,9 @@ IOAudioStream *XonarSTAudioEngine::createNewAudioStream(IOAudioStreamDirection d
     return audioStream;
 }
 
-void XonarSTAudioEngine::stop(IOService *provider)
+void XonarD2XAudioEngine::stop(IOService *provider)
 {
-    IOLog("XonarSTAudioEngine[%p]::stop(%p)\n", this, provider);
+    IOLog("XonarD2XAudioEngine[%p]::stop(%p)\n", this, provider);
     
     // When our device is being stopped and torn down, we should go ahead and remove
     // the interrupt event source from the IOWorkLoop
@@ -601,9 +467,9 @@ void XonarSTAudioEngine::stop(IOService *provider)
     super::stop(provider);
 }
 
-IOReturn XonarSTAudioEngine::performAudioEngineStart()
+IOReturn XonarD2XAudioEngine::performAudioEngineStart()
 {
-    IOLog("XonarSTAudioEngine[%p]::performAudioEngineStart()\n", this);
+    IOLog("XonarD2XAudioEngine[%p]::performAudioEngineStart()\n", this);
     
     // The interruptEventSource needs to be enabled to allow interrupts to start firing
     assert(interruptEventSource);
@@ -625,9 +491,9 @@ IOReturn XonarSTAudioEngine::performAudioEngineStart()
     return kIOReturnSuccess;
 }
 
-IOReturn XonarSTAudioEngine::performAudioEngineStop()
+IOReturn XonarD2XAudioEngine::performAudioEngineStop()
 {
-    IOLog("XonarSTAudioEngine[%p]::performAudioEngineStop()\n", this);
+    IOLog("XonarD2XAudioEngine[%p]::performAudioEngineStop()\n", this);
     
     // Assuming we don't need interrupts after stopping the audio engine, we can disable them here
     assert(interruptEventSource);
@@ -640,9 +506,9 @@ IOReturn XonarSTAudioEngine::performAudioEngineStop()
     return kIOReturnSuccess;
 }
 
-UInt32 XonarSTAudioEngine::getCurrentSampleFrame()
+UInt32 XonarD2XAudioEngine::getCurrentSampleFrame()
 {
-    IOLog("XonarSTAudioEngine[%p]::getCurrentSampleFrame()\n", this);
+    IOLog("XonarD2XAudioEngine[%p]::getCurrentSampleFrame()\n", this);
     
     // In order for the erase process to run properly, this function must return the current location of
     // the audio engine - basically a sample counter
@@ -657,9 +523,9 @@ UInt32 XonarSTAudioEngine::getCurrentSampleFrame()
     return 0;
 }
 
-IOReturn XonarSTAudioEngine::performFormatChange(IOAudioStream *audioStream, const IOAudioStreamFormat *newFormat, const IOAudioSampleRate *newSampleRate)
+IOReturn XonarD2XAudioEngine::performFormatChange(IOAudioStream *audioStream, const IOAudioStreamFormat *newFormat, const IOAudioSampleRate *newSampleRate)
 {
-    IOLog("XonarSTAudioEngine[%p]::peformFormatChange(%p, %p, %p)\n", this, audioStream, newFormat, newSampleRate);
+    IOLog("XonarD2XAudioEngine[%p]::peformFormatChange(%p, %p, %p)\n", this, audioStream, newFormat, newSampleRate);
     
     // Since we only allow one format, we only need to be concerned with sample rate changes
     // In this case, we only allow 2 sample rates - 44100 & 48000, so those are the only ones
@@ -687,16 +553,16 @@ IOReturn XonarSTAudioEngine::performFormatChange(IOAudioStream *audioStream, con
 }
 
 
-void XonarSTAudioEngine::interruptHandler(OSObject *owner, IOInterruptEventSource *source, int count)
+void XonarD2XAudioEngine::interruptHandler(OSObject *owner, IOInterruptEventSource *source, int count)
 {
     // Since our interrupt filter always returns false, this function will never be called
     // If the filter returned true, this function would be called on the IOWorkLoop
     return;
 }
 
-bool XonarSTAudioEngine::interruptFilter(OSObject *owner, IOFilterInterruptEventSource *source)
+bool XonarD2XAudioEngine::interruptFilter(OSObject *owner, IOFilterInterruptEventSource *source)
 {
-    XonarSTAudioEngine *audioEngine = OSDynamicCast(XonarSTAudioEngine, owner);
+    XonarD2XAudioEngine *audioEngine = OSDynamicCast(XonarD2XAudioEngine, owner);
     
     // We've cast the audio engine from the owner which we passed in when we created the interrupt
     // event source
@@ -708,7 +574,7 @@ bool XonarSTAudioEngine::interruptFilter(OSObject *owner, IOFilterInterruptEvent
     return false;
 }
 
-void XonarSTAudioEngine::filterInterrupt(int index)
+void XonarD2XAudioEngine::filterInterrupt(int index)
 {
     // In the case of our simple device, we only get interrupts when the audio engine loops to the
     // beginning of the buffer.  When that happens, we need to take a timestamp and increment

@@ -41,22 +41,23 @@
  */
 
 
-#ifndef _XONARSTAUDIOENGINE_H
-#define _XONARSTAUDIOENGINE_H
+#ifndef _XonarD2XAUDIOENGINE_H
+#define _XonarD2XAUDIOENGINE_H
 
 #include <IOKit/audio/IOAudioEngine.h>
 
 #include "CMI8788.hpp"
 #include "XonarAudioEngine.hpp"
-#define XonarSTAudioEngine com_CMedia_CMI8788_XonarSTAudioEngine
+#include "XonarSTAudioEngine.hpp"
+#define XonarD2XAudioEngine com_CMedia_CMI8788_XonarD2XAudioEngine
 
 
 class IOFilterInterruptEventSource;
 class IOInterruptEventSource;
 class XonarAudioEngine;
-class XonarSTAudioEngine : public IOAudioEngine
+class XonarD2XAudioEngine : public IOAudioEngine
 {
-    OSDeclareDefaultStructors(XonarSTAudioEngine)
+    OSDeclareDefaultStructors(XonarD2XAudioEngine)
     struct xonar_hdav                   *deviceRegisters;
     //right now i've created 4 since there are 4 I2S input buffers
     // however, i am not sure how to incorporate them yet,
@@ -94,18 +95,16 @@ public:
     static void interruptHandler(OSObject *owner, IOInterruptEventSource *source, int count);
     static bool interruptFilter(OSObject *owner, IOFilterInterruptEventSource *source);
     virtual void filterInterrupt(int index);
-    static void xonar_st_init_common(struct oxygen *chip);
-    static void xonar_st_init(struct oxygen *chip);
-    static void xonar_stx_init(struct oxygen *chip);
-    static void xonar_st_init_i2c(struct oxygen *chip);
-    static void xonar_st_suspend(struct oxygen *chip);
-    static void xonar_stx_resume(struct oxygen *chip);
-    static void xonar_st_resume(struct oxygen *chip);
 
-    static void xonar_st_cleanup(struct oxygen *chip);
+    static void xonar_d2_init(struct oxygen *chip);
+    static void xonar_d2x_init(struct oxygen *chip);
+    static void xonar_xense_init(struct oxygen *chip);
+    static int xonar_d2_mixer_init(struct oxygen *chip);
     
-    static void set_st_params(struct oxygen *chip,XonarAudioEngine *instance);
-    
+    static void xonar_d2_cleanup(struct oxygen *chip);
+    static void xonar_d2_suspend(struct oxygen *chip);
+    static void xonar_d2_resume(struct oxygen *chip);
+
 };
 
 #endif /* _SAMPLEPCIAUDIOENGINE_H */

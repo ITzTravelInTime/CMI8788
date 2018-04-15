@@ -255,104 +255,6 @@ void oxygen_write_uart(struct oxygen *chip, UInt8 data)
     _write_uart(chip, 0, data);
 }
 //EXPORT_SYMBOL(oxygen_write_uart);
-//static void hdmi_write_command(struct oxygen *chip, UInt8 command,
-//                               unsigned int count, const UInt8 *params)
-//{
-//    unsigned int i;
-//    UInt8 checksum;
-//    
-//    oxygen_write_uart(chip, 0xfb);
-//    oxygen_write_uart(chip, 0xef);
-//    oxygen_write_uart(chip, command);
-//    oxygen_write_uart(chip, count);
-//    for (i = 0; i < count; ++i)
-//        oxygen_write_uart(chip, params[i]);
-//    checksum = 0xfb + 0xef + command + count;
-//    for (i = 0; i < count; ++i)
-//        checksum += params[i];
-//    oxygen_write_uart(chip, checksum);
-//}
-//
-//static void xonar_hdmi_init_commands(struct oxygen *chip,
-//                                     struct xonar_hdmi *hdmi)
-//{
-//    UInt8 param;
-//    
-//  //  oxygen_reset_uart(chip);
-//    param = 0;
-//    hdmi_write_command(chip, 0x61, 1, &param);
-//    param = 1;
-//    hdmi_write_command(chip, 0x74, 1, &param);
-//    hdmi_write_command(chip, 0x54, 5, hdmi->params);
-//}
-//
-//void xonar_hdmi_init(struct oxygen *chip, struct xonar_hdmi *hdmi)
-//{
-//    hdmi->params[1] = IEC958_AES3_CON_FS_48000;
-//    hdmi->params[4] = 1;
-//    xonar_hdmi_init_commands(chip, hdmi);
-//}
-//
-//void xonar_hdmi_cleanup(struct oxygen *chip)
-//{
-//    UInt8 param = 0;
-//    
-//    hdmi_write_command(chip, 0x74, 1, &param);
-//}
-//
-//void xonar_hdmi_resume(struct oxygen *chip, struct xonar_hdmi *hdmi)
-//{
-//    xonar_hdmi_init_commands(chip, hdmi);
-//}
-///*
-//void xonar_hdmi_pcm_hardware_filter(unsigned int channel,
-//                                    struct snd_pcm_hardware *hardware)
-//{
-//    if (channel == PCM_MULTICH) {
-//        hardware->rates = SNDRV_PCM_RATE_44100 |
-//        SNDRV_PCM_RATE_48000 |
-//        SNDRV_PCM_RATE_96000 |
-//        SNDRV_PCM_RATE_192000;
-//        hardware->rate_min = 44100;
-//    }
-//}
-//*/
-//void XonarAudioEngine::xonar_set_hdmi_params(struct oxygen *chip, struct xonar_hdmi *hdmi)
-//{
-//    hdmi->params[0] = 0; // 1 = non-audio
-//    switch (this->getSampleRate()->whole) {
-//        case 44100:
-//            hdmi->params[1] = IEC958_AES3_CON_FS_44100;
-//            break;
-//        case 48000:
-//            hdmi->params[1] = IEC958_AES3_CON_FS_48000;
-//            break;
-//        default: // 96000
-//            hdmi->params[1] = IEC958_AES3_CON_FS_96000;
-//            break;
-//        case 192000:
-//            hdmi->params[1] = IEC958_AES3_CON_FS_192000;
-//            break;
-//    }
-//    //Linux call:
-//    //hdmi->params[2] = params_channels(params) / 2 - 1;
-//    //Mac Call:
-//    hdmi->params[2] = this->inputs[0]->maxNumChannels / 2 - 1;
-//    //^ this is wrong because it should be NumChannels, not MaxNum
-//    //however since IOAudioStream calls are deprecated as of 10.10,
-//    //i'm going to use this is a placeholder/semi-correct call.
-//    
-//    //Linux call:
-//    //if (params_format(params) == SNDRV_PCM_FORMAT_S16_LE)
-//    //Mac Call:
-//    if(this->inputs[0]->format.fSampleFormat == SNDRV_PCM_FORMAT_S16_LE)
-//        hdmi->params[3] = 0;
-//    else
-//        hdmi->params[3] = 0xc0;
-//    hdmi->params[4] = 1; // ?
-//    hdmi_write_command(chip, 0x54, 5, hdmi->params);
-//}
-
 
 static int oxygen_wait_spi(struct oxygen *chip)
 {
@@ -386,20 +288,6 @@ int oxygen_write_spi(struct oxygen *chip, UInt8 control, unsigned int data)
     return oxygen_wait_spi(chip);
 }
 //EXPORT_SYMBOL(oxygen_write_spi);
-
-//void xonar_hdmi_uart_input(struct oxygen *chip)
-//{
-//    if (chip->uart_input_count >= 2 &&
-//        chip->uart_input[chip->uart_input_count - 2] == 'O' &&
-//        chip->uart_input[chip->uart_input_count - 1] == 'K') {
-//        IOLog("message from HDMI chip received:\n");
-//        //print_hex_dump_bytes("", DUMP_PREFIX_OFFSET,
-//         //                    chip->uart_input, chip->uart_input_count);
-//        chip->uart_input_count = 0;
-//    }
-//}
-
-
 
 
 
@@ -519,72 +407,6 @@ void XonarAudioEngine::pcm1796_init(struct oxygen *chip)
     pcm1796_registers_init(chip);
     data->current_rate->whole = 48000;
 }
-/*
-static void xonar_d2_init(struct oxygen *chip)
-{
-    struct xonar_pcm179x *data = (struct xonar_pcm179x*) chip->model_data;
-    
-    data->generic.anti_pop_delay = 300;
-    data->generic.output_enable_bit = GPIO_D2_OUTPUT_ENABLE;
-    data->dacs = 4;
-    
-    pcm1796_init(chip);
-    
-    oxygen_set_bits16(chip, OXYGEN_GPIO_CONTROL, GPIO_D2_ALT);
-    oxygen_clear_bits16(chip, OXYGEN_GPIO_DATA, GPIO_D2_ALT);
-    
-    oxygen_ac97_set_bits(chip, 0, CM9780_JACK, CM9780_FMIC2MIC);
-    
-    xonar_init_cs53x1(chip);
-    xonar_enable_output(chip);
-    
-  //  snd_component_add(chip->card, "PCM1796");
-   // snd_component_add(chip->card, "CS5381");
-}
-
-static void xonar_d2x_init(struct oxygen *chip)
-{
-    struct xonar_pcm179x *data = (struct xonar_pcm179x*) chip->model_data;
-    
-    data->generic.ext_power_reg = OXYGEN_GPIO_DATA;
-    data->generic.ext_power_int_reg = OXYGEN_GPIO_INTERRUPT_MASK;
-    data->generic.ext_power_bit = GPIO_D2X_EXT_POWER;
-    oxygen_clear_bits16(chip, OXYGEN_GPIO_CONTROL, GPIO_D2X_EXT_POWER);
-    xonar_init_ext_power(chip);
-    xonar_d2_init(chip);
-}
-*/
-//void XonarAudioEngine::xonar_hdav_init(struct oxygen *chip)
-//{
-//    struct xonar_hdav *data = (struct xonar_hdav*) chip->model_data;
-//    
-//    oxygen_write16(chip, OXYGEN_2WIRE_BUS_STATUS,
-//                   OXYGEN_2WIRE_LENGTH_8 |
-//                   OXYGEN_2WIRE_INTERRUPT_MASK |
-//                   OXYGEN_2WIRE_SPEED_STANDARD);
-//    
-//    data->pcm179x.generic.anti_pop_delay = 100;
-//    data->pcm179x.generic.output_enable_bit = GPIO_HDAV_OUTPUT_ENABLE;
-//    data->pcm179x.generic.ext_power_reg = OXYGEN_GPI_DATA;
-//    data->pcm179x.generic.ext_power_int_reg = OXYGEN_GPI_INTERRUPT_MASK;
-//    data->pcm179x.generic.ext_power_bit = GPI_EXT_POWER;
-//    data->pcm179x.dacs = chip->model.dac_channels_mixer / 2;
-//    data->pcm179x.h6 = chip->model.dac_channels_mixer > 2;
-//    
-//    pcm1796_init(chip);
-//    
-//    oxygen_set_bits16(chip, OXYGEN_GPIO_CONTROL,
-//                      GPIO_HDAV_MAGIC | GPIO_INPUT_ROUTE);
-//    oxygen_clear_bits16(chip, OXYGEN_GPIO_DATA, GPIO_INPUT_ROUTE);
-//    
-//    xonar_init_cs53x1(chip);
-//    xonar_init_ext_power(chip);
-//    xonar_hdmi_init(chip, &data->hdmi);
-//    xonar_enable_output(chip);
-//    
-//   // snd_component_add(chip->card, "PCM1796");
-//   // snd_component_add(chip->card, "CS5381");
-//}
 
 void XonarAudioEngine::cs2000_registers_init(struct oxygen *chip)
 {
@@ -610,22 +432,6 @@ void XonarAudioEngine::cs2000_registers_init(struct oxygen *chip)
     cs2000_write(chip, CS2000_GLOBAL_CFG, CS2000_EN_DEV_CFG_2);
     IODelay(3*1000); /* PLL lock delay */
 }
-
-//void XonarAudioEngine::xonar_hdav_cleanup(struct oxygen *chip)
-//{
-//    xonar_hdmi_cleanup(chip);
-//    xonar_disable_output(chip);
-//    IODelay(2);
-//}
-//
-//void XonarAudioEngine::xonar_hdav_resume(struct oxygen *chip)
-//{
-//    struct xonar_hdav *data = (struct xonar_hdav*) chip->model_data;
-//    
-//    pcm1796_registers_init(chip);
-//    xonar_hdmi_resume(chip, &data->hdmi);
-//    xonar_enable_output(chip);
-//}
 
 
 void XonarAudioEngine::update_pcm1796_oversampling(struct oxygen *chip)
@@ -720,6 +526,44 @@ void XonarAudioEngine::update_cs2000_rate(struct oxygen *chip, unsigned int rate
     cs2000_write_cached(chip, CS2000_FUN_CFG_1, reg);
     IODelay(3*1000); /* PLL lock delay */
 }
+
+/*
+ static void xonar_d2_init(struct oxygen *chip)
+ {
+ struct xonar_pcm179x *data = (struct xonar_pcm179x*) chip->model_data;
+ 
+ data->generic.anti_pop_delay = 300;
+ data->generic.output_enable_bit = GPIO_D2_OUTPUT_ENABLE;
+ data->dacs = 4;
+ 
+ pcm1796_init(chip);
+ 
+ oxygen_set_bits16(chip, OXYGEN_GPIO_CONTROL, GPIO_D2_ALT);
+ oxygen_clear_bits16(chip, OXYGEN_GPIO_DATA, GPIO_D2_ALT);
+ 
+ oxygen_ac97_set_bits(chip, 0, CM9780_JACK, CM9780_FMIC2MIC);
+ 
+ xonar_init_cs53x1(chip);
+ xonar_enable_output(chip);
+ 
+ //  snd_component_add(chip->card, "PCM1796");
+ // snd_component_add(chip->card, "CS5381");
+ }
+ 
+ static void xonar_d2x_init(struct oxygen *chip)
+ {
+ struct xonar_pcm179x *data = (struct xonar_pcm179x*) chip->model_data;
+ 
+ data->generic.ext_power_reg = OXYGEN_GPIO_DATA;
+ data->generic.ext_power_int_reg = OXYGEN_GPIO_INTERRUPT_MASK;
+ data->generic.ext_power_bit = GPIO_D2X_EXT_POWER;
+ oxygen_clear_bits16(chip, OXYGEN_GPIO_CONTROL, GPIO_D2X_EXT_POWER);
+ xonar_init_ext_power(chip);
+ xonar_d2_init(chip);
+ }
+ */
+
+
 /*
 static void set_st_params(struct oxygen *chip,
                           struct snd_pcm_hw_params *params)
@@ -728,15 +572,7 @@ static void set_st_params(struct oxygen *chip,
     set_pcm1796_params(chip, params);
 }
 */
-/*
-void XonarAudioEngine::set_hdav_params(struct oxygen *chip, XonarAudioEngine *instance)
-{
-    struct xonar_hdav *data = (struct xonar_hdav*) chip->model_data;
-    
-    this->instance::set_pcm1796_params(chip);
-    xonar_set_hdmi_params(chip, &data->hdmi);
-}
-*/
+
 
 //static const struct snd_kcontrol_new alt_switch = {
 //    .iface = SNDRV_CTL_ELEM_IFACE_MIXER,
