@@ -99,11 +99,9 @@ public:
 
     virtual void xonar_hdav_init(struct oxygen *chip);
     virtual void xonar_hdav_resume(struct oxygen *chip);
-    virtual void set_hdav_params(struct oxygen *chip, XonarAudioEngine *engine);
+    virtual void set_hdav_params(struct oxygen *chip);
     virtual void xonar_hdav_cleanup(struct oxygen *chip);
     virtual int xonar_hdav_mixer_init(struct oxygen *chip);
-    virtual void set_hdav_params(struct oxygen *chip, XonarHDAVAudioEngine *instance);
-
     /* HDMI helper functions */
     virtual void hdmi_write_command(struct oxygen *chip, UInt8 command,
                                    unsigned int count, const UInt8 *params);
@@ -115,7 +113,7 @@ public:
     virtual void xonar_hdmi_resume(struct oxygen *chip, struct xonar_hdmi *hdmi);
    // void xonar_hdmi_pcm_hardware_filter(unsigned int channel,
      //                                   struct snd_pcm_hardware *hardware);
-    virtual void xonar_set_hdmi_params(XonarAudioEngine *engi, struct oxygen *chip, struct xonar_hdmi *hdmi);
+    virtual void xonar_set_hdmi_params(struct oxygen *chip, struct xonar_hdmi *hdmi);
     virtual void xonar_hdmi_uart_input(struct oxygen *chip);
     
 

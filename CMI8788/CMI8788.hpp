@@ -146,7 +146,6 @@ struct oxygen_model {
     UInt8 adc_mclks;
     UInt16 dac_i2s_format;
     UInt16 adc_i2s_format;
-    
     void (*gpio_changed)(struct oxygen *chip);
 };
 
@@ -472,10 +471,10 @@ class PCIAudioDevice : public IOAudioDevice
     
     /* oxygen_io.c */
     
-    //UInt8 oxygen_read8(struct oxygen *chip, unsigned int reg);
+    UInt8 oxygen_read8(struct oxygen *chip, unsigned int reg);
     UInt16 oxygen_read16(struct oxygen *chip, unsigned int reg);
     UInt32 oxygen_read32(struct oxygen *chip, unsigned int reg);
-    //void oxygen_write8(struct oxygen *chip, unsigned int reg, UInt8 value);
+    void oxygen_write8(struct oxygen *chip, unsigned int reg, UInt8 value);
     void oxygen_write16(struct oxygen *chip, unsigned int reg, UInt16 value);
     void oxygen_write32(struct oxygen *chip, unsigned int reg, UInt32 value);
     void oxygen_write8_masked(struct oxygen *chip, unsigned int reg,

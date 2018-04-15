@@ -132,10 +132,10 @@ void xonar_hdmi_pcm_hardware_filter(unsigned int channel,
     }
 }
 */
-void XonarHDAVAudioEngine::xonar_set_hdmi_params(XonarAudioEngine *engine,struct oxygen *chip, struct xonar_hdmi *hdmi)
+void XonarHDAVAudioEngine::xonar_set_hdmi_params(struct oxygen *chip, struct xonar_hdmi *hdmi)
 {
     hdmi->params[0] = 0; // 1 = non-audio
-    switch (engine->getSampleRate()->whole) {
+    switch (this->engineInstance->getSampleRate()->whole) {
         case 44100:
             hdmi->params[1] = IEC958_AES3_CON_FS_44100;
             break;
@@ -152,7 +152,7 @@ void XonarHDAVAudioEngine::xonar_set_hdmi_params(XonarAudioEngine *engine,struct
     //Linux call:
     //hdmi->params[2] = params_channels(params) / 2 - 1;
     //Mac Call:
-    hdmi->params[2] = engine->inputs[0]->maxNumChannels / 2 - 1;
+    hdmi->params[2] = this->engineInstance->inputs[0]->maxNumChannels / 2 - 1;
     //^ this is wrong because it should be NumChannels, not MaxNum
     //however since IOAudioStream calls are deprecated as of 10.10,
     //i'm going to use this is a placeholder/semi-correct call.
@@ -160,7 +160,7 @@ void XonarHDAVAudioEngine::xonar_set_hdmi_params(XonarAudioEngine *engine,struct
     //Linux call:
     //if (params_format(params) == SNDRV_PCM_FORMAT_S16_LE)
     //Mac Call:
-    if(engine->inputs[0]->format.fSampleFormat == SNDRV_PCM_FORMAT_S16_LE)
+    if(this->engineInstance->inputs[0]->format.fSampleFormat == SNDRV_PCM_FORMAT_S16_LE)
         hdmi->params[3] = 0;
     else
         hdmi->params[3] = 0xc0;
@@ -168,12 +168,12 @@ void XonarHDAVAudioEngine::xonar_set_hdmi_params(XonarAudioEngine *engine,struct
     hdmi_write_command(chip, 0x54, 5, hdmi->params);
 }
 
-void XonarHDAVAudioEngine::set_hdav_params(struct oxygen *chip, XonarAudioEngine *engine)
+void XonarHDAVAudioEngine::set_hdav_params(struct oxygen *chip)
 {
-    struct xonar_hdav *data = (struct xonar_hdav*) chip->model_data;
+   // struct xonar_hdav *data = (struct xonar_hdav*) chip->model_data;
     
-    this->engineInstance->set_pcm1796_params(chip, engine);
-    xonar_set_hdmi_params(engine, chip, &data->hdmi);
+    this->engineInstance->set_pcm1796_params(chip, this->engineInstance);
+    xonar_set_hdmi_params(chip, &deviceRegisters->hdmi);
 }
 
 
@@ -257,7 +257,7 @@ Done:
 void XonarHDAVAudioEngine::xonar_hdav_cleanup(struct oxygen *chip)
 {
     xonar_hdmi_cleanup(chip);
-    XonarAudioEngine::xonar_disable_output(chip);
+    this->engineInstance->xonar_disable_output(chip);
     IODelay(2);
 }
 
@@ -265,9 +265,9 @@ void XonarHDAVAudioEngine::xonar_hdav_resume(struct oxygen *chip)
 {
     struct xonar_hdav *data = (struct xonar_hdav*) chip->model_data;
     
-    XonarAudioEngine::pcm1796_registers_init(chip);
+    this->engineInstance->pcm1796_registers_init(chip);
     xonar_hdmi_resume(chip, &data->hdmi);
-    XonarAudioEngine::xonar_enable_output(chip);
+    this->engineInstance->xonar_enable_output(chip);
 }
 
 int XonarHDAVAudioEngine::xonar_hdav_mixer_init(struct oxygen *chip)
@@ -277,7 +277,7 @@ int XonarHDAVAudioEngine::xonar_hdav_mixer_init(struct oxygen *chip)
   //  err = snd_ctl_add(chip->card, snd_ctl_new1(&hdav_hdmi_control, chip));
     if (err < 0)
         return err;
-    err = XonarAudioEngine::add_pcm1796_controls(chip);
+    err = this->engineInstance->add_pcm1796_controls(chip);
     if (err < 0)
         return err;
     return 0;
