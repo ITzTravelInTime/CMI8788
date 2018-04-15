@@ -75,7 +75,7 @@ void XonarHDAVAudioEngine::hdmi_write_command(struct oxygen *chip, UInt8 command
     unsigned int i;
     UInt8 checksum;
     
-    oxygen_write_uart(chip, 0xfb);
+    XonarAudioEngine::oxygen_write_uart(chip, 0xfb);
     oxygen_write_uart(chip, 0xef);
     oxygen_write_uart(chip, command);
     oxygen_write_uart(chip, count);
@@ -246,33 +246,33 @@ int XonarHDAVAudioEngine::xonar_hdav_mixer_init(struct oxygen *chip)
 
 
 
-//bool XonarHDAVAudioEngine::init(XonarHDAVAudioEngine *engine, struct oxygen *chip)
-//{
-//    bool result = false;
-//    
-//    IOLog("XonarHDAVAudioEngine[%p]::init(%p)\n", this, chip);
-//    
-//    if (!chip) {
-//        goto Done;
-//    }
-//    
-//    if (!super::init(NULL)) {
-//        goto Done;
-//    }
-//  //  ak4396_init(chip);
-//  //  wm8785_init(chip);
-//    deviceRegisters = (struct xonar_hdav*)chip->model_data;
-// 
-//    // the below aren't correct. have to bridge the workqueue calls to IOWorkLoop
-//    queue_init(&chip->ac97_waitqueue);
-//    chip->mutex = OS_SPINLOCK_INIT;
-//    
-//    result = true;
-//    
-//Done:
-//    
-//    return result;
-//}
+bool XonarHDAVAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip)
+{
+    bool result = false;
+    
+    IOLog("XonarHDAVAudioEngine[%p]::init(%p)\n", this, chip);
+    
+    if (!chip) {
+        goto Done;
+    }
+    
+    if (!super::init(NULL)) {
+        goto Done;
+    }
+  //  ak4396_init(chip);
+  //  wm8785_init(chip);
+    deviceRegisters = (struct xonar_hdav*)chip->model_data;
+ 
+    // the below aren't correct. have to bridge the workqueue calls to IOWorkLoop
+    queue_init(&chip->ac97_waitqueue);
+    chip->mutex = OS_SPINLOCK_INIT;
+    
+    result = true;
+    
+Done:
+    
+    return result;
+}
 
 bool XonarHDAVAudioEngine::initHardware(IOService *provider)
 {

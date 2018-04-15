@@ -112,7 +112,8 @@ struct xonar_hdav {
 
 #define PCM1796_REG_BASE	16
 
-
+#define HDAV_MODEL 0
+#define ST_MODEL 1
 //objective C does not use the bitwise operator
 // so i am simply declaring SNDRV_PCM_FORMAT as-is
 //Linux Def below for reference:
@@ -129,7 +130,7 @@ class XonarAudioEngine : public IOAudioEngine
     friend class XonarSTAudioEngine;
     OSDeclareDefaultStructors(XonarAudioEngine)
     
-    struct xonar_hdav                   *deviceRegisters;
+    //struct xonar_hdav                   *deviceRegisters;
     //right now i've created 4 since there are 4 I2S input buffers
     // however, i am not sure how to incorporate them yet,
     // as i have to (probably) create an ioaudiostream for each
@@ -145,7 +146,7 @@ public:
     
     
         
-    virtual bool init(XonarAudioEngine *engine, struct oxygen *regs);
+    virtual bool init(struct oxygen *regs, int model);
     virtual void free();
     
     virtual bool initHardware(IOService *provider);
@@ -174,7 +175,7 @@ public:
     void xonar_init_cs53x1(struct oxygen *chip);
     void xonar_set_cs53x1_params(struct oxygen *chip);
     
-    
+    static int  add_pcm1796_controls(struct oxygen *chip);
     static void pcm1796_init(struct oxygen *chip);
     static void pcm1796_registers_init(struct oxygen *chip);
     static void update_pcm1796_mute(struct oxygen *chip);

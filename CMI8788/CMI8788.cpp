@@ -497,7 +497,7 @@ bool PCIAudioDevice::createAudioEngine()
     // Init the new audio engine with the device registers so it can access them if necessary
     // The audio engine subclass could be defined to take any number of parameters for its
     // initialization - use it like a constructor
-    if (!audioEngine->init(audioEngine,deviceRegisters)) {
+    if (!audioEngine->init(deviceRegisters,0)) {
         goto Done;
     }
     

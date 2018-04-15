@@ -72,7 +72,7 @@ public:
     
     
         
-    //virtual bool init(XonarAudioEngine *engine, struct oxygen *regs);
+    virtual bool init(XonarAudioEngine *engine, struct oxygen *regs);
     virtual void free();
     
     virtual bool initHardware(IOService *provider);
@@ -129,6 +129,12 @@ public:
 //    static void update_cs2000_rate(struct oxygen *chip, unsigned int rate);
     static void xonar_hdav_cleanup(struct oxygen *chip);
     /* HDMI helper functions */
+    static void hdmi_write_command(struct oxygen *chip, UInt8 command,
+                                   unsigned int count, const UInt8 *params);
+    
+    static void xonar_hdmi_init_commands(struct oxygen *chip,
+                                         struct xonar_hdmi *hdmi);
+
     
     static void xonar_hdmi_init(struct oxygen *chip, struct xonar_hdmi *data);
     static void xonar_hdmi_cleanup(struct oxygen *chip);

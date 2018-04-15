@@ -877,7 +877,7 @@ void XonarAudioEngine::xonar_line_mic_ac97_switch(struct oxygen *chip,
 }
 
 
-static int add_pcm1796_controls(struct oxygen *chip)
+int XonarAudioEngine::add_pcm1796_controls(struct oxygen *chip)
 {
     struct xonar_pcm179x *data = (struct xonar_pcm179x*)chip->model_data;
     int err;
@@ -891,7 +891,7 @@ static int add_pcm1796_controls(struct oxygen *chip)
     return 0;
 }
 
-bool XonarAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip)
+bool XonarAudioEngine::init(struct oxygen *chip, int model)
 {
     bool result = false;
     
@@ -906,8 +906,10 @@ bool XonarAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip)
     }
   //  ak4396_init(chip);
   //  wm8785_init(chip);
-    deviceRegisters = (struct xonar_hdav*)chip->model_data;
- 
+//    if(model == HDAV_MODEL)
+//        struct xonar_hdav *deviceRegisters = (struct xonar_hdav*)chip->model_data;
+//    else
+//        struct xonar_generic *deviceRegisters = (struct xonar_generic*)chip->model_data;
     // the below aren't correct. have to bridge the workqueue calls to IOWorkLoop
     queue_init(&chip->ac97_waitqueue);
     chip->mutex = OS_SPINLOCK_INIT;
