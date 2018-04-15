@@ -48,7 +48,7 @@
 
 #include "CMI8788.hpp"
 
-#define SamplePCIAudioEngine com_MyCompany_driver_SamplePCIAudioEngine
+#define XonarAudioEngine com_MyCompany_driver_XonarAudioEngine
 
 struct xonar_generic {
     unsigned int anti_pop_delay;
@@ -97,9 +97,10 @@ struct xonar_hdav {
 class IOFilterInterruptEventSource;
 class IOInterruptEventSource;
 
-class SamplePCIAudioEngine : public IOAudioEngine
+class XonarAudioEngine : public IOAudioEngine
 {
-    OSDeclareDefaultStructors(SamplePCIAudioEngine)
+    friend class XonarSTAudioEngine;
+    OSDeclareDefaultStructors(XonarAudioEngine)
     
     struct xonar_hdav                   *deviceRegisters;
     //right now i've created 4 since there are 4 I2S input buffers
@@ -117,7 +118,7 @@ public:
     
     
         
-    virtual bool init(struct oxygen *regs);
+    virtual bool init(XonarAudioEngine *engine, struct oxygen *regs);
     virtual void free();
     
     virtual bool initHardware(IOService *provider);
@@ -139,15 +140,14 @@ public:
     static bool interruptFilter(OSObject *owner, IOFilterInterruptEventSource *source);
     virtual void filterInterrupt(int index);
     int oxygen_write_spi(struct oxygen *chip, UInt8 control, unsigned int data);
-    
+    void xonar_ext_power_gpio_changed(struct oxygen *chip);
     void xonar_enable_output(struct oxygen *chip);
     void xonar_disable_output(struct oxygen *chip);
     void xonar_init_ext_power(struct oxygen *chip);
     void xonar_init_cs53x1(struct oxygen *chip);
     void xonar_hdav_init(struct oxygen *chip);
     void xonar_set_cs53x1_params(struct oxygen *chip);
-    
-
+    void pcm1796_init(struct oxygen *chip);
     int xonar_gpio_bit_switch_get(struct snd_kcontrol *ctl,
                                   struct snd_ctl_elem_value *value);
     int xonar_gpio_bit_switch_put(struct snd_kcontrol *ctl,
@@ -174,6 +174,10 @@ public:
     void set_hdav_params(struct oxygen *chip);
     void xonar_set_hdmi_params(struct oxygen *chip, struct xonar_hdmi *hdmi);
     void xonar_hdmi_uart_input(struct oxygen *chip);
+    
+    //void _write_uart(struct oxygen *chip, unsigned int port, UInt8 data);
+    //void oxygen_reset_uart(struct oxygen *chip);
+    //void oxygen_write_uart(struct oxygen *chip, UInt8 data);
 };
 
 #endif /* _SAMPLEPCIAUDIOENGINE_H */

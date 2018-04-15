@@ -494,16 +494,14 @@ class PCIAudioDevice : public IOAudioDevice
 
     void oxygen_write_i2c(struct oxygen *chip, UInt8 device, UInt8 map, UInt8 data);
     
-    void oxygen_reset_uart(struct oxygen *chip);
-    void oxygen_write_uart(struct oxygen *chip, UInt8 data);
     
     UInt16 oxygen_read_eeprom(struct oxygen *chip, unsigned int index);
     void oxygen_write_eeprom(struct oxygen *chip, unsigned int index, UInt16 value);
     void oxygen_restore_eeprom(IOPCIDevice *device, struct oxygen *chip);
     void oxygen_init(struct oxygen *chip);
    // const struct * oxygen_search_pci_id(struct oxygen *chip, const struct pci_device_id ids[]);
-    void _write_uart(struct oxygen *chip, unsigned int port, UInt8 data);
-    
+
+
 };
 
 #endif /* _SAMPLEPCIAUDIODEVICE_H */

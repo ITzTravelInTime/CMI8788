@@ -18,7 +18,8 @@
 		CEACF3E5208074C200D01190 /* cm9780.h in Headers */ = {isa = PBXBuildFile; fileRef = CEACF3E4208074C200D01190 /* cm9780.h */; };
 		CEACF3EC2081216300D01190 /* pcm1796.h in Headers */ = {isa = PBXBuildFile; fileRef = CEACF3E62081216300D01190 /* pcm1796.h */; };
 		CEACF3F32081219A00D01190 /* cs2000.h in Headers */ = {isa = PBXBuildFile; fileRef = CEACF3F22081219A00D01190 /* cs2000.h */; };
-		CEACF3F7208299C200D01190 /* README.md in Sources */ = {isa = PBXBuildFile; fileRef = CEACF3F6208299C200D01190 /* README.md */; };
+		CEACF3FC20829E4F00D01190 /* xonar_st.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEACF3FA20829E4F00D01190 /* xonar_st.cpp */; };
+		CEACF3FF2082A09600D01190 /* xonar_st.hpp in Headers */ = {isa = PBXBuildFile; fileRef = CEACF3FE2082A09600D01190 /* xonar_st.hpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -35,7 +36,8 @@
 		CEACF3E4208074C200D01190 /* cm9780.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cm9780.h; sourceTree = "<group>"; };
 		CEACF3E62081216300D01190 /* pcm1796.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = pcm1796.h; sourceTree = "<group>"; };
 		CEACF3F22081219A00D01190 /* cs2000.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cs2000.h; sourceTree = "<group>"; };
-		CEACF3F6208299C200D01190 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		CEACF3FA20829E4F00D01190 /* xonar_st.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = xonar_st.cpp; sourceTree = "<group>"; };
+		CEACF3FE2082A09600D01190 /* xonar_st.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = xonar_st.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -77,10 +79,11 @@
 				CE44242A207FF78500158F35 /* wm8785.h */,
 				CE442425207FDBE100158F35 /* xonar_hdav.cpp */,
 				CE442426207FDBE100158F35 /* xonar_hdav.hpp */,
+				CEACF3FA20829E4F00D01190 /* xonar_st.cpp */,
+				CEACF3FE2082A09600D01190 /* xonar_st.hpp */,
 				CE235FA1207DBA0600AF3203 /* CMI8788.cpp */,
 				CE235F9F207DBA0600AF3203 /* CMI8788.hpp */,
 				CE235FA3207DBA0600AF3203 /* Info.plist */,
-				CEACF3F6208299C200D01190 /* README.md */,
 			);
 			path = CMI8788;
 			sourceTree = "<group>";
@@ -94,6 +97,7 @@
 			files = (
 				CEACF3E120806D6D00D01190 /* ac97.h in Headers */,
 				CE44242E207FF78500158F35 /* wm8785.h in Headers */,
+				CEACF3FF2082A09600D01190 /* xonar_st.hpp in Headers */,
 				CEACF3F32081219A00D01190 /* cs2000.h in Headers */,
 				CE442430207FF99200158F35 /* xonar_hdav.hpp in Headers */,
 				CE44242B207FF78500158F35 /* ak4396.h in Headers */,
@@ -173,8 +177,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				CE235FA2207DBA0600AF3203 /* CMI8788.cpp in Sources */,
-				CEACF3F7208299C200D01190 /* README.md in Sources */,
 				CE44242F207FF99000158F35 /* xonar_hdav.cpp in Sources */,
+				CEACF3FC20829E4F00D01190 /* xonar_st.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

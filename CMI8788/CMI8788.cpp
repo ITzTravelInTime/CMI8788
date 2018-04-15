@@ -484,12 +484,12 @@ void PCIAudioDevice::free()
 bool PCIAudioDevice::createAudioEngine()
 {
     bool result = false;
-    SamplePCIAudioEngine *audioEngine = NULL;
+    XonarAudioEngine *audioEngine = NULL;
     IOAudioControl *control;
     
     IOLog("SamplePCIAudioDevice[%p]::createAudioEngine()\n", this);
     
-    audioEngine = new SamplePCIAudioEngine;
+    audioEngine = new XonarAudioEngine;
     if (!audioEngine) {
         goto Done;
     }
@@ -497,7 +497,7 @@ bool PCIAudioDevice::createAudioEngine()
     // Init the new audio engine with the device registers so it can access them if necessary
     // The audio engine subclass could be defined to take any number of parameters for its
     // initialization - use it like a constructor
-    if (!audioEngine->init(deviceRegisters)) {
+    if (!audioEngine->init(audioEngine,deviceRegisters)) {
         goto Done;
     }
     
