@@ -131,72 +131,6 @@ OSDefineMetaClassAndStructors(XonarAudioEngine, IOAudioEngine)
 //}
 
 
-void XonarAudioEngine::oxygen_interrupt(OSObject *owner, IOInterruptEventSource *src, int dummy, void *dev_id)
-{
-    struct oxygen *chip = (struct oxygen*)dev_id;
-    unsigned int status, clear, elapsed_streams, i;
-    
-    status = oxygen_read16(chip, OXYGEN_INTERRUPT_STATUS);
-//    if (!status)
-//        return IRQ_NONE;
-    
-    OSSpinLockLock(&chip->reg_lock);
-    
-    clear = status & (OXYGEN_CHANNEL_A |
-                      OXYGEN_CHANNEL_B |
-                      OXYGEN_CHANNEL_C |
-                      OXYGEN_CHANNEL_SPDIF |
-                      OXYGEN_CHANNEL_MULTICH |
-                      OXYGEN_CHANNEL_AC97 |
-                      OXYGEN_INT_SPDIF_IN_DETECT |
-                      OXYGEN_INT_GPIO |
-                      OXYGEN_INT_AC97);
-    if (clear) {
-        if (clear & OXYGEN_INT_SPDIF_IN_DETECT)
-            chip->interrupt_mask &= ~OXYGEN_INT_SPDIF_IN_DETECT;
-        oxygen_write16(chip, OXYGEN_INTERRUPT_MASK,
-                       chip->interrupt_mask & ~clear);
-        oxygen_write16(chip, OXYGEN_INTERRUPT_MASK,
-                       chip->interrupt_mask);
-    }
-    
-    elapsed_streams = status & chip->pcm_running;
-    
-    OSSpinLockUnlock(&chip->reg_lock);
-    
-    for (i = 0; i < PCM_COUNT; ++i)
-        if ((elapsed_streams & (1 << i)) && chip->streams[i])
-   //         snd_pcm_period_elapsed(chip->streams[i]);
-    
-    if (status & OXYGEN_INT_SPDIF_IN_DETECT) {
-        OSSpinLockLock(&chip->reg_lock);
-        i = oxygen_read32(chip, OXYGEN_SPDIF_CONTROL);
-        if (i & (OXYGEN_SPDIF_SENSE_INT | OXYGEN_SPDIF_LOCK_INT |
-                 OXYGEN_SPDIF_RATE_INT)) {
-            /* write the interrupt bit(s) to clear */
-            oxygen_write32(chip, OXYGEN_SPDIF_CONTROL, i);
-        //    schedule_work(&chip->spdif_input_bits_work);
-        }
-        OSSpinLockUnlock(&chip->reg_lock);
-    }
-    
-    if (status & OXYGEN_INT_GPIO)
-        //schedule_work(&chip->gpio_work);
-    
-    if (status & OXYGEN_INT_MIDI) {
-       // if (chip->midi)
-       //     _snd_mpu401_uart_interrupt(0, chip->midi->private_data);
-       // else
-            oxygen_read_uart(chip);
-    }
-    
-    //if (status & OXYGEN_INT_AC97)
-       // wake_up(&chip->ac97_waitqueue);
-    
-    //return IRQ_HANDLED;
-}
-
-
 
 
 void XonarAudioEngine::xonar_enable_output(struct oxygen *chip)
@@ -735,7 +669,8 @@ bool XonarAudioEngine::init(struct oxygen *chip, int model)
     // the below aren't correct. have to bridge the workqueue calls to IOWorkLoop
     queue_init(&chip->ac97_waitqueue);
     chip->mutex = OS_SPINLOCK_INIT;
-    
+    //save ptr to oxygen struct from PCIDriver into private class var dev_id for interrupthandler
+    dev_id = chip;
     result = true;
     
 Done:
@@ -779,9 +714,9 @@ bool XonarAudioEngine::initHardware(IOService *provider)
     // our secondary interrupt handler is to be called.  In our case, we
     // can do the work in the filter routine and then return false to
     // indicate that we do not want our secondary handler called
-    interruptEventSource = IOInterruptEventSource::interruptEventSource(this,
-                                                                                    (IOInterruptEventAction)&oxygen_interrupt,
-                                                                                                                                                                       audioDevice->getProvider());
+    interruptEventSource = IOFilterInterruptEventSource::filterInterruptEventSource(this,
+                                                                                    XonarAudioEngine::interruptHandler,
+                                                                                    XonarAudioEngine::interruptFilter,                                                                                                                                                                       audioDevice->getProvider());
     workLoop->addEventSource(interruptEventSource);
     if (!interruptEventSource) {
         goto Done;
@@ -1010,26 +945,93 @@ IOReturn XonarAudioEngine::performFormatChange(IOAudioStream *audioStream, const
 }
 
 
-//void XonarAudioEngine::interruptHandler(OSObject *owner, IOInterruptEventSource *source, int count)
-//{
-//    // Since our interrupt filter always returns false, this function will never be called
-//    // If the filter returned true, this function would be called on the IOWorkLoop
-//    return;
-//}
-
-bool XonarAudioEngine::interruptFilter(OSObject *owner, IOFilterInterruptEventSource *source)
+void XonarAudioEngine::interruptHandler(OSObject *owner, IOInterruptEventSource *source, int count)
 {
-    XonarAudioEngine *audioEngine = OSDynamicCast(XonarAudioEngine, owner);
+    // Since our interrupt filter always returns false, this function will never be called
+    // If the filter returned true, this function would be called on the IOWorkLoop
+    return;
+}
+bool XonarAudioEngine::interruptFilter(OSObject *owner, IOFilterInterruptEventSource *src)
+{
+    struct oxygen *chip = (struct oxygen*)dev_id;
+    unsigned int status, clear, elapsed_streams, i;
     
-    // We've cast the audio engine from the owner which we passed in when we created the interrupt
-    // event source
-    if (audioEngine) {
-        // Then, filterInterrupt() is called on the specified audio engine
-        audioEngine->filterInterrupt(source->getIntIndex());
+    status = oxygen_read16(chip, OXYGEN_INTERRUPT_STATUS);
+        if (!status)
+            return false;
+    
+    OSSpinLockLock(&chip->reg_lock);
+    
+    clear = status & (OXYGEN_CHANNEL_A |
+                      OXYGEN_CHANNEL_B |
+                      OXYGEN_CHANNEL_C |
+                      OXYGEN_CHANNEL_SPDIF |
+                      OXYGEN_CHANNEL_MULTICH |
+                      OXYGEN_CHANNEL_AC97 |
+                      OXYGEN_INT_SPDIF_IN_DETECT |
+                      OXYGEN_INT_GPIO |
+                      OXYGEN_INT_AC97);
+    if (clear) {
+        if (clear & OXYGEN_INT_SPDIF_IN_DETECT)
+            chip->interrupt_mask &= ~OXYGEN_INT_SPDIF_IN_DETECT;
+        oxygen_write16(chip, OXYGEN_INTERRUPT_MASK,
+                       chip->interrupt_mask & ~clear);
+        oxygen_write16(chip, OXYGEN_INTERRUPT_MASK,
+                       chip->interrupt_mask);
     }
     
-    return false;
+    elapsed_streams = status & chip->pcm_running;
+    
+    OSSpinLockUnlock(&chip->reg_lock);
+    
+    for (i = 0; i < PCM_COUNT; ++i)
+        if ((elapsed_streams & (1 << i)) && chip->streams[i])
+            //         snd_pcm_period_elapsed(chip->streams[i]);
+            
+            if (status & OXYGEN_INT_SPDIF_IN_DETECT) {
+                OSSpinLockLock(&chip->reg_lock);
+                i = oxygen_read32(chip, OXYGEN_SPDIF_CONTROL);
+                if (i & (OXYGEN_SPDIF_SENSE_INT | OXYGEN_SPDIF_LOCK_INT |
+                         OXYGEN_SPDIF_RATE_INT)) {
+                    /* write the interrupt bit(s) to clear */
+                    oxygen_write32(chip, OXYGEN_SPDIF_CONTROL, i);
+                    //    schedule_work(&chip->spdif_input_bits_work);
+                }
+                OSSpinLockUnlock(&chip->reg_lock);
+            }
+    
+    if (status & OXYGEN_INT_GPIO)
+        //schedule_work(&chip->gpio_work);
+        
+        if (status & OXYGEN_INT_MIDI) {
+            // if (chip->midi)
+            //     _snd_mpu401_uart_interrupt(0, chip->midi->private_data);
+            // else
+            oxygen_read_uart(chip);
+        }
+    
+    //if (status & OXYGEN_INT_AC97)
+    // wake_up(&chip->ac97_waitqueue);
+    
+    return true;
 }
+
+
+
+
+//bool XonarAudioEngine::interruptFilter(OSObject *owner, IOFilterInterruptEventSource *source)
+//{
+//    XonarAudioEngine *audioEngine = OSDynamicCast(XonarAudioEngine, owner);
+//    
+//    // We've cast the audio engine from the owner which we passed in when we created the interrupt
+//    // event source
+//    if (audioEngine) {
+//        // Then, filterInterrupt() is called on the specified audio engine
+//        audioEngine->filterInterrupt(source->getIntIndex());
+//    }
+//    
+//    return false;
+//}
 
 void XonarAudioEngine::filterInterrupt(int index)
 {

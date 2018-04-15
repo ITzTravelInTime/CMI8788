@@ -142,7 +142,9 @@ class XonarAudioEngine : public IOAudioEngine
     SInt16							*outputBuffer;
     SInt16							*inputBuffer;
     IOWorkLoop                      *workLoop;
-    IOInterruptEventSource	*interruptEventSource;
+    IOFilterInterruptEventSource	*interruptEventSource;
+    //need this for the interrupt handler, as the filterInterrupt OS call doesn't allow us to pass parameters.
+    static void                            *dev_id;
     
 public:
     
@@ -167,9 +169,9 @@ public:
     virtual IOReturn clipOutputSamples(const void *mixBuf, void *sampleBuf, UInt32 firstSampleFrame, UInt32 numSampleFrames, const IOAudioStreamFormat *streamFormat, IOAudioStream *audioStream);
     virtual IOReturn convertInputSamples(const void *sampleBuf, void *destBuf, UInt32 firstSampleFrame, UInt32 numSampleFrames, const IOAudioStreamFormat *streamFormat, IOAudioStream *audioStream);
     
-    //static void interruptHandler(OSObject *owner, IOInterruptEventSource *source, int count);
-    static void oxygen_interrupt(OSObject *owner, IOInterruptEventSource *src, int dummy, void *dev_id);
-    static bool interruptFilter(OSObject *owner, IOFilterInterruptEventSource *source);
+    static void interruptHandler(OSObject *owner, IOInterruptEventSource *source, int count);
+    //static void oxygen_interrupt(OSObject *owner, IOInterruptEventSource *src, int dummy, void *dev_id);
+    static bool interruptFilter(OSObject *owner, IOFilterInterruptEventSource *src);
     virtual void filterInterrupt(int index);
     int oxygen_write_spi(struct oxygen *chip, UInt8 control, unsigned int data);
     void xonar_ext_power_gpio_changed(struct oxygen *chip);
