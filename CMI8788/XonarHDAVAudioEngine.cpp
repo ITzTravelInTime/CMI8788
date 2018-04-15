@@ -69,7 +69,7 @@ OSDefineMetaClassAndStructors(XonarHDAVAudioEngine, IOAudioEngine)
 
 
 
-static void XonarHDAVAudioEngine::hdmi_write_command(struct oxygen *chip, UInt8 command,
+void XonarHDAVAudioEngine::hdmi_write_command(struct oxygen *chip, UInt8 command,
                                unsigned int count, const UInt8 *params)
 {
     unsigned int i;
@@ -87,7 +87,7 @@ static void XonarHDAVAudioEngine::hdmi_write_command(struct oxygen *chip, UInt8 
     oxygen_write_uart(chip, checksum);
 }
 
-static void XonarHDAVAudioEngine::xonar_hdmi_init_commands(struct oxygen *chip,
+void XonarHDAVAudioEngine::xonar_hdmi_init_commands(struct oxygen *chip,
                                      struct xonar_hdmi *hdmi)
 {
     UInt8 param;
@@ -100,21 +100,21 @@ static void XonarHDAVAudioEngine::xonar_hdmi_init_commands(struct oxygen *chip,
     hdmi_write_command(chip, 0x54, 5, hdmi->params);
 }
 
-static void XonarHDAVAudioEngine::xonar_hdmi_init(struct oxygen *chip, struct xonar_hdmi *hdmi)
+void XonarHDAVAudioEngine::xonar_hdmi_init(struct oxygen *chip, struct xonar_hdmi *hdmi)
 {
     hdmi->params[1] = IEC958_AES3_CON_FS_48000;
     hdmi->params[4] = 1;
     xonar_hdmi_init_commands(chip, hdmi);
 }
 
-static void XonarHDAVAudioEngine::xonar_hdmi_cleanup(struct oxygen *chip)
+void XonarHDAVAudioEngine::xonar_hdmi_cleanup(struct oxygen *chip)
 {
     UInt8 param = 0;
     
     hdmi_write_command(chip, 0x74, 1, &param);
 }
 
-static void XonarHDAVAudioEngine::xonar_hdmi_resume(struct oxygen *chip, struct xonar_hdmi *hdmi)
+void XonarHDAVAudioEngine::xonar_hdmi_resume(struct oxygen *chip, struct xonar_hdmi *hdmi)
 {
     xonar_hdmi_init_commands(chip, hdmi);
 }
@@ -131,7 +131,7 @@ void xonar_hdmi_pcm_hardware_filter(unsigned int channel,
     }
 }
 */
-static void XonarHDAVAudioEngine::xonar_set_hdmi_params(struct oxygen *chip, struct xonar_hdmi *hdmi)
+void XonarHDAVAudioEngine::xonar_set_hdmi_params(struct oxygen *chip, struct xonar_hdmi *hdmi)
 {
     hdmi->params[0] = 0; // 1 = non-audio
     switch (this->getSampleRate()->whole) {
@@ -168,7 +168,7 @@ static void XonarHDAVAudioEngine::xonar_set_hdmi_params(struct oxygen *chip, str
 }
 
 
-void xonar_hdmi_uart_input(struct oxygen *chip)
+void XonarHDAVAudioEngine::xonar_hdmi_uart_input(struct oxygen *chip)
 {
     if (chip->uart_input_count >= 2 &&
         chip->uart_input[chip->uart_input_count - 2] == 'O' &&
@@ -231,7 +231,7 @@ void XonarHDAVAudioEngine::xonar_hdav_resume(struct oxygen *chip)
     xonar_enable_output(chip);
 }
 
-static int xonar_hdav_mixer_init(struct oxygen *chip)
+int XonarHDAVAudioEngine::xonar_hdav_mixer_init(struct oxygen *chip)
 {
     int err;
     
