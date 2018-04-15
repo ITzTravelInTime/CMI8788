@@ -100,6 +100,7 @@ void XonarHDAVAudioEngine::xonar_hdmi_init_commands(struct oxygen *chip,
     hdmi_write_command(chip, 0x54, 5, hdmi->params);
 }
 
+
 void XonarHDAVAudioEngine::xonar_hdmi_init(struct oxygen *chip, struct xonar_hdmi *hdmi)
 {
     hdmi->params[1] = IEC958_AES3_CON_FS_48000;
@@ -165,6 +166,14 @@ void XonarHDAVAudioEngine::xonar_set_hdmi_params(XonarAudioEngine *engine,struct
         hdmi->params[3] = 0xc0;
     hdmi->params[4] = 1; // ?
     hdmi_write_command(chip, 0x54, 5, hdmi->params);
+}
+
+void XonarHDAVAudioEngine::set_hdav_params(struct oxygen *chip, XonarAudioEngine *engine)
+{
+    struct xonar_hdav *data = (struct xonar_hdav*) chip->model_data;
+    
+    XonarAudioEngine::set_pcm1796_params(chip, engine);
+    xonar_set_hdmi_params(engine, chip, &data->hdmi);
 }
 
 

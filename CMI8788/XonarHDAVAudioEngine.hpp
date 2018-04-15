@@ -105,7 +105,7 @@ public:
 
     static void xonar_hdav_init(struct oxygen *chip);
     static void xonar_hdav_resume(struct oxygen *chip);
-    
+    static void set_hdav_params(struct oxygen *chip, XonarAudioEngine *engine);
     
 //    static void pcm1796_init(struct oxygen *chip);
 //    static void pcm1796_registers_init(struct oxygen *chip);
