@@ -131,6 +131,72 @@ OSDefineMetaClassAndStructors(XonarAudioEngine, IOAudioEngine)
 //}
 
 
+void XonarAudioEngine::oxygen_interrupt(OSObject *owner, IOInterruptEventSource *src, int dummy, void *dev_id)
+{
+    struct oxygen *chip = (struct oxygen*)dev_id;
+    unsigned int status, clear, elapsed_streams, i;
+    
+    status = oxygen_read16(chip, OXYGEN_INTERRUPT_STATUS);
+//    if (!status)
+//        return IRQ_NONE;
+    
+    OSSpinLockLock(&chip->reg_lock);
+    
+    clear = status & (OXYGEN_CHANNEL_A |
+                      OXYGEN_CHANNEL_B |
+                      OXYGEN_CHANNEL_C |
+                      OXYGEN_CHANNEL_SPDIF |
+                      OXYGEN_CHANNEL_MULTICH |
+                      OXYGEN_CHANNEL_AC97 |
+                      OXYGEN_INT_SPDIF_IN_DETECT |
+                      OXYGEN_INT_GPIO |
+                      OXYGEN_INT_AC97);
+    if (clear) {
+        if (clear & OXYGEN_INT_SPDIF_IN_DETECT)
+            chip->interrupt_mask &= ~OXYGEN_INT_SPDIF_IN_DETECT;
+        oxygen_write16(chip, OXYGEN_INTERRUPT_MASK,
+                       chip->interrupt_mask & ~clear);
+        oxygen_write16(chip, OXYGEN_INTERRUPT_MASK,
+                       chip->interrupt_mask);
+    }
+    
+    elapsed_streams = status & chip->pcm_running;
+    
+    OSSpinLockUnlock(&chip->reg_lock);
+    
+    for (i = 0; i < PCM_COUNT; ++i)
+        if ((elapsed_streams & (1 << i)) && chip->streams[i])
+   //         snd_pcm_period_elapsed(chip->streams[i]);
+    
+    if (status & OXYGEN_INT_SPDIF_IN_DETECT) {
+        OSSpinLockLock(&chip->reg_lock);
+        i = oxygen_read32(chip, OXYGEN_SPDIF_CONTROL);
+        if (i & (OXYGEN_SPDIF_SENSE_INT | OXYGEN_SPDIF_LOCK_INT |
+                 OXYGEN_SPDIF_RATE_INT)) {
+            /* write the interrupt bit(s) to clear */
+            oxygen_write32(chip, OXYGEN_SPDIF_CONTROL, i);
+        //    schedule_work(&chip->spdif_input_bits_work);
+        }
+        OSSpinLockUnlock(&chip->reg_lock);
+    }
+    
+    if (status & OXYGEN_INT_GPIO)
+        //schedule_work(&chip->gpio_work);
+    
+    if (status & OXYGEN_INT_MIDI) {
+       // if (chip->midi)
+       //     _snd_mpu401_uart_interrupt(0, chip->midi->private_data);
+       // else
+            oxygen_read_uart(chip);
+    }
+    
+    //if (status & OXYGEN_INT_AC97)
+       // wake_up(&chip->ac97_waitqueue);
+    
+    //return IRQ_HANDLED;
+}
+
+
 
 
 void XonarAudioEngine::xonar_enable_output(struct oxygen *chip)
@@ -235,6 +301,11 @@ int xonar_gpio_bit_switch_put(struct snd_kcontrol *ctl,
 }
 */
 
+static inline int oxygen_uart_input_ready(struct oxygen *chip)
+{
+    return !(oxygen_read8(chip, OXYGEN_MPU401 + 1) & MPU401_RX_EMPTY);
+}
+
 static void _write_uart(struct oxygen *chip, unsigned int port, UInt8 data)
 {
     if (oxygen_read8(chip, OXYGEN_MPU401 + 1) & MPU401_TX_FULL)
@@ -272,6 +343,26 @@ static int oxygen_wait_spi(struct oxygen *chip)
     }
     dev_err(chip->card->dev, "oxygen: SPI wait timeout\n");
     return -EIO;
+}
+
+void XonarAudioEngine::oxygen_read_uart(struct oxygen *chip)
+{
+    /* no idea if there's an OSX equivalent for this. will look into it later.
+    if (unlikely(!oxygen_uart_input_ready(chip))) {
+        // no data, but read it anyway to clear the interrupt
+        oxygen_read8(chip, OXYGEN_MPU401);
+        return;
+    }*/
+    do {
+        UInt8 data = oxygen_read8(chip, OXYGEN_MPU401);
+        if (data == MPU401_ACK)
+            continue;
+        if (chip->uart_input_count >= ARRAY_SIZE(chip->uart_input))
+            chip->uart_input_count = 0;
+        chip->uart_input[chip->uart_input_count++] = data;
+    } while (oxygen_uart_input_ready(chip));
+    if (chip->model.uart_input)
+        chip->model.uart_input(chip);
 }
 
 int oxygen_write_spi(struct oxygen *chip, UInt8 control, unsigned int data)
@@ -657,7 +748,7 @@ bool XonarAudioEngine::initHardware(IOService *provider)
     bool result = false;
     IOAudioSampleRate initialSampleRate;
     IOAudioStream *audioStream;
-    IOWorkLoop *workLoop;
+   // IOWorkLoop *workLoop;
     
     IOLog("XonarAudioEngine[%p]::initHardware(%p)\n", this, provider);
     
@@ -688,10 +779,10 @@ bool XonarAudioEngine::initHardware(IOService *provider)
     // our secondary interrupt handler is to be called.  In our case, we
     // can do the work in the filter routine and then return false to
     // indicate that we do not want our secondary handler called
-    interruptEventSource = IOFilterInterruptEventSource::filterInterruptEventSource(this,
-                                                                                    XonarAudioEngine::interruptHandler,
-                                                                                    XonarAudioEngine::interruptFilter,
-                                                                                    audioDevice->getProvider());
+    interruptEventSource = IOInterruptEventSource::interruptEventSource(this,
+                                                                                    (IOInterruptEventAction)&oxygen_interrupt,
+                                                                                                                                                                       audioDevice->getProvider());
+    workLoop->addEventSource(interruptEventSource);
     if (!interruptEventSource) {
         goto Done;
     }

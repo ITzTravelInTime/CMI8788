@@ -177,7 +177,7 @@ void XonarHDAVAudioEngine::set_hdav_params(struct oxygen *chip)
 }
 
 
-void XonarHDAVAudioEngine::xonar_hdmi_uart_input(struct oxygen *chip)
+static void xonar_hdmi_uart_input(struct oxygen *chip)
 {
     if (chip->uart_input_count >= 2 &&
         chip->uart_input[chip->uart_input_count - 2] == 'O' &&
@@ -212,8 +212,8 @@ bool XonarHDAVAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip)
     deviceRegisters = (struct xonar_hdav*)chip->model_data;
     
     // the below aren't correct. have to bridge the workqueue calls to IOWorkLoop
-    queue_init(&chip->ac97_waitqueue);
-    chip->mutex = OS_SPINLOCK_INIT;
+    //queue_init(&chip->ac97_waitqueue);
+    //chip->mutex = OS_SPINLOCK_INIT;
     this->engineInstance = engine;
     xonar_hdav_init(chip);
     
@@ -229,6 +229,8 @@ bool XonarHDAVAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip)
     deviceRegisters->pcm179x.generic.ext_power_bit = GPI_EXT_POWER;
     deviceRegisters->pcm179x.dacs = chip->model.dac_channels_mixer / 2;
     deviceRegisters->pcm179x.h6 = chip->model.dac_channels_mixer > 2;
+    //assign fn ptr uart_input to xonar_hdmi_uart_input
+    chip->model.uart_input = xonar_hdmi_uart_input;
     
     this->engineInstance->pcm1796_init(chip);
     

@@ -140,6 +140,7 @@ struct oxygen_model {
     UInt8 dac_channels_mixer;
     UInt8 dac_volume_min;
     UInt8 dac_volume_max;
+    void (*uart_input)(struct oxygen *chip);
     UInt8 misc_flags;
     UInt8 function_flags;
     UInt8 dac_mclks;
@@ -170,6 +171,8 @@ struct oxygen {
     UInt8 has_ac97_1;
     UInt32 spdif_bits;
     UInt32 spdif_pcm_bits;
+    IOAudioStreamDataDescriptor *streams[PCM_COUNT];
+    
  //   struct snd_pcm_substream *streams[PCM_COUNT];
  //   struct snd_kcontrol *controls[CONTROL_COUNT];
     IOWorkLoop spdif_input_bits_work;

@@ -114,7 +114,7 @@ public:
    // void xonar_hdmi_pcm_hardware_filter(unsigned int channel,
      //                                   struct snd_pcm_hardware *hardware);
     virtual void xonar_set_hdmi_params(struct oxygen *chip, struct xonar_hdmi *hdmi);
-    virtual void xonar_hdmi_uart_input(struct oxygen *chip);
+    //void xonar_hdmi_uart_input(struct oxygen *chip);
     
 
 };

@@ -258,13 +258,15 @@
 
 #define OXYGEN_MPU401			0xa0
 #define MPU401_TX_FULL          0x40
-
+#define MPU401_RX_EMPTY         0x80
 /* write MPU401C() */
 #define MPU401_RESET            0xff
 #define MPU401_ENTER_UART       0x3f
+#define MPU401_ACK		0xfe
+
 
 #define OXYGEN_MPU401_CONTROL		0xa2
-#define  OXYGEN_MPU401_LOOPBACK		0x01	/* TXD to RXD */
+#define OXYGEN_MPU401_LOOPBACK		0x01	/* TXD to RXD */
 
 #define OXYGEN_GPI_DATA			0xa4
 /* bits 0..5 = pin XGPI0..XGPI5 */

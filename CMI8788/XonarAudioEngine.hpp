@@ -141,8 +141,8 @@ class XonarAudioEngine : public IOAudioEngine
     IOAudioStream                   *inputs[4];
     SInt16							*outputBuffer;
     SInt16							*inputBuffer;
-    
-    IOFilterInterruptEventSource	*interruptEventSource;
+    IOWorkLoop                      *workLoop;
+    IOInterruptEventSource	*interruptEventSource;
     
 public:
     
@@ -167,7 +167,8 @@ public:
     virtual IOReturn clipOutputSamples(const void *mixBuf, void *sampleBuf, UInt32 firstSampleFrame, UInt32 numSampleFrames, const IOAudioStreamFormat *streamFormat, IOAudioStream *audioStream);
     virtual IOReturn convertInputSamples(const void *sampleBuf, void *destBuf, UInt32 firstSampleFrame, UInt32 numSampleFrames, const IOAudioStreamFormat *streamFormat, IOAudioStream *audioStream);
     
-    static void interruptHandler(OSObject *owner, IOInterruptEventSource *source, int count);
+    //static void interruptHandler(OSObject *owner, IOInterruptEventSource *source, int count);
+    static void oxygen_interrupt(OSObject *owner, IOInterruptEventSource *src, int dummy, void *dev_id);
     static bool interruptFilter(OSObject *owner, IOFilterInterruptEventSource *source);
     virtual void filterInterrupt(int index);
     int oxygen_write_spi(struct oxygen *chip, UInt8 control, unsigned int data);
@@ -203,22 +204,10 @@ public:
     static void cs2000_registers_init(struct oxygen *chip);
     static void update_cs2000_rate(struct oxygen *chip, unsigned int rate);
     
-//    void xonar_hdav_init(struct oxygen *chip);
-//    void xonar_hdav_resume(struct oxygen *chip);
-
     static void xonar_hdav_cleanup(struct oxygen *chip);
     /* HDMI helper functions */
-    
-//    static void xonar_hdmi_init(struct oxygen *chip, struct xonar_hdmi *data);
-//    static void xonar_hdmi_cleanup(struct oxygen *chip);
-//    static void xonar_hdmi_resume(struct oxygen *chip, struct xonar_hdmi *hdmi);
-//   // void xonar_hdmi_pcm_hardware_filter(unsigned int channel,
-//     //                                   struct snd_pcm_hardware *hardware);
-//    void set_hdav_params(struct oxygen *chip, XonarAudioEngine *instance);
-//    void xonar_set_hdmi_params(struct oxygen *chip, struct xonar_hdmi *hdmi);
-//    void xonar_hdmi_uart_input(struct oxygen *chip);
-   // static void _write_uart(struct oxygen *chip, unsigned int port, UInt8 data);
-    void oxygen_reset_uart(struct oxygen *chip);
+    static void oxygen_reset_uart(struct oxygen *chip);
+    static void oxygen_read_uart(struct oxygen *chip);
     static void oxygen_write_uart(struct oxygen *chip, UInt8 data);
 };
 
