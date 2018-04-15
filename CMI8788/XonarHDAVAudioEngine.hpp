@@ -144,7 +144,7 @@ public:
    // void xonar_hdmi_pcm_hardware_filter(unsigned int channel,
      //                                   struct snd_pcm_hardware *hardware);
     static void set_hdav_params(struct oxygen *chip, XonarHDAVAudioEngine *instance);
-    void xonar_set_hdmi_params(struct oxygen *chip, struct xonar_hdmi *hdmi);
+    static void xonar_set_hdmi_params(struct oxygen *chip, struct xonar_hdmi *hdmi);
     static void xonar_hdmi_uart_input(struct oxygen *chip);
     
     //void _write_uart(struct oxygen *chip, unsigned int port, UInt8 data);
