@@ -20,6 +20,8 @@
 		CEACF3F32081219A00D01190 /* cs2000.h in Headers */ = {isa = PBXBuildFile; fileRef = CEACF3F22081219A00D01190 /* cs2000.h */; };
 		CEACF3FC20829E4F00D01190 /* XonarSTAudioEngine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEACF3FA20829E4F00D01190 /* XonarSTAudioEngine.cpp */; };
 		CEACF3FF2082A09600D01190 /* XonarSTAudioEngine.hpp in Headers */ = {isa = PBXBuildFile; fileRef = CEACF3FE2082A09600D01190 /* XonarSTAudioEngine.hpp */; };
+		CEACF4052082F65E00D01190 /* XonarHDAVAudioEngine.hpp in Headers */ = {isa = PBXBuildFile; fileRef = CEACF4042082F65E00D01190 /* XonarHDAVAudioEngine.hpp */; };
+		CEACF4072082F67D00D01190 /* XonarHDAVAudioEngine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEACF4062082F67D00D01190 /* XonarHDAVAudioEngine.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -38,6 +40,8 @@
 		CEACF3F22081219A00D01190 /* cs2000.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cs2000.h; sourceTree = "<group>"; };
 		CEACF3FA20829E4F00D01190 /* XonarSTAudioEngine.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = XonarSTAudioEngine.cpp; sourceTree = "<group>"; };
 		CEACF3FE2082A09600D01190 /* XonarSTAudioEngine.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = XonarSTAudioEngine.hpp; sourceTree = "<group>"; };
+		CEACF4042082F65E00D01190 /* XonarHDAVAudioEngine.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = XonarHDAVAudioEngine.hpp; sourceTree = "<group>"; };
+		CEACF4062082F67D00D01190 /* XonarHDAVAudioEngine.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = XonarHDAVAudioEngine.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -77,6 +81,8 @@
 				CE442428207FF78500158F35 /* oxygen_regs.h */,
 				CEACF3E62081216300D01190 /* pcm1796.h */,
 				CE44242A207FF78500158F35 /* wm8785.h */,
+				CEACF4062082F67D00D01190 /* XonarHDAVAudioEngine.cpp */,
+				CEACF4042082F65E00D01190 /* XonarHDAVAudioEngine.hpp */,
 				CE442425207FDBE100158F35 /* XonarAudioEngine.cpp */,
 				CE442426207FDBE100158F35 /* XonarAudioEngine.hpp */,
 				CEACF3FA20829E4F00D01190 /* XonarSTAudioEngine.cpp */,
@@ -105,6 +111,7 @@
 				CE44242C207FF78500158F35 /* oxygen_regs.h in Headers */,
 				CEACF3EC2081216300D01190 /* pcm1796.h in Headers */,
 				CEACF3E5208074C200D01190 /* cm9780.h in Headers */,
+				CEACF4052082F65E00D01190 /* XonarHDAVAudioEngine.hpp in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -176,6 +183,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CEACF4072082F67D00D01190 /* XonarHDAVAudioEngine.cpp in Sources */,
 				CE235FA2207DBA0600AF3203 /* CMI8788.cpp in Sources */,
 				CE44242F207FF99000158F35 /* XonarAudioEngine.cpp in Sources */,
 				CEACF3FC20829E4F00D01190 /* XonarSTAudioEngine.cpp in Sources */,
