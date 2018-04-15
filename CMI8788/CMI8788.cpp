@@ -445,7 +445,7 @@ bool PCIAudioDevice::initHardware(IOService *provider)
     deviceRegisters->model.adc_mclks = OXYGEN_MCLKS(256, 128, 128);
     deviceRegisters->model.dac_i2s_format = OXYGEN_I2S_FORMAT_I2S;
     deviceRegisters->model.adc_i2s_format = OXYGEN_I2S_FORMAT_LJUST;
-    
+    deviceRegisters->model.model_data_size = sizeof(struct xonar_hdav);
     oxygen_init(deviceRegisters);
     
 //#error Put your own hardware initialization code here...and in other routines!!

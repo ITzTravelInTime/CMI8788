@@ -146,6 +146,7 @@ struct oxygen_model {
     UInt8 adc_mclks;
     UInt16 dac_i2s_format;
     UInt16 adc_i2s_format;
+    
     void (*gpio_changed)(struct oxygen *chip);
 };
 
