@@ -174,7 +174,7 @@ public:
     static bool interruptFilter(OSObject *owner, IOFilterInterruptEventSource *src);
     virtual void filterInterrupt(int index);
     int oxygen_write_spi(struct oxygen *chip, UInt8 control, unsigned int data);
-    static void xonar_ext_power_gpio_changed(struct oxygen *chip);
+    //static void xonar_ext_power_gpio_changed(struct oxygen *chip);
     static void xonar_enable_output(struct oxygen *chip);
     static void xonar_disable_output(struct oxygen *chip);
     static void xonar_init_ext_power(struct oxygen *chip);
