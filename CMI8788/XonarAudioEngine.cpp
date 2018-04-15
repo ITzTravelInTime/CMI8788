@@ -1010,12 +1010,12 @@ IOReturn XonarAudioEngine::performFormatChange(IOAudioStream *audioStream, const
 }
 
 
-void XonarAudioEngine::interruptHandler(OSObject *owner, IOInterruptEventSource *source, int count)
-{
-    // Since our interrupt filter always returns false, this function will never be called
-    // If the filter returned true, this function would be called on the IOWorkLoop
-    return;
-}
+//void XonarAudioEngine::interruptHandler(OSObject *owner, IOInterruptEventSource *source, int count)
+//{
+//    // Since our interrupt filter always returns false, this function will never be called
+//    // If the filter returned true, this function would be called on the IOWorkLoop
+//    return;
+//}
 
 bool XonarAudioEngine::interruptFilter(OSObject *owner, IOFilterInterruptEventSource *source)
 {
