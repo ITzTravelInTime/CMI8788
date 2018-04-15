@@ -191,61 +191,6 @@ void XonarSTAudioEngine::set_st_params(struct oxygen *chip,
 //    .private_value = GPIO_D2_ALT,
 //};
 //
-//static int rolloff_info(struct snd_kcontrol *ctl,
-//                        struct snd_ctl_elem_info *info)
-//{
-//    static const char *const names[2] = {
-//        "Sharp Roll-off", "Slow Roll-off"
-//    };
-//    
-//    return snd_ctl_enum_info(info, 1, 2, names);
-//}
-//
-//static int rolloff_get(struct snd_kcontrol *ctl,
-//                       struct snd_ctl_elem_value *value)
-//{
-//    struct oxygen *chip = ctl->private_data;
-//    struct xonar_pcm179x *data = chip->model_data;
-//    
-//    value->value.enumerated.item[0] =
-//    (data->pcm1796_regs[0][19 - PCM1796_REG_BASE] &
-//     PCM1796_FLT_MASK) != PCM1796_FLT_SHARP;
-//    return 0;
-//}
-//
-//static int rolloff_put(struct snd_kcontrol *ctl,
-//                       struct snd_ctl_elem_value *value)
-//{
-//    struct oxygen *chip = ctl->private_data;
-//    struct xonar_pcm179x *data = chip->model_data;
-//    unsigned int i;
-//    int changed;
-//    UInt8 reg;
-//    
-//    mutex_lock(&chip->mutex);
-//    reg = data->pcm1796_regs[0][19 - PCM1796_REG_BASE];
-//    reg &= ~PCM1796_FLT_MASK;
-//    if (!value->value.enumerated.item[0])
-//        reg |= PCM1796_FLT_SHARP;
-//    else
-//        reg |= PCM1796_FLT_SLOW;
-//    changed = reg != data->pcm1796_regs[0][19 - PCM1796_REG_BASE];
-//    if (changed) {
-//        for (i = 0; i < data->dacs; ++i)
-//            pcm1796_write(chip, i, 19, reg);
-//    }
-//    mutex_unlock(&chip->mutex);
-//    return changed;
-//}
-//
-//static const struct snd_kcontrol_new rolloff_control = {
-//    .iface = SNDRV_CTL_ELEM_IFACE_MIXER,
-//    .name = "DAC Filter Playback Enum",
-//    .info = rolloff_info,
-//    .get = rolloff_get,
-//    .put = rolloff_put,
-//};
-//
 //static const struct snd_kcontrol_new hdav_hdmi_control = {
 //    .iface = SNDRV_CTL_ELEM_IFACE_MIXER,
 //    .name = "HDMI Playback Switch",
