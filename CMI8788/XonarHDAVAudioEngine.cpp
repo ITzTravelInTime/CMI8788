@@ -76,15 +76,15 @@ void XonarHDAVAudioEngine::hdmi_write_command(struct oxygen *chip, UInt8 command
     UInt8 checksum;
     
     XonarAudioEngine::oxygen_write_uart(chip, 0xfb);
-    oxygen_write_uart(chip, 0xef);
-    oxygen_write_uart(chip, command);
-    oxygen_write_uart(chip, count);
+    XonarAudioEngine::oxygen_write_uart(chip, 0xef);
+    XonarAudioEngine::oxygen_write_uart(chip, command);
+    XonarAudioEngine::oxygen_write_uart(chip, count);
     for (i = 0; i < count; ++i)
-        oxygen_write_uart(chip, params[i]);
+        XonarAudioEngine::oxygen_write_uart(chip, params[i]);
     checksum = 0xfb + 0xef + command + count;
     for (i = 0; i < count; ++i)
         checksum += params[i];
-    oxygen_write_uart(chip, checksum);
+    XonarAudioEngine::oxygen_write_uart(chip, checksum);
 }
 
 void XonarHDAVAudioEngine::xonar_hdmi_init_commands(struct oxygen *chip,
@@ -134,7 +134,7 @@ void xonar_hdmi_pcm_hardware_filter(unsigned int channel,
 void XonarHDAVAudioEngine::xonar_set_hdmi_params(struct oxygen *chip, struct xonar_hdmi *hdmi)
 {
     hdmi->params[0] = 0; // 1 = non-audio
-    switch (this->getSampleRate()->whole) {
+    switch (this->engineInstance::getSampleRate()->whole) {
         case 44100:
             hdmi->params[1] = IEC958_AES3_CON_FS_44100;
             break;
@@ -266,7 +266,7 @@ bool XonarHDAVAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip)
     // the below aren't correct. have to bridge the workqueue calls to IOWorkLoop
     queue_init(&chip->ac97_waitqueue);
     chip->mutex = OS_SPINLOCK_INIT;
-    
+    this->engineInstance = engine;
     result = true;
     
 Done:

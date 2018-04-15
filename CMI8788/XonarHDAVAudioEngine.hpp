@@ -61,7 +61,9 @@ class XonarHDAVAudioEngine : public IOAudioEngine
     // however, i am not sure how to incorporate them yet,
     // as i have to (probably) create an ioaudiostream for each
     // and then add the attributes.
-    IOAudioStream                   *inputs[4];
+    
+    //2 DMA inputs. (SPDIF and ANALOG)
+    IOAudioStream                   *inputs[2];
     SInt16							*outputBuffer;
     SInt16							*inputBuffer;
     
@@ -142,7 +144,7 @@ public:
    // void xonar_hdmi_pcm_hardware_filter(unsigned int channel,
      //                                   struct snd_pcm_hardware *hardware);
     static void set_hdav_params(struct oxygen *chip, XonarHDAVAudioEngine *instance);
-    static void xonar_set_hdmi_params(struct oxygen *chip, struct xonar_hdmi *hdmi);
+    void xonar_set_hdmi_params(struct oxygen *chip, struct xonar_hdmi *hdmi);
     static void xonar_hdmi_uart_input(struct oxygen *chip);
     
     //void _write_uart(struct oxygen *chip, unsigned int port, UInt8 data);
