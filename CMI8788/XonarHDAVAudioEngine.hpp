@@ -53,7 +53,7 @@
 class XonarAudioEngine;
 class XonarHDAVAudioEngine : public IOAudioEngine
 {
-    friend class XonarSTAudioEngine;
+    friend class XonarAudioEngine;
     OSDeclareDefaultStructors(XonarHDAVAudioEngine)
     
     struct xonar_hdav                   *deviceRegisters;
@@ -133,7 +133,7 @@ public:
     /* HDMI helper functions */
     static void hdmi_write_command(struct oxygen *chip, UInt8 command,
                                    unsigned int count, const UInt8 *params);
-    
+    static int xonar_hdav_mixer_init(struct oxygen *chip);
     static void xonar_hdmi_init_commands(struct oxygen *chip,
                                          struct xonar_hdmi *hdmi);
 
@@ -144,7 +144,7 @@ public:
    // void xonar_hdmi_pcm_hardware_filter(unsigned int channel,
      //                                   struct snd_pcm_hardware *hardware);
     static void set_hdav_params(struct oxygen *chip, XonarHDAVAudioEngine *instance);
-    static void xonar_set_hdmi_params(struct oxygen *chip, struct xonar_hdmi *hdmi);
+    static void xonar_set_hdmi_params(XonarAudioEngine *engi, struct oxygen *chip, struct xonar_hdmi *hdmi);
     static void xonar_hdmi_uart_input(struct oxygen *chip);
     
     //void _write_uart(struct oxygen *chip, unsigned int port, UInt8 data);

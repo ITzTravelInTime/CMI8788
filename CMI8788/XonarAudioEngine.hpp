@@ -49,6 +49,7 @@
 #include "CMI8788.hpp"
 
 #define XonarAudioEngine com_CMedia_CMI8788_XonarAudioEngine
+#define XonarHDAVAudioEngine com_CMedia_CMI8788_XonarHDAVAudioEngine
 
 struct xonar_generic {
     unsigned int anti_pop_delay;
@@ -128,6 +129,8 @@ class IOInterruptEventSource;
 class XonarAudioEngine : public IOAudioEngine
 {
     friend class XonarSTAudioEngine;
+    friend class XonarHDAVAudioEngine;
+
     OSDeclareDefaultStructors(XonarAudioEngine)
     
     //struct xonar_hdav                   *deviceRegisters;
@@ -172,7 +175,7 @@ public:
     static void xonar_enable_output(struct oxygen *chip);
     static void xonar_disable_output(struct oxygen *chip);
     static void xonar_init_ext_power(struct oxygen *chip);
-    void xonar_init_cs53x1(struct oxygen *chip);
+    static void xonar_init_cs53x1(struct oxygen *chip);
     void xonar_set_cs53x1_params(struct oxygen *chip);
     
     static int  add_pcm1796_controls(struct oxygen *chip);
