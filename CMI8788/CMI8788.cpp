@@ -50,8 +50,8 @@
 #include <IOKit/IOLib.h>
 
 #include <IOKit/pci/IOPCIDevice.h>
-#include "xonar_hdav.hpp"
-#include "CMI8788.hpp"
+#include "XonarAudioEngine.hpp"
+//#include "CMI8788.hpp"
 #include "cm9780.h"
 #include "ac97.h"
 

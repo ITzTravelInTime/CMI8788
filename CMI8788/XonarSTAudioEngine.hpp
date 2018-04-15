@@ -41,75 +41,31 @@
  */
 
 
-#ifndef _SAMPLEPCIAUDIOENGINE_H
-#define _SAMPLEPCIAUDIOENGINE_H
+#ifndef _XONARSTAUDIOENGINE_H
+#define _XONARSTAUDIOENGINE_H
 
 #include <IOKit/audio/IOAudioEngine.h>
 
 #include "CMI8788.hpp"
-#include "xonar_hdav.hpp"
-#define XonarSTAudioEngine com_MyCompany_driver_XonarSTAudioEngine
-struct xonar_generic {
-    unsigned int anti_pop_delay;
-    UInt16 output_enable_bit;
-    UInt8 ext_power_reg;
-    UInt8 ext_power_int_reg;
-    UInt8 ext_power_bit;
-    UInt8 has_power;
-};
+#include "XonarAudioEngine.hpp"
+#define XonarSTAudioEngine com_CMedia_CMI8788_XonarSTAudioEngine
 
-struct xonar_hdmi {
-    UInt8 params[5];
-};
-
-struct xonar_pcm179x {
-    struct xonar_generic generic;
-    unsigned int dacs;
-    UInt8 pcm1796_regs[4][5];
-    IOAudioSampleRate *current_rate;
-    bool h6;
-    bool hp_active;
-    SInt8 hp_gain_offset;
-    bool has_cs2000;
-    UInt8 cs2000_regs[0x1f];
-    bool broken_i2c;
-};
-
-struct xonar_hdav {
-    struct xonar_pcm179x pcm179x;
-    struct xonar_hdmi hdmi;
-};
-
-#define GPIO_CS53x1_M_MASK      0x000c
-#define GPIO_CS53x1_M_SINGLE    0x0000
-#define GPIO_CS53x1_M_DOUBLE    0x0004
-#define GPIO_CS53x1_M_QUAD      0x0008
-#define XONAR_GPIO_BIT_INVERT	(1 << 16)
-//objective C does not use the bitwise operator
-// so i am simply declaring SNDRV_PCM_FORMAT as-is
-//Linux Def below for reference:
-//typedef int __bitwise snd_pcm_format_t;
-//#define	SNDRV_PCM_FORMAT_S16_LE	((__force snd_pcm_format_t) 2)
-//OSX Def (may be wrong, but may not be [not sure about significance of bitwise here]):
-#define SNDRV_PCM_FORMAT_S16_LE 2
 
 class IOFilterInterruptEventSource;
 class IOInterruptEventSource;
-
+class XonarAudioEngine;
 class XonarSTAudioEngine : public IOAudioEngine
 {
-
     OSDeclareDefaultStructors(XonarSTAudioEngine)
     struct xonar_hdav                   *deviceRegisters;
     //right now i've created 4 since there are 4 I2S input buffers
     // however, i am not sure how to incorporate them yet,
     // as i have to (probably) create an ioaudiostream for each
     // and then add the attributes.
- //   XonarAudioEngine                *engineInstance;
+    XonarAudioEngine                *engineInstance;
     IOAudioStream                   *inputs[4];
     SInt16							*outputBuffer;
     SInt16							*inputBuffer;
-    
     IOFilterInterruptEventSource	*interruptEventSource;
     
 public:
@@ -138,9 +94,18 @@ public:
     static void interruptHandler(OSObject *owner, IOInterruptEventSource *source, int count);
     static bool interruptFilter(OSObject *owner, IOFilterInterruptEventSource *source);
     virtual void filterInterrupt(int index);
-    void xonar_st_init_common(struct oxygen *chip);
-    void xonar_st_init(struct oxygen *chip);
+    static void xonar_st_init_common(struct oxygen *chip);
+    static void xonar_st_init(struct oxygen *chip);
+    static void xonar_stx_init(struct oxygen *chip);
+    static void xonar_st_init_i2c(struct oxygen *chip);
+    
+    static void xonar_stx_resume(struct oxygen *chip);
+    static void xonar_st_resume(struct oxygen *chip);
 
+    static void xonar_st_cleanup(struct oxygen *chip);
+    
+    static void set_st_params(struct oxygen *chip,XonarAudioEngine *instance);
+    
 };
 
 #endif /* _SAMPLEPCIAUDIOENGINE_H */

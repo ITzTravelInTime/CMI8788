@@ -41,14 +41,14 @@
  */
 
 
-#ifndef _SAMPLEPCIAUDIOENGINE_H
-#define _SAMPLEPCIAUDIOENGINE_H
+#ifndef _XONARAUDIOENGINE_H
+#define _XONARAUDIOENGINE_H
 
 #include <IOKit/audio/IOAudioEngine.h>
 
 #include "CMI8788.hpp"
 
-#define XonarAudioEngine com_MyCompany_driver_XonarAudioEngine
+#define XonarAudioEngine com_CMedia_CMI8788_XonarAudioEngine
 
 struct xonar_generic {
     unsigned int anti_pop_delay;
@@ -86,6 +86,33 @@ struct xonar_hdav {
 #define GPIO_CS53x1_M_DOUBLE    0x0004
 #define GPIO_CS53x1_M_QUAD      0x0008
 #define XONAR_GPIO_BIT_INVERT	(1 << 16)
+#define GPIO_D2X_EXT_POWER	0x0020
+#define GPIO_D2_ALT		0x0080
+#define GPIO_D2_OUTPUT_ENABLE	0x0100
+
+#define GPI_EXT_POWER		0x01
+#define GPIO_INPUT_ROUTE	0x0100
+
+#define GPIO_HDAV_OUTPUT_ENABLE	0x0001
+#define GPIO_HDAV_MAGIC		0x00c0
+
+#define GPIO_DB_MASK		0x0030
+#define GPIO_DB_H6		0x0000
+
+#define GPIO_ST_OUTPUT_ENABLE	0x0001
+#define GPIO_ST_HP_REAR		0x0002
+#define GPIO_ST_MAGIC		0x0040
+#define GPIO_ST_HP		0x0080
+
+#define GPIO_XENSE_OUTPUT_ENABLE	(0x0001 | 0x0010 | 0x0020)
+#define GPIO_XENSE_SPEAKERS		0x0080
+
+#define I2C_DEVICE_PCM1796(i)	(0x98 + ((i) << 1))	/* 10011, ii, /W=0 */
+#define I2C_DEVICE_CS2000	0x9c			/* 100111, 0, /W=0 */
+
+#define PCM1796_REG_BASE	16
+
+
 //objective C does not use the bitwise operator
 // so i am simply declaring SNDRV_PCM_FORMAT as-is
 //Linux Def below for reference:
@@ -141,18 +168,27 @@ public:
     virtual void filterInterrupt(int index);
     int oxygen_write_spi(struct oxygen *chip, UInt8 control, unsigned int data);
     void xonar_ext_power_gpio_changed(struct oxygen *chip);
-    void xonar_enable_output(struct oxygen *chip);
-    void xonar_disable_output(struct oxygen *chip);
-    void xonar_init_ext_power(struct oxygen *chip);
+    static void xonar_enable_output(struct oxygen *chip);
+    static void xonar_disable_output(struct oxygen *chip);
+    static void xonar_init_ext_power(struct oxygen *chip);
     void xonar_init_cs53x1(struct oxygen *chip);
     void xonar_hdav_init(struct oxygen *chip);
     void xonar_set_cs53x1_params(struct oxygen *chip);
-    void pcm1796_init(struct oxygen *chip);
+    void xonar_hdav_resume(struct oxygen *chip);
+    
+    
+    static void pcm1796_init(struct oxygen *chip);
+    static void pcm1796_registers_init(struct oxygen *chip);
+    static void update_pcm1796_mute(struct oxygen *chip);
+    static void update_pcm1796_oversampling(struct oxygen *chip);
+    static void set_pcm1796_params(struct oxygen *chip, XonarAudioEngine *instance);
+    static void update_pcm1796_volume(struct oxygen *chip);
+
+    
     int xonar_gpio_bit_switch_get(struct snd_kcontrol *ctl,
                                   struct snd_ctl_elem_value *value);
     int xonar_gpio_bit_switch_put(struct snd_kcontrol *ctl,
                                   struct snd_ctl_elem_value *value);
-    
     /* model-specific card drivers */
     
     int get_xonar_pcm179x_model(struct oxygen *chip,
@@ -161,7 +197,8 @@ public:
                                const struct pci_device_id *id);
     int get_xonar_wm87x6_model(struct oxygen *chip,
                                const struct pci_device_id *id);
-    
+    static void cs2000_registers_init(struct oxygen *chip);
+    static void update_cs2000_rate(struct oxygen *chip, unsigned int rate);
     /* HDMI helper functions */
     
     void xonar_hdmi_init(struct oxygen *chip, struct xonar_hdmi *data);
@@ -169,8 +206,6 @@ public:
     void xonar_hdmi_resume(struct oxygen *chip, struct xonar_hdmi *hdmi);
    // void xonar_hdmi_pcm_hardware_filter(unsigned int channel,
      //                                   struct snd_pcm_hardware *hardware);
-    void update_pcm1796_oversampling(struct oxygen *chip);
-    void set_pcm1796_params(struct oxygen *chip);
     void set_hdav_params(struct oxygen *chip);
     void xonar_set_hdmi_params(struct oxygen *chip, struct xonar_hdmi *hdmi);
     void xonar_hdmi_uart_input(struct oxygen *chip);
