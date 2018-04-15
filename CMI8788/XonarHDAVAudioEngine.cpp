@@ -263,10 +263,10 @@ void XonarHDAVAudioEngine::xonar_hdav_cleanup(struct oxygen *chip)
 
 void XonarHDAVAudioEngine::xonar_hdav_resume(struct oxygen *chip)
 {
-    struct xonar_hdav *data = (struct xonar_hdav*) chip->model_data;
+    //struct xonar_hdav *data = (struct xonar_hdav*) chip->model_data;
     
     this->engineInstance->pcm1796_registers_init(chip);
-    xonar_hdmi_resume(chip, &data->hdmi);
+    xonar_hdmi_resume(chip, &deviceRegisters->hdmi);
     this->engineInstance->xonar_enable_output(chip);
 }
 
