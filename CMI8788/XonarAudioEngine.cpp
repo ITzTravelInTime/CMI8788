@@ -991,7 +991,7 @@ bool XonarAudioEngine::interruptFilter(OSObject *owner, IOFilterInterruptEventSo
         oxygen_write16(chip, OXYGEN_INTERRUPT_MASK,
                        chip->interrupt_mask & ~clear);
         oxygen_write16(chip, OXYGEN_INTERRUPT_MASK,
-                       chip->interrupt_mask);
+                       chip->interrupt_mask); 
     }
     
     elapsed_streams = status & chip->pcm_running;
@@ -1024,8 +1024,12 @@ bool XonarAudioEngine::interruptFilter(OSObject *owner, IOFilterInterruptEventSo
             oxygen_read_uart(chip);
         }
     
-    if (status & OXYGEN_INT_AC97)
-     wait_queue_wakeup_one(chip->ac97_waitqueue, (event_t)({ status |= oxygen_read8(chip, OXYGEN_AC97_INTERRUPT_STATUS);status & chip->ac97_maskval;}),1);
+    if (status & OXYGEN_INT_AC97) {
+        pthread_mutex_lock(&chip->ac97_mutex);
+        pthread_cond_signal(&chip->ac97_condition);
+        pthread_mutex_unlock(&chip->ac97_mutex);
+    }
+        //wait_queue_wakeup_one(chip->ac97_waitqueue, (event_t)({ status |= oxygen_read8(chip, OXYGEN_AC97_INTERRUPT_STATUS);status & chip->ac97_maskval;}),1);
     
     return true;
 }

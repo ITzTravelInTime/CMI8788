@@ -43,20 +43,20 @@
 
 #ifndef _SAMPLEPCIAUDIODEVICE_H
 #define _SAMPLEPCIAUDIODEVICE_H
-
+#define _POSIX_C_SOURCE // to remove conflict with mach_port_t (happens when you use pthreads)
 #include <IOKit/audio/IOAudioDevice.h>
 #include <IOKit/IOWorkLoop.h>
-#include <IOKit/IOLocks.h>
+//#include <IOKit/IOLocks.h>
 #include <sys/types.h>
-#include <mach/semaphore.h>
-#include <mach/task.h>
+//#include <mach/semaphore.h>
+//#include <mach/task.h>
 #include <architecture/i386/pio.h>
 #include <sys/errno.h>
 #include <machine/limits.h>
-#include <kern/waitq.h>
+//#include <kern/waitq.h>
 #include "oxygen_regs.h"
 //#include <libkern/OSAtomic.h>
-
+#include "/usr/include/pthread/pthread.h"
 #define dev_err(dev, format, args...) do {IOLog("CMI8788: " format, ##args);} while (0)
 
 /* 1 << PCM_x == OXYGEN_CHANNEL_x */
@@ -174,12 +174,14 @@ struct oxygen {
     UInt32 spdif_bits;
     UInt32 spdif_pcm_bits;
     IOAudioStreamDataDescriptor *streams[PCM_COUNT];
-    
  //   struct snd_pcm_substream *streams[PCM_COUNT];
  //   struct snd_kcontrol *controls[CONTROL_COUNT];
     IOWorkLoop spdif_input_bits_work;
     IOWorkLoop gpio_work;
-    wait_queue_t ac97_waitqueue;
+    //wait_queue_t ac97_waitqueue;
+    pthread_cond_t  ac97_condition;
+    pthread_mutex_t  ac97_mutex;
+    struct timespec ac97_timeout = {0, (long)1e6};
     union {// have to swap these ... remember.
         UInt8 _8[OXYGEN_IO_SIZE];
         SInt16 _16[OXYGEN_IO_SIZE / 2];
@@ -190,6 +192,8 @@ struct oxygen {
     UInt8 uart_input[32];
     struct oxygen_model model;
 };
+
+
 
 static inline unsigned long msecs_to_jiffies(const unsigned int m)
 {
@@ -277,9 +281,11 @@ static int oxygen_ac97_wait(struct oxygen *chip, unsigned int mask)
      * the read bits in status.
      */
      chip->ac97_maskval = mask;
-     wait_queue_assert_wait(chip->ac97_waitqueue,
-                            (event_t)({ status |= oxygen_read8(chip, OXYGEN_AC97_INTERRUPT_STATUS);status & mask;}),1);
-    
+     //wait_queue_assert_wait(chip->ac97_waitqueue,
+                         //   (event_t),1);
+    if(({ status |= oxygen_read8(chip, OXYGEN_AC97_INTERRUPT_STATUS);status & mask;}))
+        pthread_cond_timedwait(&chip->ac97_condition,&chip->ac97_mutex,&chip->ac97_timeout);
+    pthread_mutex_unlock(&chip->ac97_mutex);
     /*
      * Check even after a timeout because this function should not require
      * the AC'97 interrupt to be enabled.
