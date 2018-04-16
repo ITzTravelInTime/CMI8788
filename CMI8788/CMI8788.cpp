@@ -211,23 +211,15 @@ bool PCIAudioDevice::initHardware(IOService *provider)
     setManufacturerName("CMedia");
     
     oxygen_restore_eeprom(pciDevice,deviceRegisters);
-    //following oxygen_pci_probe...
-    /**** MOVED TO AUDIOENGINE (XONAR_HDAV) AS IT FITS BETTER ***
-     deviceRegisters->spdif_input_bits_work.init();
-     deviceRegisters->gpio_work.init();
-     queue_init(&deviceRegisters->ac97_waitqueue);
-     deviceRegisters->mutex = OS_SPINLOCK_INIT;
-     *******/
-    //move oxygen_init to (barely-used) XonarAudioEngine to fill out the latter.
-    //oxygen_init(deviceRegisters);
     //Before:AUdioEngine's init didn't do much. now it instantiates everything like oxygen_init.
     //so, by creating the engine, we instantiate the registers as well.
-    if (!audioEngineInstance->init(deviceRegisters,0))
+    if (!audioEngineInstance->init(deviceRegisters,HDAV_MODEL))
         goto Done;
     //#error Put your own hardware initialization code here...and in other routines!!
     
     
-    //At this point, we should be at the chip->model.init() part of the oxygen_pci_probe function.
+    //see comments in createAudioEngine to follow rest of oxygen_pci_probe
+    //(chip->model.init() and onwards)
     if (!createAudioEngine(audioEngineInstance)) {
         goto Done;
     }
@@ -260,25 +252,36 @@ void PCIAudioDevice::free()
 
 bool PCIAudioDevice::createAudioEngine(XonarAudioEngine *audioEngineInstance)
 {
+    
+    //At this point, we should be at the chip->model.init() part of the oxygen_pci_probe function.
+    //chip->model.init() is handled by the init() method of the submodel's class that we wish to instantiate.
+    //that is: XonarHDAVAudioEngine::init() contains the code for xonar_hdav_init, etc.
+    
     bool result = false;
-    //XonarAudioEngine *AudioEngineInstance = NULL;
     XonarHDAVAudioEngine *audioEngine = NULL;
     IOAudioControl *control;
     
     IOLog("SamplePCIAudioDevice[%p]::createAudioEngine()\n", this);
-    // AudioEngineInstance = new XonarAudioEngine;
     audioEngine = new XonarHDAVAudioEngine;
     if (!audioEngine) {
         goto Done;
     }
+    //calling chip->model.init()-equivalent directly below
+    
     
     // Init the new audio engine with the device registers so it can access them if necessary
     // The audio engine subclass could be defined to take any number of parameters for its
     // initialization - use it like a constructor
-    
     if (!audioEngine->init(audioEngineInstance,deviceRegisters)) {
         goto Done;
     }
+    
+    /* The remaining portions of oxygen_pci_probe focus on initialising PCM and the mixer.
+     * from what i can gather, these portions of the init from the Linux Driver are handled
+     * radically differently from OSX, and so this is where OSX-specific/new code will need to
+     * handle these differences, where some of the code in oxygen_mixer.c/oxygen_pcm.c may be
+     * used for the aforementioned purposes
+     */
     
     // Create a left & right output volume control with an int range from 0 to 65535
     // and a db range from -22.5 to 0.0

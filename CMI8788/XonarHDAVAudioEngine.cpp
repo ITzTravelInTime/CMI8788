@@ -211,10 +211,7 @@ bool XonarHDAVAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip)
     chip->model_data = IOMalloc(chip->model.model_data_size);
     deviceRegisters = (struct xonar_hdav*)chip->model_data;
     this->engineInstance = engine;
-    // the below aren't correct. have to bridge the workqueue calls to IOWorkLoop
-    //queue_init(&chip->ac97_waitqueue);
-    //chip->mutex = OS_SPINLOCK_INIT;
-    
+
     xonar_hdav_init(chip);
     
     oxygen_write16(chip, OXYGEN_2WIRE_BUS_STATUS,

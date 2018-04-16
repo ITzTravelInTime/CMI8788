@@ -772,6 +772,8 @@ bool XonarAudioEngine::init(struct oxygen *chip, int model)
         pthread_cond_init(&chip->ac97_condition,NULL);
     }
     
+    
+    //begin oxygen_init
     unsigned int i;
     
     chip->dac_routing = 1;
@@ -973,19 +975,13 @@ bool XonarAudioEngine::init(struct oxygen *chip, int model)
         oxygen_write_ac97(chip, 1, AC97_REC_GAIN, 0x0000);
         oxygen_ac97_set_bits(chip, 1, 0x6a, 0x0040);
     }
-    
+    // end oxygen_init
+
     
     
     //  ak4396_init(chip);
     //  wm8785_init(chip);
-    //    if(model == HDAV_MODEL)
-    //        struct xonar_hdav *deviceRegisters = (struct xonar_hdav*)chip->model_data;
-    //    else
-    //        struct xonar_generic *deviceRegisters = (struct xonar_generic*)chip->model_data;
-    // activate the two secondary events for the interrupt handler (gpio and spdif_input bits).
-    // set them up in inithardware.
 
-    //queue_init(&chip->ac97_waitqueue);
     //save ptr to oxygen struct from PCIDriver into private class var dev_id for interrupthandler
     dev_id = chip;
     result = true;
