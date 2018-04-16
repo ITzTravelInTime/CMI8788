@@ -143,6 +143,8 @@ class XonarAudioEngine : public IOAudioEngine
     SInt16							*inputBuffer;
     IOWorkLoop                      *workLoop;
     IOFilterInterruptEventSource	*interruptEventSource;
+    IOFilterInterruptEventSource	*gpioEventSource;
+    IOFilterInterruptEventSource	*spdifEventSource;
     //need this for the interrupt handler, as the filterInterrupt OS call doesn't allow us to pass parameters.
     static void                            *dev_id;
     
@@ -174,7 +176,6 @@ public:
     static bool interruptFilter(OSObject *owner, IOFilterInterruptEventSource *src);
     virtual void filterInterrupt(int index);
     int oxygen_write_spi(struct oxygen *chip, UInt8 control, unsigned int data);
-    //static void xonar_ext_power_gpio_changed(struct oxygen *chip);
     static void xonar_enable_output(struct oxygen *chip);
     static void xonar_disable_output(struct oxygen *chip);
     static void xonar_init_ext_power(struct oxygen *chip);
@@ -195,6 +196,7 @@ public:
                                   struct snd_ctl_elem_value *value);
     int xonar_gpio_bit_switch_put(struct snd_kcontrol *ctl,
                                   struct snd_ctl_elem_value *value);
+    static void oxygen_gpio_changed(struct work_struct *work);
     /* model-specific card drivers */
     
     int get_xonar_pcm179x_model(struct oxygen *chip,
@@ -211,6 +213,8 @@ public:
     static void oxygen_reset_uart(struct oxygen *chip);
     static void oxygen_read_uart(struct oxygen *chip);
     static void oxygen_write_uart(struct oxygen *chip, UInt8 data);
+    
+    static void oxygen_spdif_input_bits_changed(struct work_struct *work);
 };
 
 #endif /* _SAMPLEPCIAUDIOENGINE_H */

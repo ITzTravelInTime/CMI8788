@@ -446,6 +446,8 @@ bool PCIAudioDevice::initHardware(IOService *provider)
     deviceRegisters->model.dac_i2s_format = OXYGEN_I2S_FORMAT_I2S;
     deviceRegisters->model.adc_i2s_format = OXYGEN_I2S_FORMAT_LJUST;
     deviceRegisters->model.model_data_size = sizeof(struct xonar_hdav);
+    deviceRegisters->ac97_waitqueue = wait_queue_alloc(SYNC_POLICY_FIFO);
+    deviceRegisters->mutex = OS_SPINLOCK_INIT;
     oxygen_init(deviceRegisters);
     
 //#error Put your own hardware initialization code here...and in other routines!!

@@ -69,68 +69,6 @@ OSDefineMetaClassAndStructors(XonarAudioEngine, IOAudioEngine)
 
 
 
-//
-//void oxygen_spdif_input_bits_changed(struct work_struct *work)
-//{
-//    struct oxygen *chip;
-//    UInt32 reg;
-//    OSSpinLock spinny;
-//    /*
-//     * This function gets called when there is new activity on the SPDIF
-//     * input, or when we lose lock on the input signal, or when the rate
-//     * changes.
-//     */
-//    IODelay(1000);
-//    OSSpinLockLock(&chip->reg_lock);
-//    reg = oxygen_read32(chip, OXYGEN_SPDIF_CONTROL);
-//    if ((reg & (OXYGEN_SPDIF_SENSE_STATUS |
-//                OXYGEN_SPDIF_LOCK_STATUS))
-//        == OXYGEN_SPDIF_SENSE_STATUS) {
-//        /*
-//         * If we detect activity on the SPDIF input but cannot lock to
-//         * a signal, the clock bit is likely to be wrong.
-//         */
-//        reg ^= OXYGEN_SPDIF_IN_CLOCK_MASK;
-//        oxygen_write32(chip, OXYGEN_SPDIF_CONTROL, reg);
-//        OSSpinLockUnlock(&chip->reg_lock);
-//        IODelay(1000);
-//        OSSpinLockLock(&chip->reg_lock);
-//        reg = oxygen_read32(chip, OXYGEN_SPDIF_CONTROL);
-//        if ((reg & (OXYGEN_SPDIF_SENSE_STATUS |
-//                    OXYGEN_SPDIF_LOCK_STATUS))
-//            == OXYGEN_SPDIF_SENSE_STATUS) {
-//            /* nothing detected with either clock; give up */
-//            if ((reg & OXYGEN_SPDIF_IN_CLOCK_MASK)
-//                == OXYGEN_SPDIF_IN_CLOCK_192) {
-//                /*
-//                 * Reset clock to <= 96 kHz because this is
-//                 * more likely to be received next time.
-//                 */
-//                reg &= ~OXYGEN_SPDIF_IN_CLOCK_MASK;
-//                reg |= OXYGEN_SPDIF_IN_CLOCK_96;
-//                oxygen_write32(chip, OXYGEN_SPDIF_CONTROL, reg);
-//            }
-//        }
-//    }
-//    OSSpinLockUnlock(&chip->reg_lock);
-//    
-//    if (chip->controls[CONTROL_SPDIF_INPUT_BITS]) {
-//        OSSpinLockLock(&chip->reg_lock);
-//        chip->interrupt_mask |= OXYGEN_INT_SPDIF_IN_DETECT;
-//        oxygen_write16(chip, OXYGEN_INTERRUPT_MASK,
-//                       chip->interrupt_mask);
-//        OSSpinLockUnlock(&chip->reg_lock);
-//        
-//        /*
-//         * We don't actually know that any channel status bits have
-//         * changed, but let's send a notification just to be sure.
-//         */
-//        //    snd_ctl_notify(chip->card, SNDRV_CTL_EVENT_MASK_VALUE,
-//        //                  &chip->controls[CONTROL_SPDIF_INPUT_BITS]->id);
-//    }
-//}
-
-
 
 
 void XonarAudioEngine::xonar_enable_output(struct oxygen *chip)
@@ -620,6 +558,7 @@ void XonarAudioEngine::update_cs2000_rate(struct oxygen *chip, unsigned int rate
 //
 //}
 
+
 void XonarAudioEngine::xonar_line_mic_ac97_switch(struct oxygen *chip,
                                        unsigned int reg, unsigned int mute)
 {
@@ -666,8 +605,11 @@ bool XonarAudioEngine::init(struct oxygen *chip, int model)
 //        struct xonar_hdav *deviceRegisters = (struct xonar_hdav*)chip->model_data;
 //    else
 //        struct xonar_generic *deviceRegisters = (struct xonar_generic*)chip->model_data;
-    // the below aren't correct. have to bridge the workqueue calls to IOWorkLoop
-    queue_init(&chip->ac97_waitqueue);
+    // activate the two secondary events for the interrupt handler (gpio and spdif_input bits).
+    // set them up in inithardware.
+    chip->spdif_input_bits_work.init();
+    chip->gpio_work.init();
+    //queue_init(&chip->ac97_waitqueue);
     chip->mutex = OS_SPINLOCK_INIT;
     //save ptr to oxygen struct from PCIDriver into private class var dev_id for interrupthandler
     dev_id = chip;
@@ -944,6 +886,78 @@ IOReturn XonarAudioEngine::performFormatChange(IOAudioStream *audioStream, const
     return kIOReturnSuccess;
 }
 
+void XonarAudioEngine::oxygen_gpio_changed(struct work_struct *work)
+{
+    struct oxygen *chip = (struct oxygen*) dev_id;
+    if (chip->model.gpio_changed)
+        chip->model.gpio_changed(chip);
+}
+
+
+//
+void XonarAudioEngine::oxygen_spdif_input_bits_changed(struct work_struct *work)
+{
+    struct oxygen *chip = (struct oxygen*) dev_id;
+    UInt32 reg;
+    /*
+     * This function gets called when there is new activity on the SPDIF
+     * input, or when we lose lock on the input signal, or when the rate
+     * changes.
+     */
+    IODelay(1000);
+    OSSpinLockLock(&chip->reg_lock);
+    reg = oxygen_read32(chip, OXYGEN_SPDIF_CONTROL);
+    if ((reg & (OXYGEN_SPDIF_SENSE_STATUS |
+                OXYGEN_SPDIF_LOCK_STATUS))
+        == OXYGEN_SPDIF_SENSE_STATUS) {
+        /*
+         * If we detect activity on the SPDIF input but cannot lock to
+         * a signal, the clock bit is likely to be wrong.
+         */
+        reg ^= OXYGEN_SPDIF_IN_CLOCK_MASK;
+        oxygen_write32(chip, OXYGEN_SPDIF_CONTROL, reg);
+        OSSpinLockUnlock(&chip->reg_lock);
+        IODelay(1000);
+        OSSpinLockLock(&chip->reg_lock);
+        reg = oxygen_read32(chip, OXYGEN_SPDIF_CONTROL);
+        if ((reg & (OXYGEN_SPDIF_SENSE_STATUS |
+                    OXYGEN_SPDIF_LOCK_STATUS))
+            == OXYGEN_SPDIF_SENSE_STATUS) {
+            /* nothing detected with either clock; give up */
+            if ((reg & OXYGEN_SPDIF_IN_CLOCK_MASK)
+                == OXYGEN_SPDIF_IN_CLOCK_192) {
+                /*
+                 * Reset clock to <= 96 kHz because this is
+                 * more likely to be received next time.
+                 */
+                reg &= ~OXYGEN_SPDIF_IN_CLOCK_MASK;
+                reg |= OXYGEN_SPDIF_IN_CLOCK_96;
+                oxygen_write32(chip, OXYGEN_SPDIF_CONTROL, reg);
+            }
+        }
+    }
+    OSSpinLockUnlock(&chip->reg_lock);
+    /*
+     if (chip->controls[CONTROL_SPDIF_INPUT_BITS]) {
+     OSSpinLockLock(&chip->reg_lock);
+     chip->interrupt_mask |= OXYGEN_INT_SPDIF_IN_DETECT;
+     oxygen_write16(chip, OXYGEN_INTERRUPT_MASK,
+     chip->interrupt_mask);
+     OSSpinLockUnlock(&chip->reg_lock);
+     
+     
+     // We don't actually know that any channel status bits have
+     // changed, but let's send a notification just to be sure.
+     //
+     //    snd_ctl_notify(chip->card, SNDRV_CTL_EVENT_MASK_VALUE,
+     //                  &chip->controls[CONTROL_SPDIF_INPUT_BITS]->id);
+     }
+     */
+}
+
+
+
+
 
 void XonarAudioEngine::interruptHandler(OSObject *owner, IOInterruptEventSource *source, int count)
 {
@@ -1010,8 +1024,8 @@ bool XonarAudioEngine::interruptFilter(OSObject *owner, IOFilterInterruptEventSo
             oxygen_read_uart(chip);
         }
     
-    //if (status & OXYGEN_INT_AC97)
-    // wake_up(&chip->ac97_waitqueue);
+    if (status & OXYGEN_INT_AC97)
+     wait_queue_wakeup_one(chip->ac97_waitqueue, (event_t)({ status |= oxygen_read8(chip, OXYGEN_AC97_INTERRUPT_STATUS);status & chip->ac97_maskval;}),1);
     
     return true;
 }

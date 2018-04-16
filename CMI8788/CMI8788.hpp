@@ -53,6 +53,7 @@
 #include <architecture/i386/pio.h>
 #include <sys/errno.h>
 #include <machine/limits.h>
+#include <kern/waitq.h>
 #include "oxygen_regs.h"
 //#include <libkern/OSAtomic.h>
 
@@ -169,6 +170,7 @@ struct oxygen {
     UInt8 spdif_playback_enable;
     UInt8 has_ac97_0;
     UInt8 has_ac97_1;
+    unsigned int ac97_maskval;
     UInt32 spdif_bits;
     UInt32 spdif_pcm_bits;
     IOAudioStreamDataDescriptor *streams[PCM_COUNT];
@@ -177,7 +179,7 @@ struct oxygen {
  //   struct snd_kcontrol *controls[CONTROL_COUNT];
     IOWorkLoop spdif_input_bits_work;
     IOWorkLoop gpio_work;
-    queue_head_t ac97_waitqueue;
+    wait_queue_t ac97_waitqueue;
     union {// have to swap these ... remember.
         UInt8 _8[OXYGEN_IO_SIZE];
         SInt16 _16[OXYGEN_IO_SIZE / 2];
@@ -274,12 +276,10 @@ static int oxygen_ac97_wait(struct oxygen *chip, unsigned int mask)
      * Reading the status register also clears the bits, so we have to save
      * the read bits in status.
      */
-    /*
-     wait_event_timeout(chip->ac97_waitqueue,
-     ({ status |= oxygen_read8(chip, OXYGEN_AC97_INTERRUPT_STATUS);
-     status & mask; }),
-     msecs_to_jiffies(1) + 1);
-     */
+     chip->ac97_maskval = mask;
+     wait_queue_assert_wait(chip->ac97_waitqueue,
+                            (event_t)({ status |= oxygen_read8(chip, OXYGEN_AC97_INTERRUPT_STATUS);status & mask;}),1);
+    
     /*
      * Check even after a timeout because this function should not require
      * the AC'97 interrupt to be enabled.
