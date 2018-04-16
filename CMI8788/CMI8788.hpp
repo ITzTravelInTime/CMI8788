@@ -282,6 +282,7 @@ static int oxygen_ac97_wait(struct oxygen *chip, unsigned int mask)
 
      //wait_queue_assert_wait(chip->ac97_waitqueue,
                          //   (event_t),1);
+    pthread_mutex_lock(&chip->>ac97_mutex);
     if(({ status |= oxygen_read8(chip, OXYGEN_AC97_INTERRUPT_STATUS);status & mask;}))
         pthread_cond_timedwait(&chip->ac97_condition,&chip->ac97_mutex,&chip->ac97_timeout);
     pthread_mutex_unlock(&chip->ac97_mutex);
