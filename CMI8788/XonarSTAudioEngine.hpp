@@ -48,14 +48,18 @@
 
 #include "CMI8788.hpp"
 #include "XonarAudioEngine.hpp"
+#include "XonarD2XAudioEngine.hpp"
+
 #define XonarSTAudioEngine com_CMedia_CMI8788_XonarSTAudioEngine
 
 
 class IOFilterInterruptEventSource;
 class IOInterruptEventSource;
 class XonarAudioEngine;
+class XonarD2XAudioEngine;
 class XonarSTAudioEngine : public IOAudioEngine
 {
+    friend class XonarD2XAudioEngine;
     OSDeclareDefaultStructors(XonarSTAudioEngine)
     struct xonar_hdav                   *deviceRegisters;
     //right now i've created 4 since there are 4 I2S input buffers
@@ -94,15 +98,15 @@ public:
     static void interruptHandler(OSObject *owner, IOInterruptEventSource *source, int count);
     static bool interruptFilter(OSObject *owner, IOFilterInterruptEventSource *source);
     virtual void filterInterrupt(int index);
-    static void xonar_st_init_common(struct oxygen *chip);
-    static void xonar_st_init(struct oxygen *chip);
-    static void xonar_stx_init(struct oxygen *chip);
-    static void xonar_st_init_i2c(struct oxygen *chip);
-    static void xonar_st_suspend(struct oxygen *chip);
-    static void xonar_stx_resume(struct oxygen *chip);
-    static void xonar_st_resume(struct oxygen *chip);
+    static void xonar_st_init_common(struct oxygen *chip, XonarAudioEngine *engineInstance);
+    static void xonar_st_init(struct oxygen *chip, XonarAudioEngine *engineInstance);
+    static void xonar_stx_init(struct oxygen *chip, XonarAudioEngine *engineInstance);
+    static void xonar_st_init_i2c(struct oxygen *chip, XonarAudioEngine *engineInstance);
+    static void xonar_st_suspend(struct oxygen *chip, XonarAudioEngine *engineInstance);
+    static void xonar_stx_resume(struct oxygen *chip, XonarAudioEngine *engineInstance);
+    static void xonar_st_resume(struct oxygen *chip, XonarAudioEngine *engineInstance);
 
-    static void xonar_st_cleanup(struct oxygen *chip);
+    static void xonar_st_cleanup(struct oxygen *chip, XonarAudioEngine *engineInstance);
     
     static void set_st_params(struct oxygen *chip,XonarAudioEngine *instance);
     

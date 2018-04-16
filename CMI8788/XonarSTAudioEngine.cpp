@@ -70,16 +70,16 @@ OSDefineMetaClassAndStructors(XonarSTAudioEngine, IOAudioEngine)
 
 
 
-void XonarSTAudioEngine::xonar_st_init_i2c(struct oxygen *chip)
+void XonarSTAudioEngine::xonar_st_init_i2c(struct oxygen *chip, XonarAudioEngine *engineInstance)
 {
-    oxygen_write16(chip, OXYGEN_2WIRE_BUS_STATUS,
+    engineInstance->oxygen_write16(chip, OXYGEN_2WIRE_BUS_STATUS,
                    OXYGEN_2WIRE_LENGTH_8 |
                    OXYGEN_2WIRE_INTERRUPT_MASK |
                    OXYGEN_2WIRE_SPEED_STANDARD);
 }
 
 
-void XonarSTAudioEngine::xonar_st_init_common(struct oxygen *chip)
+void XonarSTAudioEngine::xonar_st_init_common(struct oxygen *chip, XonarAudioEngine *engineInstance)
 {
     struct xonar_pcm179x *data = (struct xonar_pcm179x*) chip->model_data;
     
@@ -88,25 +88,22 @@ void XonarSTAudioEngine::xonar_st_init_common(struct oxygen *chip)
     data->h6 = chip->model.dac_channels_mixer > 2;
     data->hp_gain_offset = 2*-18;
  
-    XonarAudioEngine::pcm1796_init(chip);
+    engineInstance->pcm1796_init(chip);
     
-    oxygen_set_bits16(chip, OXYGEN_GPIO_CONTROL,
+    engineInstance->oxygen_set_bits16(chip, OXYGEN_GPIO_CONTROL,
                       GPIO_INPUT_ROUTE | GPIO_ST_HP_REAR |
                       GPIO_ST_MAGIC | GPIO_ST_HP);
-    oxygen_clear_bits16(chip, OXYGEN_GPIO_DATA,
+    engineInstance->oxygen_clear_bits16(chip, OXYGEN_GPIO_DATA,
                         GPIO_INPUT_ROUTE | GPIO_ST_HP_REAR | GPIO_ST_HP);
     
-    //still need to figure out how to instantiate the device
-    //when calling the constructor for this object, but definitely
-    // we can't call init from this function (needs to be other way around).
-    //init(chip);
-    XonarAudioEngine::xonar_enable_output(chip);
+  
+    engineInstance->xonar_enable_output(chip);
     
  //   snd_component_add(chip->card, "PCM1792A");
   //  snd_component_add(chip->card, "CS5381");
 }
 
-void XonarSTAudioEngine::xonar_st_init(struct oxygen *chip)
+void XonarSTAudioEngine::xonar_st_init(struct oxygen *chip, XonarAudioEngine *engineInstance)
 {
     struct xonar_pcm179x *data = (struct xonar_pcm179x*)chip->model_data;
     
@@ -116,7 +113,7 @@ void XonarSTAudioEngine::xonar_st_init(struct oxygen *chip)
     data->cs2000_regs[CS2000_FUN_CFG_1] = CS2000_REF_CLK_DIV_1;
     data->broken_i2c = true;
     
-    oxygen_write16(chip, OXYGEN_I2S_A_FORMAT,
+    engineInstance->oxygen_write16(chip, OXYGEN_I2S_A_FORMAT,
                    OXYGEN_RATE_48000 |
                    OXYGEN_I2S_FORMAT_I2S |
                    OXYGEN_I2S_MCLK(data->h6 ? MCLK_256 : MCLK_512) |
@@ -124,48 +121,48 @@ void XonarSTAudioEngine::xonar_st_init(struct oxygen *chip)
                    OXYGEN_I2S_MASTER |
                    OXYGEN_I2S_BCLK_64);
     
-    xonar_st_init_i2c(chip);
-    XonarAudioEngine::cs2000_registers_init(chip);
-    xonar_st_init_common(chip);
+    xonar_st_init_i2c(chip,engineInstance);
+    engineInstance->cs2000_registers_init(chip);
+    xonar_st_init_common(chip,engineInstance);
     
   //  snd_component_add(chip->card, "CS2000");
 }
 
-void XonarSTAudioEngine::xonar_stx_init(struct oxygen *chip)
+void XonarSTAudioEngine::xonar_stx_init(struct oxygen *chip, XonarAudioEngine *engineInstance)
 {
     struct xonar_pcm179x *data = (struct xonar_pcm179x*)chip->model_data;
     
-    xonar_st_init_i2c(chip);
+    xonar_st_init_i2c(chip,engineInstance);
     data->generic.anti_pop_delay = 800;
     data->generic.ext_power_reg = OXYGEN_GPI_DATA;
     data->generic.ext_power_int_reg = OXYGEN_GPI_INTERRUPT_MASK;
     data->generic.ext_power_bit = GPI_EXT_POWER;
-    XonarAudioEngine::xonar_init_ext_power(chip);
-    xonar_st_init_common(chip);
+    engineInstance->xonar_init_ext_power(chip);
+    xonar_st_init_common(chip,engineInstance);
 }
 
-void XonarSTAudioEngine::xonar_st_cleanup(struct oxygen *chip)
+void XonarSTAudioEngine::xonar_st_cleanup(struct oxygen *chip, XonarAudioEngine *engineInstance)
 {
-    XonarAudioEngine::xonar_disable_output(chip);
+    engineInstance->xonar_disable_output(chip);
 }
 
-void XonarSTAudioEngine::xonar_st_suspend(struct oxygen *chip)
+void XonarSTAudioEngine::xonar_st_suspend(struct oxygen *chip, XonarAudioEngine *engineInstance)
 {
-    xonar_st_cleanup(chip);
+    xonar_st_cleanup(chip,engineInstance);
 }
 
 
 
-void XonarSTAudioEngine::xonar_stx_resume(struct oxygen *chip)
+void XonarSTAudioEngine::xonar_stx_resume(struct oxygen *chip, XonarAudioEngine *engineInstance)
 {
-    XonarAudioEngine::pcm1796_registers_init(chip);
-    XonarAudioEngine::xonar_enable_output(chip);
+    engineInstance->pcm1796_registers_init(chip);
+    engineInstance->xonar_enable_output(chip);
 }
 
-void XonarSTAudioEngine::xonar_st_resume(struct oxygen *chip)
+void XonarSTAudioEngine::xonar_st_resume(struct oxygen *chip, XonarAudioEngine *engineInstance)
 {
-    XonarAudioEngine::cs2000_registers_init(chip);
-    xonar_stx_resume(chip);
+    engineInstance->cs2000_registers_init(chip);
+    xonar_stx_resume(chip,engineInstance);
 }
 
 void XonarSTAudioEngine::set_st_params(struct oxygen *chip,

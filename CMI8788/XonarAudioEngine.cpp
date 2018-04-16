@@ -68,6 +68,120 @@
 OSDefineMetaClassAndStructors(XonarAudioEngine, IOAudioEngine)
 
 
+static inline unsigned long msecs_to_jiffies(const unsigned int m)
+{
+    return (m + (MSEC_PER_SEC / HZ) - 1) / (MSEC_PER_SEC / HZ);
+}
+
+UInt8 XonarAudioEngine::oxygen_read8(struct oxygen *chip, unsigned int reg)
+{
+    return inb(chip->addr + reg);
+}
+//EXPORT_SYMBOL(oxygen_read8);
+
+UInt16 XonarAudioEngine::oxygen_read16(struct oxygen *chip, unsigned int reg)
+{
+    return inw(chip->addr + reg);
+}
+//EXPORT_SYMBOL(oxygen_read16);
+
+UInt32 XonarAudioEngine::oxygen_read32(struct oxygen *chip, unsigned int reg)
+{
+    return inl(chip->addr + reg);
+}
+////EXPORT_SYMBOL(oxygen_read32);
+
+void XonarAudioEngine::oxygen_write8(struct oxygen *chip, unsigned int reg, UInt8 value)
+{
+    outb(value, chip->addr + reg);
+    chip->saved_registers._8[reg] = value;
+}
+//EXPORT_SYMBOL(oxygen_write8);
+
+void XonarAudioEngine::oxygen_write16(struct oxygen *chip, unsigned int reg, UInt16 value)
+{
+    outw(value, chip->addr + reg);
+    chip->saved_registers._16[reg / 2] = OSSwapHostToLittleInt16(value);
+}
+//EXPORT_SYMBOL(oxygen_write16);
+
+void XonarAudioEngine::oxygen_write32(struct oxygen *chip, unsigned int reg, UInt32 value)
+{
+    outl(value, chip->addr + reg);
+    chip->saved_registers._32[reg / 4] = OSSwapHostToLittleInt32(value);
+}
+//EXPORT_SYMBOL(oxygen_write32);
+
+void XonarAudioEngine::oxygen_write8_masked(struct oxygen *chip, unsigned int reg,
+                          UInt8 value, UInt8 mask)
+{
+    UInt8 tmp = inb(chip->addr + reg);
+    tmp &= ~mask;
+    tmp |= value & mask;
+    outb(tmp, chip->addr + reg);
+    chip->saved_registers._8[reg] = tmp;
+}
+//EXPORT_SYMBOL(oxygen_write8_masked);
+
+void XonarAudioEngine::oxygen_write16_masked(struct oxygen *chip, unsigned int reg,
+                           UInt16 value, UInt16 mask)
+{
+    UInt16 tmp = inw(chip->addr + reg);
+    tmp &= ~mask;
+    tmp |= value & mask;
+    outw(tmp, chip->addr + reg);
+    chip->saved_registers._16[reg / 2] = OSSwapHostToLittleInt16(tmp);
+}
+//EXPORT_SYMBOL(oxygen_write16_masked);
+
+void XonarAudioEngine::oxygen_write32_masked(struct oxygen *chip, unsigned int reg,
+                           UInt32 value, UInt32 mask)
+{
+    UInt32 tmp = inl(chip->addr + reg);
+    tmp &= ~mask;
+    tmp |= value & mask;
+    outl(tmp, chip->addr + reg);
+    chip->saved_registers._32[reg / 4] = OSSwapHostToLittleInt32(tmp);
+}
+//EXPORT_SYMBOL(oxygen_write32_masked);
+
+
+inline void XonarAudioEngine::oxygen_set_bits8(struct oxygen *chip,
+                                    unsigned int reg, UInt8 value)
+{
+    oxygen_write8_masked(chip, reg, value, value);
+}
+
+inline void XonarAudioEngine::oxygen_set_bits16(struct oxygen *chip,
+                                     unsigned int reg, UInt16 value)
+{
+    oxygen_write16_masked(chip, reg, value, value);
+}
+
+inline void XonarAudioEngine::oxygen_set_bits32(struct oxygen *chip,
+                                     unsigned int reg, UInt32 value)
+{
+    oxygen_write32_masked(chip, reg, value, value);
+}
+
+inline void XonarAudioEngine::oxygen_clear_bits8(struct oxygen *chip,
+                                      unsigned int reg, UInt8 value)
+{
+    oxygen_write8_masked(chip, reg, 0, value);
+}
+
+inline void XonarAudioEngine::oxygen_clear_bits16(struct oxygen *chip,
+                                       unsigned int reg, UInt16 value)
+{
+    oxygen_write16_masked(chip, reg, 0, value);
+}
+
+inline void XonarAudioEngine::oxygen_clear_bits32(struct oxygen *chip,
+                                       unsigned int reg, UInt32 value)
+{
+    oxygen_write32_masked(chip, reg, 0, value);
+}
+
 
 
 
@@ -560,6 +674,30 @@ void XonarAudioEngine::update_cs2000_rate(struct oxygen *chip, unsigned int rate
 
 //
 //}
+
+static int oxygen_ac97_wait(struct oxygen *chip, unsigned int mask)
+{
+    UInt8 status = 0;
+    
+    /*
+     * Reading the status register also clears the bits, so we have to save
+     * the read bits in status.
+     */
+    
+    //wait_queue_assert_wait(chip->ac97_waitqueue,
+    //   (event_t),1);
+    pthread_mutex_lock(&chip->ac97_mutex);
+    if(({ status |= oxygen_read8(chip, OXYGEN_AC97_INTERRUPT_STATUS);status & mask;}))
+        pthread_cond_timedwait(&chip->ac97_condition,&chip->ac97_mutex,&chip->ac97_timeout);
+    pthread_mutex_unlock(&chip->ac97_mutex);
+    /*
+     * Check even after a timeout because this function should not require
+     * the AC'97 interrupt to be enabled.
+     */
+    status |= oxygen_read8(chip, OXYGEN_AC97_INTERRUPT_STATUS);
+    return status & mask ? 0 : -EIO;
+}
+
 
 void oxygen_write_ac97(struct oxygen *chip, unsigned int codec,
                        unsigned int index, UInt16 data)

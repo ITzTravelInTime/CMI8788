@@ -106,31 +106,31 @@ OSDefineMetaClassAndStructors(PCIAudioDevice, IOAudioDevice)
 
 
 
-UInt16 PCIAudioDevice::oxygen_read_eeprom(struct oxygen *chip, unsigned int index)
+UInt16 PCIAudioDevice::oxygen_read_eeprom(struct oxygen *chip, XonarAudioEngine *engineInstance, unsigned int index)
 {
     unsigned int timeout;
     
-    oxygen_write8(chip, OXYGEN_EEPROM_CONTROL,
+    engineInstance->oxygen_write8(chip, OXYGEN_EEPROM_CONTROL,
                   index | OXYGEN_EEPROM_DIR_READ);
     for (timeout = 0; timeout < 100; ++timeout) {
         IODelay(1);
-        if (!(oxygen_read8(chip, OXYGEN_EEPROM_STATUS)
+        if (!(engineInstance->oxygen_read8(chip, OXYGEN_EEPROM_STATUS)
               & OXYGEN_EEPROM_BUSY))
             break;
     }
-    return oxygen_read16(chip, OXYGEN_EEPROM_DATA);
+    return engineInstance->oxygen_read16(chip, OXYGEN_EEPROM_DATA);
 }
 
-void PCIAudioDevice::oxygen_write_eeprom(struct oxygen *chip, unsigned int index, UInt16 value)
+void PCIAudioDevice::oxygen_write_eeprom(struct oxygen *chip, XonarAudioEngine *engineInstance, unsigned int index, UInt16 value)
 {
     unsigned int timeout;
     
-    oxygen_write16(chip, OXYGEN_EEPROM_DATA, value);
-    oxygen_write8(chip, OXYGEN_EEPROM_CONTROL,
+    engineInstance->oxygen_write16(chip, OXYGEN_EEPROM_DATA, value);
+    engineInstance->oxygen_write8(chip, OXYGEN_EEPROM_CONTROL,
                   index | OXYGEN_EEPROM_DIR_WRITE);
     for (timeout = 0; timeout < 10; ++timeout) {
         IODelay(1e3);
-        if (!(oxygen_read8(chip, OXYGEN_EEPROM_STATUS)
+        if (!(engineInstance->oxygen_read8(chip, OXYGEN_EEPROM_STATUS)
               & OXYGEN_EEPROM_BUSY))
             return;
     }
@@ -138,12 +138,12 @@ void PCIAudioDevice::oxygen_write_eeprom(struct oxygen *chip, unsigned int index
 }
 
 
-void PCIAudioDevice::oxygen_restore_eeprom(IOPCIDevice *device, struct oxygen *chip)
+void PCIAudioDevice::oxygen_restore_eeprom(IOPCIDevice *device, struct oxygen *chip, XonarAudioEngine *engineInstance)
                                  // const struct pci_device_id *id)
 {
     UInt16 eeprom_id;
     
-    eeprom_id = oxygen_read_eeprom(chip, 0);
+    eeprom_id = oxygen_read_eeprom(chip, engineInstance, 0);
     if (eeprom_id != OXYGEN_EEPROM_ID &&
         (eeprom_id != 0xffff)) { //|| device-> != 0x8788)) {
         /*
@@ -154,15 +154,15 @@ void PCIAudioDevice::oxygen_restore_eeprom(IOPCIDevice *device, struct oxygen *c
          * this is enough information to restore the original EEPROM
          * contents.
          */
-        oxygen_write_eeprom(chip, 1, 0x1043);
-        oxygen_write_eeprom(chip, 0, OXYGEN_EEPROM_ID);
-        oxygen_set_bits8(chip, OXYGEN_MISC,
+        oxygen_write_eeprom(chip, engineInstance, 1, 0x1043);
+        oxygen_write_eeprom(chip, engineInstance, 0, OXYGEN_EEPROM_ID);
+        engineInstance->oxygen_set_bits8(chip, OXYGEN_MISC,
                          OXYGEN_MISC_WRITE_PCI_SUBID);
         device->configWrite16(PCI_SUBSYSTEM_VENDOR_ID,
                               0x1043);
         device->configWrite16(PCI_SUBSYSTEM_ID,
                               0x8314);
-        oxygen_clear_bits8(chip, OXYGEN_MISC,
+        engineInstance->oxygen_clear_bits8(chip, OXYGEN_MISC,
                            OXYGEN_MISC_WRITE_PCI_SUBID);
         
         IOLog("PCIAudioDevice[%p]::oxygen_restore_eeprom EEPROM ID restored\n", this);
@@ -210,7 +210,7 @@ bool PCIAudioDevice::initHardware(IOService *provider)
     setDeviceShortName("CMI8788");
     setManufacturerName("CMedia");
     
-    oxygen_restore_eeprom(pciDevice,deviceRegisters);
+    oxygen_restore_eeprom(pciDevice,deviceRegisters,audioEngineInstance);
     //following oxygen_pci_probe...
     /**** MOVED TO AUDIOENGINE (XONAR_HDAV) AS IT FITS BETTER ***
     deviceRegisters->spdif_input_bits_work.init();

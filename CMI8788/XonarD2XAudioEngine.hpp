@@ -55,6 +55,7 @@
 class IOFilterInterruptEventSource;
 class IOInterruptEventSource;
 class XonarAudioEngine;
+class XonarSTAudioEngine;
 class XonarD2XAudioEngine : public IOAudioEngine
 {
     OSDeclareDefaultStructors(XonarD2XAudioEngine)
@@ -64,6 +65,7 @@ class XonarD2XAudioEngine : public IOAudioEngine
     // as i have to (probably) create an ioaudiostream for each
     // and then add the attributes.
     XonarAudioEngine                *engineInstance;
+    XonarSTAudioEngine              *STengineInstance;//turns out some models will need this too.
     IOAudioStream                   *inputs[4];
     SInt16							*outputBuffer;
     SInt16							*inputBuffer;
@@ -96,14 +98,14 @@ public:
     static bool interruptFilter(OSObject *owner, IOFilterInterruptEventSource *source);
     virtual void filterInterrupt(int index);
 
-    static void xonar_d2_init(struct oxygen *chip);
-    static void xonar_d2x_init(struct oxygen *chip);
-    static void xonar_xense_init(struct oxygen *chip);
-    static int xonar_d2_mixer_init(struct oxygen *chip);
+    static void xonar_d2_init(struct oxygen *chip, XonarAudioEngine *engineInstance);
+    static void xonar_d2x_init(struct oxygen *chip, XonarAudioEngine *engineInstance);
+    virtual void xonar_xense_init(struct oxygen *chip, XonarAudioEngine *engineInstance);
+    static int xonar_d2_mixer_init(struct oxygen *chip, XonarAudioEngine *engineInstance);
     
-    static void xonar_d2_cleanup(struct oxygen *chip);
-    static void xonar_d2_suspend(struct oxygen *chip);
-    static void xonar_d2_resume(struct oxygen *chip);
+    static void xonar_d2_cleanup(struct oxygen *chip, XonarAudioEngine *engineInstance);
+    static void xonar_d2_suspend(struct oxygen *chip, XonarAudioEngine *engineInstance);
+    static void xonar_d2_resume(struct oxygen *chip, XonarAudioEngine *engineInstance);
 
 };
 
