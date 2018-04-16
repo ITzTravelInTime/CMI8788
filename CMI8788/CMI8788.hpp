@@ -205,6 +205,116 @@ struct oxygen {
  */
 
 
+UInt8 oxygen_read8(struct oxygen *chip, unsigned int reg)
+{
+    return inb(chip->addr + reg);
+}
+//EXPORT_SYMBOL(oxygen_read8);
+
+UInt16 oxygen_read16(struct oxygen *chip, unsigned int reg)
+{
+    return inw(chip->addr + reg);
+}
+//EXPORT_SYMBOL(oxygen_read16);
+
+UInt32 oxygen_read32(struct oxygen *chip, unsigned int reg)
+{
+    return inl(chip->addr + reg);
+}
+////EXPORT_SYMBOL(oxygen_read32);
+
+void oxygen_write8(struct oxygen *chip, unsigned int reg, UInt8 value)
+{
+    outb(value, chip->addr + reg);
+    chip->saved_registers._8[reg] = value;
+}
+//EXPORT_SYMBOL(oxygen_write8);
+
+void oxygen_write16(struct oxygen *chip, unsigned int reg, UInt16 value)
+{
+    outw(value, chip->addr + reg);
+    chip->saved_registers._16[reg / 2] = OSSwapHostToLittleInt16(value);
+}
+//EXPORT_SYMBOL(oxygen_write16);
+
+void oxygen_write32(struct oxygen *chip, unsigned int reg, UInt32 value)
+{
+    outl(value, chip->addr + reg);
+    chip->saved_registers._32[reg / 4] = OSSwapHostToLittleInt32(value);
+}
+//EXPORT_SYMBOL(oxygen_write32);
+
+void oxygen_write8_masked(struct oxygen *chip, unsigned int reg,
+                          UInt8 value, UInt8 mask)
+{
+    UInt8 tmp = inb(chip->addr + reg);
+    tmp &= ~mask;
+    tmp |= value & mask;
+    outb(tmp, chip->addr + reg);
+    chip->saved_registers._8[reg] = tmp;
+}
+//EXPORT_SYMBOL(oxygen_write8_masked);
+
+void oxygen_write16_masked(struct oxygen *chip, unsigned int reg,
+                           UInt16 value, UInt16 mask)
+{
+    UInt16 tmp = inw(chip->addr + reg);
+    tmp &= ~mask;
+    tmp |= value & mask;
+    outw(tmp, chip->addr + reg);
+    chip->saved_registers._16[reg / 2] = OSSwapHostToLittleInt16(tmp);
+}
+//EXPORT_SYMBOL(oxygen_write16_masked);
+
+void oxygen_write32_masked(struct oxygen *chip, unsigned int reg,
+                           UInt32 value, UInt32 mask)
+{
+    UInt32 tmp = inl(chip->addr + reg);
+    tmp &= ~mask;
+    tmp |= value & mask;
+    outl(tmp, chip->addr + reg);
+    chip->saved_registers._32[reg / 4] = OSSwapHostToLittleInt32(tmp);
+}
+//EXPORT_SYMBOL(oxygen_write32_masked);
+
+
+static inline void oxygen_set_bits8(struct oxygen *chip,
+                                    unsigned int reg, UInt8 value)
+{
+    oxygen_write8_masked(chip, reg, value, value);
+}
+
+static inline void oxygen_set_bits16(struct oxygen *chip,
+                                     unsigned int reg, UInt16 value)
+{
+    oxygen_write16_masked(chip, reg, value, value);
+}
+
+static inline void oxygen_set_bits32(struct oxygen *chip,
+                                     unsigned int reg, UInt32 value)
+{
+    oxygen_write32_masked(chip, reg, value, value);
+}
+
+static inline void oxygen_clear_bits8(struct oxygen *chip,
+                                      unsigned int reg, UInt8 value)
+{
+    oxygen_write8_masked(chip, reg, 0, value);
+}
+
+static inline void oxygen_clear_bits16(struct oxygen *chip,
+                                       unsigned int reg, UInt16 value)
+{
+    oxygen_write16_masked(chip, reg, 0, value);
+}
+
+static inline void oxygen_clear_bits32(struct oxygen *chip,
+                                       unsigned int reg, UInt32 value)
+{
+    oxygen_write32_masked(chip, reg, 0, value);
+}
+
+
 
 
 class IOPCIDevice;
@@ -265,9 +375,9 @@ class PCIAudioDevice : public IOAudioDevice
     /* oxygen_io.c */
     
       
-    UInt16 oxygen_read_eeprom(struct oxygen *chip, XonarAudioEngine *engineInstance, unsigned int index);
-    void oxygen_write_eeprom(struct oxygen *chip, XonarAudioEngine *engineInstance, unsigned int index, UInt16 value);
-    void oxygen_restore_eeprom(IOPCIDevice *device, struct oxygen *chip, XonarAudioEngine *instance);
+    UInt16 oxygen_read_eeprom(struct oxygen *chip, unsigned int index);
+    void oxygen_write_eeprom(struct oxygen *chip, unsigned int index, UInt16 value);
+    void oxygen_restore_eeprom(IOPCIDevice *device, struct oxygen *chip);
     void oxygen_init(struct oxygen *chip);
    // const struct * oxygen_search_pci_id(struct oxygen *chip, const struct pci_device_id ids[]);
 

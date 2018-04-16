@@ -72,7 +72,7 @@ OSDefineMetaClassAndStructors(XonarSTAudioEngine, IOAudioEngine)
 
 void XonarSTAudioEngine::xonar_st_init_i2c(struct oxygen *chip, XonarAudioEngine *engineInstance)
 {
-    engineInstance->oxygen_write16(chip, OXYGEN_2WIRE_BUS_STATUS,
+    oxygen_write16(chip, OXYGEN_2WIRE_BUS_STATUS,
                    OXYGEN_2WIRE_LENGTH_8 |
                    OXYGEN_2WIRE_INTERRUPT_MASK |
                    OXYGEN_2WIRE_SPEED_STANDARD);
@@ -90,10 +90,10 @@ void XonarSTAudioEngine::xonar_st_init_common(struct oxygen *chip, XonarAudioEng
  
     engineInstance->pcm1796_init(chip);
     
-    engineInstance->oxygen_set_bits16(chip, OXYGEN_GPIO_CONTROL,
+    oxygen_set_bits16(chip, OXYGEN_GPIO_CONTROL,
                       GPIO_INPUT_ROUTE | GPIO_ST_HP_REAR |
                       GPIO_ST_MAGIC | GPIO_ST_HP);
-    engineInstance->oxygen_clear_bits16(chip, OXYGEN_GPIO_DATA,
+    oxygen_clear_bits16(chip, OXYGEN_GPIO_DATA,
                         GPIO_INPUT_ROUTE | GPIO_ST_HP_REAR | GPIO_ST_HP);
     
   
@@ -113,7 +113,7 @@ void XonarSTAudioEngine::xonar_st_init(struct oxygen *chip, XonarAudioEngine *en
     data->cs2000_regs[CS2000_FUN_CFG_1] = CS2000_REF_CLK_DIV_1;
     data->broken_i2c = true;
     
-    engineInstance->oxygen_write16(chip, OXYGEN_I2S_A_FORMAT,
+    oxygen_write16(chip, OXYGEN_I2S_A_FORMAT,
                    OXYGEN_RATE_48000 |
                    OXYGEN_I2S_FORMAT_I2S |
                    OXYGEN_I2S_MCLK(data->h6 ? MCLK_256 : MCLK_512) |

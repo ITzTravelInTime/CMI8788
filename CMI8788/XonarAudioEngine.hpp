@@ -82,6 +82,7 @@ struct xonar_hdav {
     struct xonar_hdmi hdmi;
 };
 
+
 #define GPIO_CS53x1_M_MASK      0x000c
 #define GPIO_CS53x1_M_SINGLE    0x0000
 #define GPIO_CS53x1_M_DOUBLE    0x0004
@@ -125,6 +126,7 @@ struct xonar_hdav {
 
 class IOFilterInterruptEventSource;
 class IOInterruptEventSource;
+
 
 class XonarAudioEngine : public IOAudioEngine
 {
@@ -222,40 +224,6 @@ public:
     static void oxygen_write_uart(struct oxygen *chip, UInt8 data);
     
     static void oxygen_spdif_input_bits_changed(struct work_struct *work);
-    
-    UInt8 oxygen_read8(struct oxygen *chip, unsigned int reg);
-    UInt16 oxygen_read16(struct oxygen *chip, unsigned int reg);
-    UInt32 oxygen_read32(struct oxygen *chip, unsigned int reg);
-    void oxygen_write8(struct oxygen *chip, unsigned int reg, UInt8 value);
-    void oxygen_write16(struct oxygen *chip, unsigned int reg, UInt16 value);
-    void oxygen_write32(struct oxygen *chip, unsigned int reg, UInt32 value);
-    void oxygen_write8_masked(struct oxygen *chip, unsigned int reg,
-                              UInt8 value, UInt8 mask);
-    void oxygen_write16_masked(struct oxygen *chip, unsigned int reg,
-                               UInt16 value, UInt16 mask);
-    void oxygen_write32_masked(struct oxygen *chip, unsigned int reg,
-                               UInt32 value, UInt32 mask);
-    
-    
-    void oxygen_write_i2c(struct oxygen *chip, UInt8 device, UInt8 map, UInt8 data);
-    
-
-    static inline void oxygen_set_bits8(struct oxygen *chip,
-                                        unsigned int reg, UInt8 value);
-    static inline void oxygen_set_bits16(struct oxygen *chip,
-                                         unsigned int reg, UInt16 value);
-    
-    static inline void oxygen_set_bits32(struct oxygen *chip,
-                                         unsigned int reg, UInt32 value);
-    
-    static inline void oxygen_clear_bits8(struct oxygen *chip,
-                                          unsigned int reg, UInt8 value);
-    
-    static inline void oxygen_clear_bits16(struct oxygen *chip,
-                                           unsigned int reg, UInt16 value);
-    
-    static inline void oxygen_clear_bits32(struct oxygen *chip,
-                                           unsigned int reg, UInt32 value);
     
     
 
