@@ -56,7 +56,7 @@
 //#include <kern/waitq.h>
 #include "oxygen_regs.h"
 //#include <libkern/OSAtomic.h>
-#include "/usr/include/pthread/pthread.h"
+#include </usr/include/pthread.h>
 #define dev_err(dev, format, args...) do {IOLog("CMI8788: " format, ##args);} while (0)
 
 /* 1 << PCM_x == OXYGEN_CHANNEL_x */
