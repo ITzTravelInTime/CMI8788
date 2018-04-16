@@ -170,7 +170,6 @@ struct oxygen {
     UInt8 spdif_playback_enable;
     UInt8 has_ac97_0;
     UInt8 has_ac97_1;
-    unsigned int ac97_maskval;
     UInt32 spdif_bits;
     UInt32 spdif_pcm_bits;
     IOAudioStreamDataDescriptor *streams[PCM_COUNT];
@@ -280,7 +279,7 @@ static int oxygen_ac97_wait(struct oxygen *chip, unsigned int mask)
      * Reading the status register also clears the bits, so we have to save
      * the read bits in status.
      */
-     chip->ac97_maskval = mask;
+
      //wait_queue_assert_wait(chip->ac97_waitqueue,
                          //   (event_t),1);
     if(({ status |= oxygen_read8(chip, OXYGEN_AC97_INTERRUPT_STATUS);status & mask;}))
