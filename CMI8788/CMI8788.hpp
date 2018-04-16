@@ -303,75 +303,6 @@ static int oxygen_ac97_wait(struct oxygen *chip, unsigned int mask)
  * were made by C-Media ...
  */
 
-void oxygen_write_ac97(struct oxygen *chip, unsigned int codec,
-                       unsigned int index, UInt16 data)
-{
-    unsigned int count, succeeded;
-    UInt32 reg;
-    
-    reg = data;
-    reg |= index << OXYGEN_AC97_REG_ADDR_SHIFT;
-    reg |= OXYGEN_AC97_REG_DIR_WRITE;
-    reg |= codec << OXYGEN_AC97_REG_CODEC_SHIFT;
-    succeeded = 0;
-    for (count = 5; count > 0; --count) {
-        IODelay(5);
-        oxygen_write32(chip, OXYGEN_AC97_REGS, reg);
-        /* require two "completed" writes, just to be sure */
-        if (oxygen_ac97_wait(chip, OXYGEN_AC97_INT_WRITE_DONE) >= 0 &&
-            ++succeeded >= 2) {
-            chip->saved_ac97_registers[codec][index / 2] = data;
-            return;
-        }
-    }
-    dev_err(chip->card->dev, "AC'97 write timeout\n");
-}
-//EXPORT_SYMBOL(oxygen_write_ac97);
-
-UInt16 oxygen_read_ac97(struct oxygen *chip, unsigned int codec,
-                        unsigned int index)
-{
-    unsigned int count;
-    unsigned int last_read = UINT_MAX;
-    UInt32 reg;
-    
-    reg = index << OXYGEN_AC97_REG_ADDR_SHIFT;
-    reg |= OXYGEN_AC97_REG_DIR_READ;
-    reg |= codec << OXYGEN_AC97_REG_CODEC_SHIFT;
-    for (count = 5; count > 0; --count) {
-        IODelay(5);
-        oxygen_write32(chip, OXYGEN_AC97_REGS, reg);
-        IODelay(10);
-        if (oxygen_ac97_wait(chip, OXYGEN_AC97_INT_READ_DONE) >= 0) {
-            UInt16 value = oxygen_read16(chip, OXYGEN_AC97_REGS);
-            /* we require two consecutive reads of the same value */
-            if (value == last_read)
-                return value;
-            last_read = value;
-            /*
-             * Invert the register value bits to make sure that two
-             * consecutive unsuccessful reads do not return the same
-             * value.
-             */
-            reg ^= 0xffff;
-        }
-    }
-    dev_err(chip->card->dev, "AC'97 read timeout on codec %u\n", codec);
-    return 0;
-}
-//EXPORT_SYMBOL(oxygen_read_ac97);
-
-void oxygen_write_ac97_masked(struct oxygen *chip, unsigned int codec,
-                              unsigned int index, UInt16 data, UInt16 mask)
-{
-    UInt16 value = oxygen_read_ac97(chip, codec, index);
-    value &= ~mask;
-    value |= data & mask;
-    oxygen_write_ac97(chip, codec, index, value);
-}
-//EXPORT_SYMBOL(oxygen_write_ac97_masked);
-
-
 
 static inline void oxygen_set_bits8(struct oxygen *chip,
                                     unsigned int reg, UInt8 value)
@@ -407,19 +338,6 @@ static inline void oxygen_clear_bits32(struct oxygen *chip,
                                        unsigned int reg, UInt32 value)
 {
     oxygen_write32_masked(chip, reg, 0, value);
-}
-
-static inline void oxygen_ac97_set_bits(struct oxygen *chip, unsigned int codec,
-                                        unsigned int index, UInt16 value)
-{
-    oxygen_write_ac97_masked(chip, codec, index, value, value);
-}
-
-static inline void oxygen_ac97_clear_bits(struct oxygen *chip,
-                                          unsigned int codec,
-                                          unsigned int index, UInt16 value)
-{
-    oxygen_write_ac97_masked(chip, codec, index, 0, value);
 }
 
 
@@ -492,13 +410,6 @@ class PCIAudioDevice : public IOAudioDevice
                                UInt16 value, UInt16 mask);
     void oxygen_write32_masked(struct oxygen *chip, unsigned int reg,
                                UInt32 value, UInt32 mask);
-    
-    UInt16 oxygen_read_ac97(struct oxygen *chip, unsigned int codec,
-                            unsigned int index);
-    void oxygen_write_ac97(struct oxygen *chip, unsigned int codec,
-                           unsigned int index, UInt16 data);
-    void oxygen_write_ac97_masked(struct oxygen *chip, unsigned int codec,
-                                  unsigned int index, UInt16 data, UInt16 mask);
     
 
     void oxygen_write_i2c(struct oxygen *chip, UInt8 device, UInt8 map, UInt8 data);

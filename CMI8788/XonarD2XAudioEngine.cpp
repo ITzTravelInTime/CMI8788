@@ -85,7 +85,7 @@ void XonarD2XAudioEngine::xonar_d2_init(struct oxygen *chip)
     oxygen_set_bits16(chip, OXYGEN_GPIO_CONTROL, GPIO_D2_ALT);
     oxygen_clear_bits16(chip, OXYGEN_GPIO_DATA, GPIO_D2_ALT);
     
-    oxygen_ac97_set_bits(chip, 0, CM9780_JACK, CM9780_FMIC2MIC);
+    //oxygen_ac97_set_bits(chip, 0, CM9780_JACK, CM9780_FMIC2MIC);
     
     XonarAudioEngine::xonar_init_cs53x1(chip);
     XonarAudioEngine::xonar_enable_output(chip);
