@@ -137,6 +137,7 @@ struct oxygen_model {
     
     const unsigned int *dac_tlv;
     size_t model_data_size;
+    const char *shortname; 
     unsigned int device_config;
     UInt8 dac_channels_pcm;
     UInt8 dac_channels_mixer;

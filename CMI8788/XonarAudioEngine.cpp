@@ -701,6 +701,18 @@ int XonarAudioEngine::add_pcm1796_controls(struct oxygen *chip)
 
 bool XonarAudioEngine::init(struct oxygen *chip, int model)
 {
+    /*this function can be looked at as oxygen_pci_probe, with
+     *the differences being:
+     1. there are no model detection function pointers
+            -this means we have to "hard code" the model instantiation
+             code using a simple if statement.
+     2. after the registers for the requested model are set,
+        the code directly after is the content of oxygen_init
+     3. still figuring out how to add the gpio/spdifwork to the IOWorkLoopQueue
+        -theoretically, we may only need a single IOWorkLoop instance that
+         belongs to either the PCIAudioDevice/XonarAudioEngine class, and therefore
+         may only need to add {gpio,spdif_input_bits}_changed to this single workloop
+     */
     bool result = false;
     
     IOLog("XonarAudioEngine[%p]::init(%p)\n", this, chip);
@@ -713,12 +725,12 @@ bool XonarAudioEngine::init(struct oxygen *chip, int model)
         goto Done;
     }
     
+    chip->spdif_input_bits_work.init();
+    chip->gpio_work.init();
     
     //hardcoding relevant portions from get_xonar_model for HDAV1.3 for the time being.
     //if i can get a single model to work, i'll add others....
     if(model == HDAV_MODEL) {
-        chip->model.dac_channels_mixer = 8;
-        chip->model.dac_mclks = OXYGEN_MCLKS(256, 128, 128);
         chip->model.device_config = PLAYBACK_0_TO_I2S |
         PLAYBACK_1_TO_SPDIF |
         CAPTURE_0_FROM_I2S_2 |
@@ -734,6 +746,19 @@ bool XonarAudioEngine::init(struct oxygen *chip, int model)
         chip->model.dac_i2s_format = OXYGEN_I2S_FORMAT_I2S;
         chip->model.adc_i2s_format = OXYGEN_I2S_FORMAT_LJUST;
         chip->model.model_data_size = sizeof(struct xonar_hdav);
+        
+        oxygen_clear_bits16(chip,OXYGEN_GPIO_CONTROL,GPIO_DB_MASK);
+        switch (oxygen_read16(chip, OXYGEN_GPIO_DATA) & GPIO_DB_MASK) {
+            default:
+                chip->model.shortname = "Xonar HDAV1.3";
+                break;
+            case GPIO_DB_H6:
+                chip->model.shortname = "Xonar HDAV1.3+H6";
+                chip->model.dac_channels_mixer = 8;
+                chip->model.dac_mclks = OXYGEN_MCLKS(256, 128, 128);
+                break;
+        }
+        
         chip->mutex = OS_SPINLOCK_INIT;
         pthread_mutex_init(&chip->ac97_mutex,NULL);
         pthread_cond_init(&chip->ac97_condition,NULL);
@@ -951,10 +976,8 @@ bool XonarAudioEngine::init(struct oxygen *chip, int model)
     //        struct xonar_generic *deviceRegisters = (struct xonar_generic*)chip->model_data;
     // activate the two secondary events for the interrupt handler (gpio and spdif_input bits).
     // set them up in inithardware.
-    chip->spdif_input_bits_work.init();
-    chip->gpio_work.init();
+
     //queue_init(&chip->ac97_waitqueue);
-    chip->mutex = OS_SPINLOCK_INIT;
     //save ptr to oxygen struct from PCIDriver into private class var dev_id for interrupthandler
     dev_id = chip;
     result = true;
