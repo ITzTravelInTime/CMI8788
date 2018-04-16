@@ -70,7 +70,7 @@ OSDefineMetaClassAndStructors(XonarHDAVAudioEngine, IOAudioEngine)
 
 
 void XonarHDAVAudioEngine::hdmi_write_command(struct oxygen *chip, UInt8 command,
-                               unsigned int count, const UInt8 *params)
+                                              unsigned int count, const UInt8 *params)
 {
     unsigned int i;
     UInt8 checksum;
@@ -88,11 +88,11 @@ void XonarHDAVAudioEngine::hdmi_write_command(struct oxygen *chip, UInt8 command
 }
 
 void XonarHDAVAudioEngine::xonar_hdmi_init_commands(struct oxygen *chip,
-                                     struct xonar_hdmi *hdmi)
+                                                    struct xonar_hdmi *hdmi)
 {
     UInt8 param;
     
-  //  oxygen_reset_uart(chip);
+    //  oxygen_reset_uart(chip);
     param = 0;
     hdmi_write_command(chip, 0x61, 1, &param);
     param = 1;
@@ -120,18 +120,18 @@ void XonarHDAVAudioEngine::xonar_hdmi_resume(struct oxygen *chip, struct xonar_h
     xonar_hdmi_init_commands(chip, hdmi);
 }
 /*
-void xonar_hdmi_pcm_hardware_filter(unsigned int channel,
-                                    struct snd_pcm_hardware *hardware)
-{
-    if (channel == PCM_MULTICH) {
-        hardware->rates = SNDRV_PCM_RATE_44100 |
-        SNDRV_PCM_RATE_48000 |
-        SNDRV_PCM_RATE_96000 |
-        SNDRV_PCM_RATE_192000;
-        hardware->rate_min = 44100;
-    }
-}
-*/
+ void xonar_hdmi_pcm_hardware_filter(unsigned int channel,
+ struct snd_pcm_hardware *hardware)
+ {
+ if (channel == PCM_MULTICH) {
+ hardware->rates = SNDRV_PCM_RATE_44100 |
+ SNDRV_PCM_RATE_48000 |
+ SNDRV_PCM_RATE_96000 |
+ SNDRV_PCM_RATE_192000;
+ hardware->rate_min = 44100;
+ }
+ }
+ */
 void XonarHDAVAudioEngine::xonar_set_hdmi_params(struct oxygen *chip, struct xonar_hdmi *hdmi)
 {
     hdmi->params[0] = 0; // 1 = non-audio
@@ -170,7 +170,7 @@ void XonarHDAVAudioEngine::xonar_set_hdmi_params(struct oxygen *chip, struct xon
 
 void XonarHDAVAudioEngine::set_hdav_params(struct oxygen *chip)
 {
-   // struct xonar_hdav *data = (struct xonar_hdav*) chip->model_data;
+    // struct xonar_hdav *data = (struct xonar_hdav*) chip->model_data;
     
     this->engineInstance->set_pcm1796_params(chip, this->engineInstance);
     xonar_set_hdmi_params(chip, &deviceRegisters->hdmi);
@@ -184,7 +184,7 @@ static void xonar_hdmi_uart_input(struct oxygen *chip)
         chip->uart_input[chip->uart_input_count - 1] == 'K') {
         IOLog("message from HDMI chip received:\n");
         //print_hex_dump_bytes("", DUMP_PREFIX_OFFSET,
-         //                    chip->uart_input, chip->uart_input_count);
+        //                    chip->uart_input, chip->uart_input_count);
         chip->uart_input_count = 0;
     }
 }
@@ -243,16 +243,16 @@ bool XonarHDAVAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip)
     xonar_hdmi_init(chip, &deviceRegisters->hdmi);
     this->engineInstance->xonar_enable_output(chip);
     result = true;
-
+    
     goto Done;
-   // snd_component_add(chip->card, "PCM1796");
-   // snd_component_add(chip->card, "CS5381");
+    // snd_component_add(chip->card, "PCM1796");
+    // snd_component_add(chip->card, "CS5381");
     
 Done:
     return result;
     
-
-
+    
+    
 }
 
 
@@ -276,7 +276,7 @@ int XonarHDAVAudioEngine::xonar_hdav_mixer_init(struct oxygen *chip)
 {
     int err;
     
-  //  err = snd_ctl_add(chip->card, snd_ctl_new1(&hdav_hdmi_control, chip));
+    //  err = snd_ctl_add(chip->card, snd_ctl_new1(&hdav_hdmi_control, chip));
     if (err < 0)
         return err;
     err = this->engineInstance->add_pcm1796_controls(chip);
@@ -290,29 +290,29 @@ int XonarHDAVAudioEngine::xonar_hdav_mixer_init(struct oxygen *chip)
 //bool XonarHDAVAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip)
 //{
 //    bool result = false;
-//    
+//
 //    IOLog("XonarHDAVAudioEngine[%p]::init(%p)\n", this, chip);
-//    
+//
 //    if (!chip) {
 //        goto Done;
 //    }
-//    
+//
 //    if (!super::init(NULL)) {
 //        goto Done;
 //    }
 //  //  ak4396_init(chip);
 //  //  wm8785_init(chip);
 //    deviceRegisters = (struct xonar_hdav*)chip->model_data;
-// 
+//
 //    // the below aren't correct. have to bridge the workqueue calls to IOWorkLoop
 //    queue_init(&chip->ac97_waitqueue);
 //    chip->mutex = OS_SPINLOCK_INIT;
 //    this->engineInstance = engine;
 //    xonar_hdav_init(chip);
 //    result = true;
-//    
+//
 //Done:
-//    
+//
 //    return result;
 //}
 

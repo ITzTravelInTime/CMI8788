@@ -87,7 +87,7 @@ void XonarSTAudioEngine::xonar_st_init_common(struct oxygen *chip, XonarAudioEng
     data->dacs = chip->model.dac_channels_mixer / 2;
     data->h6 = chip->model.dac_channels_mixer > 2;
     data->hp_gain_offset = 2*-18;
- 
+    
     engineInstance->pcm1796_init(chip);
     
     oxygen_set_bits16(chip, OXYGEN_GPIO_CONTROL,
@@ -96,11 +96,11 @@ void XonarSTAudioEngine::xonar_st_init_common(struct oxygen *chip, XonarAudioEng
     oxygen_clear_bits16(chip, OXYGEN_GPIO_DATA,
                         GPIO_INPUT_ROUTE | GPIO_ST_HP_REAR | GPIO_ST_HP);
     
-  
+    
     engineInstance->xonar_enable_output(chip);
     
- //   snd_component_add(chip->card, "PCM1792A");
-  //  snd_component_add(chip->card, "CS5381");
+    //   snd_component_add(chip->card, "PCM1792A");
+    //  snd_component_add(chip->card, "CS5381");
 }
 
 void XonarSTAudioEngine::xonar_st_init(struct oxygen *chip, XonarAudioEngine *engineInstance)
@@ -125,7 +125,7 @@ void XonarSTAudioEngine::xonar_st_init(struct oxygen *chip, XonarAudioEngine *en
     engineInstance->cs2000_registers_init(chip);
     xonar_st_init_common(chip,engineInstance);
     
-  //  snd_component_add(chip->card, "CS2000");
+    //  snd_component_add(chip->card, "CS2000");
 }
 
 void XonarSTAudioEngine::xonar_stx_init(struct oxygen *chip, XonarAudioEngine *engineInstance)
@@ -166,7 +166,7 @@ void XonarSTAudioEngine::xonar_st_resume(struct oxygen *chip, XonarAudioEngine *
 }
 
 void XonarSTAudioEngine::set_st_params(struct oxygen *chip,
-                          XonarAudioEngine *instance)
+                                       XonarAudioEngine *instance)
 {
     XonarAudioEngine::update_cs2000_rate(chip, instance->getSampleRate()->whole);
     //original call also sends params struct. need to stay on top of this
@@ -205,7 +205,7 @@ void XonarSTAudioEngine::set_st_params(struct oxygen *chip,
 //    static const char *const names[3] = {
 //        "Speakers", "Headphones", "FP Headphones"
 //    };
-//    
+//
 //    return snd_ctl_enum_info(info, 1, 3, names);
 //}
 //
@@ -214,7 +214,7 @@ void XonarSTAudioEngine::set_st_params(struct oxygen *chip,
 //{
 //    struct oxygen *chip = ctl->private_data;
 //    UInt16 gpio;
-//    
+//
 //    gpio = oxygen_read16(chip, OXYGEN_GPIO_DATA);
 //    if (!(gpio & GPIO_ST_HP))
 //        value->value.enumerated.item[0] = 0;
@@ -232,7 +232,7 @@ void XonarSTAudioEngine::set_st_params(struct oxygen *chip,
 //    struct oxygen *chip = ctl->private_data;
 //    struct xonar_pcm179x *data = chip->model_data;
 //    UInt16 gpio_old, gpio;
-//    
+//
 //    mutex_lock(&chip->mutex);
 //    gpio_old = oxygen_read16(chip, OXYGEN_GPIO_DATA);
 //    gpio = gpio_old;
@@ -260,7 +260,7 @@ void XonarSTAudioEngine::set_st_params(struct oxygen *chip,
 //    static const char *const names[4] = {
 //        "< 32 ohms", "32-64 ohms", "64-300 ohms", "300-600 ohms"
 //    };
-//    
+//
 //    return snd_ctl_enum_info(info, 1, 4, names);
 //}
 //
@@ -269,7 +269,7 @@ void XonarSTAudioEngine::set_st_params(struct oxygen *chip,
 //{
 //    struct oxygen *chip = ctl->private_data;
 //    struct xonar_pcm179x *data = chip->model_data;
-//    
+//
 //    mutex_lock(&chip->mutex);
 //    if (data->hp_gain_offset < 2*-12)
 //        value->value.enumerated.item[0] = 0;
@@ -292,7 +292,7 @@ void XonarSTAudioEngine::set_st_params(struct oxygen *chip,
 //    struct xonar_pcm179x *data = chip->model_data;
 //    s8 offset;
 //    int changed;
-//    
+//
 //    if (value->value.enumerated.item[0] > 3)
 //        return -EINVAL;
 //    offset = offsets[value->value.enumerated.item[0]];
@@ -345,10 +345,10 @@ bool XonarSTAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip)
     if (!super::init(NULL)) {
         goto Done;
     }
-  //  ak4396_init(chip);
-  //  wm8785_init(chip);
+    //  ak4396_init(chip);
+    //  wm8785_init(chip);
     deviceRegisters = (struct xonar_hdav*)chip->model_data;
- 
+    
     // the below aren't correct. have to bridge the workqueue calls to IOWorkLoop
     //queue_init(&chip->ac97_waitqueue);
     chip->mutex = OS_SPINLOCK_INIT;

@@ -132,7 +132,7 @@ class XonarAudioEngine : public IOAudioEngine
 {
     friend class XonarSTAudioEngine;
     friend class XonarHDAVAudioEngine;
-
+    
     OSDeclareDefaultStructors(XonarAudioEngine)
     
     //struct xonar_hdav                   *deviceRegisters;
@@ -154,7 +154,7 @@ public:
     
     
     
-        
+    
     virtual bool init(struct oxygen *regs, int model);
     virtual void free();
     
@@ -191,7 +191,7 @@ public:
     static void update_pcm1796_oversampling(struct oxygen *chip);
     static void set_pcm1796_params(struct oxygen *chip, XonarAudioEngine *instance);
     static void update_pcm1796_volume(struct oxygen *chip);
-
+    
     UInt16 oxygen_read_ac97(struct oxygen *chip, unsigned int codec,
                             unsigned int index);
     void oxygen_write_ac97(struct oxygen *chip, unsigned int codec,
@@ -200,7 +200,7 @@ public:
                                   unsigned int index, UInt16 data, UInt16 mask);
     //static void xonar_line_mic_ac97_switch(struct oxygen *chip,
     //                           unsigned int reg, unsigned int mute);
-
+    
     int xonar_gpio_bit_switch_get(struct snd_kcontrol *ctl,
                                   struct snd_ctl_elem_value *value);
     int xonar_gpio_bit_switch_put(struct snd_kcontrol *ctl,
@@ -226,7 +226,7 @@ public:
     static void oxygen_spdif_input_bits_changed(struct work_struct *work);
     
     
-
+    
 };
 
 #endif /* _SAMPLEPCIAUDIOENGINE_H */

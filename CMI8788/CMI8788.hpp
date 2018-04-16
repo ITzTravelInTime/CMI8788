@@ -167,15 +167,15 @@ struct oxygen {
     UInt8 pcm_active;
     UInt8 pcm_running;
     UInt8 dac_routing;
-   // void (*gpio_changed)(struct oxygen *chip);
+    // void (*gpio_changed)(struct oxygen *chip);
     UInt8 spdif_playback_enable;
     UInt8 has_ac97_0;
     UInt8 has_ac97_1;
     UInt32 spdif_bits;
     UInt32 spdif_pcm_bits;
     IOAudioStreamDataDescriptor *streams[PCM_COUNT];
- //   struct snd_pcm_substream *streams[PCM_COUNT];
- //   struct snd_kcontrol *controls[CONTROL_COUNT];
+    //   struct snd_pcm_substream *streams[PCM_COUNT];
+    //   struct snd_kcontrol *controls[CONTROL_COUNT];
     IOWorkLoop spdif_input_bits_work;
     IOWorkLoop gpio_work;
     //wait_queue_t ac97_waitqueue;
@@ -194,15 +194,6 @@ struct oxygen {
 };
 
 
-
-/*
- * About 10% of AC'97 register reads or writes fail to complete, but even those
- * where the controller indicates completion aren't guaranteed to have actually
- * happened.
- *
- * It's hard to assign blame to either the controller or the codec because both
- * were made by C-Media ...
- */
 
 
 UInt8 oxygen_read8(struct oxygen *chip, unsigned int reg)
@@ -348,14 +339,14 @@ class PCIAudioDevice : public IOAudioDevice
     
     static IOReturn inputMuteChangeHandler(IOService *target, IOAudioControl *muteControl, SInt32 oldValue, SInt32 newValue);
     virtual IOReturn inputMuteChanged(IOAudioControl *muteControl, SInt32 oldValue, SInt32 newValue);
-
-//    int oxygen_pci_probe(struct pci_dev *pci, int index, char *id,
-//                         struct module *owner,
-//                         const struct pci_device_id *ids,
-//                         int (*get_model)(struct oxygen *chip,
-//                                          const struct pci_device_id *id
-//                                          )
-//                         );
+    
+    //    int oxygen_pci_probe(struct pci_dev *pci, int index, char *id,
+    //                         struct module *owner,
+    //                         const struct pci_device_id *ids,
+    //                         int (*get_model)(struct oxygen *chip,
+    //                                          const struct pci_device_id *id
+    //                                          )
+    //                         );
     void oxygen_pci_remove(struct pci_dev *pci);
 #ifdef CONFIG_PM_SLEEP
     extern const struct dev_pm_ops oxygen_pci_pm;
@@ -374,14 +365,14 @@ class PCIAudioDevice : public IOAudioDevice
     
     /* oxygen_io.c */
     
-      
+    
     UInt16 oxygen_read_eeprom(struct oxygen *chip, unsigned int index);
     void oxygen_write_eeprom(struct oxygen *chip, unsigned int index, UInt16 value);
     void oxygen_restore_eeprom(IOPCIDevice *device, struct oxygen *chip);
     void oxygen_init(struct oxygen *chip);
-   // const struct * oxygen_search_pci_id(struct oxygen *chip, const struct pci_device_id ids[]);
-
-
+    // const struct * oxygen_search_pci_id(struct oxygen *chip, const struct pci_device_id ids[]);
+    
+    
 };
 
 #endif /* _SAMPLEPCIAUDIODEVICE_H */

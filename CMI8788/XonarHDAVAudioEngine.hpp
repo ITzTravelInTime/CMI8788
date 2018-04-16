@@ -74,7 +74,7 @@ public:
     
     
     
-        
+    
     virtual bool init(XonarAudioEngine *engine, struct oxygen *regs);
     virtual void free();
     
@@ -96,7 +96,7 @@ public:
     static void interruptHandler(OSObject *owner, IOInterruptEventSource *source, int count);
     static bool interruptFilter(OSObject *owner, IOFilterInterruptEventSource *source);
     virtual void filterInterrupt(int index);
-
+    
     virtual void xonar_hdav_init(struct oxygen *chip);
     virtual void xonar_hdav_resume(struct oxygen *chip);
     virtual void set_hdav_params(struct oxygen *chip);
@@ -104,19 +104,19 @@ public:
     virtual int xonar_hdav_mixer_init(struct oxygen *chip);
     /* HDMI helper functions */
     virtual void hdmi_write_command(struct oxygen *chip, UInt8 command,
-                                   unsigned int count, const UInt8 *params);
+                                    unsigned int count, const UInt8 *params);
     virtual void xonar_hdmi_init_commands(struct oxygen *chip,
-                                         struct xonar_hdmi *hdmi);
-
+                                          struct xonar_hdmi *hdmi);
+    
     virtual void xonar_hdmi_init(struct oxygen *chip, struct xonar_hdmi *data);
     virtual void xonar_hdmi_cleanup(struct oxygen *chip);
     virtual void xonar_hdmi_resume(struct oxygen *chip, struct xonar_hdmi *hdmi);
-   // void xonar_hdmi_pcm_hardware_filter(unsigned int channel,
-     //                                   struct snd_pcm_hardware *hardware);
+    // void xonar_hdmi_pcm_hardware_filter(unsigned int channel,
+    //                                   struct snd_pcm_hardware *hardware);
     virtual void xonar_set_hdmi_params(struct oxygen *chip, struct xonar_hdmi *hdmi);
     //void xonar_hdmi_uart_input(struct oxygen *chip);
     
-
+    
 };
 
 #endif /* _SAMPLEPCIAUDIOENGINE_H */

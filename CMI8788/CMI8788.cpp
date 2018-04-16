@@ -65,7 +65,7 @@ OSDefineMetaClassAndStructors(PCIAudioDevice, IOAudioDevice)
 //static void oxygen_gpio_changed(struct work_struct *work)
 //{
 //    struct oxygen *chip = container_of(work, struct oxygen, gpio_work);
-//    
+//
 //    if (chip->model.gpio_changed)
 //        chip->model.gpio_changed(chip);
 //}
@@ -75,7 +75,7 @@ OSDefineMetaClassAndStructors(PCIAudioDevice, IOAudioDevice)
 //PCIAudioDevice::oxygen_search_pci_id(struct oxygen *chip, const struct pci_device_id ids[])
 //{
 //    UInt16 subdevice;
-//    
+//
 //    /*
 //     * Make sure the EEPROM pins are available, i.e., not used for SPI.
 //     * (This function is called before we initialize or use SPI.)
@@ -139,7 +139,7 @@ void PCIAudioDevice::oxygen_write_eeprom(struct oxygen *chip, unsigned int index
 
 
 void PCIAudioDevice::oxygen_restore_eeprom(IOPCIDevice *device, struct oxygen *chip)
-                                 // const struct pci_device_id *id)
+// const struct pci_device_id *id)
 {
     UInt16 eeprom_id;
     
@@ -213,33 +213,11 @@ bool PCIAudioDevice::initHardware(IOService *provider)
     oxygen_restore_eeprom(pciDevice,deviceRegisters);
     //following oxygen_pci_probe...
     /**** MOVED TO AUDIOENGINE (XONAR_HDAV) AS IT FITS BETTER ***
-    deviceRegisters->spdif_input_bits_work.init();
-    deviceRegisters->gpio_work.init();
-    queue_init(&deviceRegisters->ac97_waitqueue);
-    deviceRegisters->mutex = OS_SPINLOCK_INIT;
-    *******/
-    //hardcoding relevant portions from get_xonar_model for HDAV1.3 for the time being.
-    //if i can get a single model to work, i'll add others....
-    deviceRegisters->model.dac_channels_mixer = 8;
-    deviceRegisters->model.dac_mclks = OXYGEN_MCLKS(256, 128, 128);
-    deviceRegisters->model.device_config = PLAYBACK_0_TO_I2S |
-			 PLAYBACK_1_TO_SPDIF |
-			 CAPTURE_0_FROM_I2S_2 |
-			 CAPTURE_1_FROM_SPDIF;
-    deviceRegisters->model.dac_channels_pcm = 8;
-    deviceRegisters->model.dac_channels_mixer = 2;
-    deviceRegisters->model.dac_volume_min = 255 - 2*60;
-    deviceRegisters->model.dac_volume_max = 255;
-    deviceRegisters->model.misc_flags = OXYGEN_MISC_MIDI;
-    deviceRegisters->model.function_flags = OXYGEN_FUNCTION_2WIRE;
-    deviceRegisters->model.dac_mclks = OXYGEN_MCLKS(512, 128, 128);
-    deviceRegisters->model.adc_mclks = OXYGEN_MCLKS(256, 128, 128);
-    deviceRegisters->model.dac_i2s_format = OXYGEN_I2S_FORMAT_I2S;
-    deviceRegisters->model.adc_i2s_format = OXYGEN_I2S_FORMAT_LJUST;
-    deviceRegisters->model.model_data_size = sizeof(struct xonar_hdav);
-    deviceRegisters->mutex = OS_SPINLOCK_INIT;
-    pthread_mutex_init(&deviceRegisters->ac97_mutex,NULL);
-    pthread_cond_init(&deviceRegisters->ac97_condition,NULL);
+     deviceRegisters->spdif_input_bits_work.init();
+     deviceRegisters->gpio_work.init();
+     queue_init(&deviceRegisters->ac97_waitqueue);
+     deviceRegisters->mutex = OS_SPINLOCK_INIT;
+     *******/
     //move oxygen_init to (barely-used) XonarAudioEngine to fill out the latter.
     //oxygen_init(deviceRegisters);
     //Before:AUdioEngine's init didn't do much. now it instantiates everything like oxygen_init.
@@ -247,7 +225,7 @@ bool PCIAudioDevice::initHardware(IOService *provider)
     if (!audioEngineInstance->init(deviceRegisters,0))
         goto Done;
     //#error Put your own hardware initialization code here...and in other routines!!
-
+    
     
     //At this point, we should be at the chip->model.init() part of the oxygen_pci_probe function.
     if (!createAudioEngine(audioEngineInstance)) {
@@ -288,7 +266,7 @@ bool PCIAudioDevice::createAudioEngine(XonarAudioEngine *audioEngineInstance)
     IOAudioControl *control;
     
     IOLog("SamplePCIAudioDevice[%p]::createAudioEngine()\n", this);
-   // AudioEngineInstance = new XonarAudioEngine;
+    // AudioEngineInstance = new XonarAudioEngine;
     audioEngine = new XonarHDAVAudioEngine;
     if (!audioEngine) {
         goto Done;

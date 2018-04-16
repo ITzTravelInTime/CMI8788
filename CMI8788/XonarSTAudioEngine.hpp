@@ -76,7 +76,7 @@ public:
     
     
     
-        
+    
     virtual bool init(XonarAudioEngine *engine, struct oxygen *regs);
     virtual void free();
     
@@ -105,7 +105,7 @@ public:
     static void xonar_st_suspend(struct oxygen *chip, XonarAudioEngine *engineInstance);
     static void xonar_stx_resume(struct oxygen *chip, XonarAudioEngine *engineInstance);
     static void xonar_st_resume(struct oxygen *chip, XonarAudioEngine *engineInstance);
-
+    
     static void xonar_st_cleanup(struct oxygen *chip, XonarAudioEngine *engineInstance);
     
     static void set_st_params(struct oxygen *chip,XonarAudioEngine *instance);

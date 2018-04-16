@@ -171,78 +171,78 @@ void XonarD2XAudioEngine::xonar_d2_resume(struct oxygen *chip, XonarAudioEngine 
 }
 
 /*
-static int xense_output_switch_get(struct snd_kcontrol *ctl,
-                                   struct snd_ctl_elem_value *value)
-{
-    struct oxygen *chip = ctl->private_data;
-    UInt16 gpio;
-    
-    gpio = oxygen_read16(chip, OXYGEN_GPIO_DATA);
-    if (gpio & GPIO_XENSE_SPEAKERS)
-        value->value.enumerated.item[0] = 0;
-    else if (!(gpio & GPIO_XENSE_SPEAKERS) && (gpio & GPIO_ST_HP_REAR))
-        value->value.enumerated.item[0] = 1;
-    else
-        value->value.enumerated.item[0] = 2;
-    return 0;
-}
-
-static int xense_output_switch_put(struct snd_kcontrol *ctl,
-                                   struct snd_ctl_elem_value *value)
-{
-    struct oxygen *chip = ctl->private_data;
-    struct xonar_pcm179x *data = chip->model_data;
-    UInt16 gpio_old, gpio;
-    
-    mutex_lock(&chip->mutex);
-    gpio_old = oxygen_read16(chip, OXYGEN_GPIO_DATA);
-    gpio = gpio_old;
-    switch (value->value.enumerated.item[0]) {
-        case 0:
-            gpio |= GPIO_XENSE_SPEAKERS | GPIO_ST_HP_REAR;
-            break;
-        case 1:
-            gpio = (gpio | GPIO_ST_HP_REAR) & ~GPIO_XENSE_SPEAKERS;
-            break;
-        case 2:
-            gpio &= ~(GPIO_XENSE_SPEAKERS | GPIO_ST_HP_REAR);
-            break;
-    }
-    oxygen_write16(chip, OXYGEN_GPIO_DATA, gpio);
-    data->hp_active = !(gpio & GPIO_XENSE_SPEAKERS);
-    update_pcm1796_volume(chip);
-    mutex_unlock(&chip->mutex);
-    return gpio != gpio_old;
-}
-
-static const struct snd_kcontrol_new xense_controls[] = {
-    {
-        .iface = SNDRV_CTL_ELEM_IFACE_MIXER,
-        .name = "Analog Output",
-        .info = st_output_switch_info,
-        .get = xense_output_switch_get,
-        .put = xense_output_switch_put,
-    },
-    {
-        .iface = SNDRV_CTL_ELEM_IFACE_MIXER,
-        .name = "Headphones Impedance Playback Enum",
-        .info = st_hp_volume_offset_info,
-        .get = st_hp_volume_offset_get,
-        .put = st_hp_volume_offset_put,
-    },
-};
-
-
-
-
-static int xonar_d2_control_filter(struct snd_kcontrol_new *template)
-{
-    if (!strncmp(template->name, "CD Capture ", 11))
-    // CD in is actually connected to the video in pin
-        template->private_value ^= AC97_CD ^ AC97_VIDEO;
-    return 0;
-}
-*/
+ static int xense_output_switch_get(struct snd_kcontrol *ctl,
+ struct snd_ctl_elem_value *value)
+ {
+ struct oxygen *chip = ctl->private_data;
+ UInt16 gpio;
+ 
+ gpio = oxygen_read16(chip, OXYGEN_GPIO_DATA);
+ if (gpio & GPIO_XENSE_SPEAKERS)
+ value->value.enumerated.item[0] = 0;
+ else if (!(gpio & GPIO_XENSE_SPEAKERS) && (gpio & GPIO_ST_HP_REAR))
+ value->value.enumerated.item[0] = 1;
+ else
+ value->value.enumerated.item[0] = 2;
+ return 0;
+ }
+ 
+ static int xense_output_switch_put(struct snd_kcontrol *ctl,
+ struct snd_ctl_elem_value *value)
+ {
+ struct oxygen *chip = ctl->private_data;
+ struct xonar_pcm179x *data = chip->model_data;
+ UInt16 gpio_old, gpio;
+ 
+ mutex_lock(&chip->mutex);
+ gpio_old = oxygen_read16(chip, OXYGEN_GPIO_DATA);
+ gpio = gpio_old;
+ switch (value->value.enumerated.item[0]) {
+ case 0:
+ gpio |= GPIO_XENSE_SPEAKERS | GPIO_ST_HP_REAR;
+ break;
+ case 1:
+ gpio = (gpio | GPIO_ST_HP_REAR) & ~GPIO_XENSE_SPEAKERS;
+ break;
+ case 2:
+ gpio &= ~(GPIO_XENSE_SPEAKERS | GPIO_ST_HP_REAR);
+ break;
+ }
+ oxygen_write16(chip, OXYGEN_GPIO_DATA, gpio);
+ data->hp_active = !(gpio & GPIO_XENSE_SPEAKERS);
+ update_pcm1796_volume(chip);
+ mutex_unlock(&chip->mutex);
+ return gpio != gpio_old;
+ }
+ 
+ static const struct snd_kcontrol_new xense_controls[] = {
+ {
+ .iface = SNDRV_CTL_ELEM_IFACE_MIXER,
+ .name = "Analog Output",
+ .info = st_output_switch_info,
+ .get = xense_output_switch_get,
+ .put = xense_output_switch_put,
+ },
+ {
+ .iface = SNDRV_CTL_ELEM_IFACE_MIXER,
+ .name = "Headphones Impedance Playback Enum",
+ .info = st_hp_volume_offset_info,
+ .get = st_hp_volume_offset_get,
+ .put = st_hp_volume_offset_put,
+ },
+ };
+ 
+ 
+ 
+ 
+ static int xonar_d2_control_filter(struct snd_kcontrol_new *template)
+ {
+ if (!strncmp(template->name, "CD Capture ", 11))
+ // CD in is actually connected to the video in pin
+ template->private_value ^= AC97_CD ^ AC97_VIDEO;
+ return 0;
+ }
+ */
 
 int XonarD2XAudioEngine::xonar_d2_mixer_init(struct oxygen *chip, XonarAudioEngine *engineInstance)
 {

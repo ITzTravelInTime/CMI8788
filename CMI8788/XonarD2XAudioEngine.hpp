@@ -75,7 +75,7 @@ public:
     
     
     
-        
+    
     virtual bool init(XonarAudioEngine *engine, struct oxygen *regs);
     virtual void free();
     
@@ -97,7 +97,7 @@ public:
     static void interruptHandler(OSObject *owner, IOInterruptEventSource *source, int count);
     static bool interruptFilter(OSObject *owner, IOFilterInterruptEventSource *source);
     virtual void filterInterrupt(int index);
-
+    
     static void xonar_d2_init(struct oxygen *chip, XonarAudioEngine *engineInstance);
     static void xonar_d2x_init(struct oxygen *chip, XonarAudioEngine *engineInstance);
     virtual void xonar_xense_init(struct oxygen *chip, XonarAudioEngine *engineInstance);
@@ -106,7 +106,7 @@ public:
     static void xonar_d2_cleanup(struct oxygen *chip, XonarAudioEngine *engineInstance);
     static void xonar_d2_suspend(struct oxygen *chip, XonarAudioEngine *engineInstance);
     static void xonar_d2_resume(struct oxygen *chip, XonarAudioEngine *engineInstance);
-
+    
 };
 
 #endif /* _SAMPLEPCIAUDIOENGINE_H */
