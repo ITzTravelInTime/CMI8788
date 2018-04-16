@@ -731,6 +731,14 @@ bool XonarAudioEngine::init(struct oxygen *chip, int model)
     //hardcoding relevant portions from get_xonar_model for HDAV1.3 for the time being.
     //if i can get a single model to work, i'll add others....
     if(model == HDAV_MODEL) {
+        //code from get_xonar_pcm179x_model portions (case 0x8314)
+        
+        /*these are the relevant attributes from the xonar_model_hdav struct.
+         *some of the function pointers in the xonar_model struct may not be needed
+         *as OSX has its own way of instantiating volume controls/mixers. however,
+         *the code comprising the functions which the struct is pointing to, may still be
+         *very useful (and indeed:necessary)
+         */
         chip->model.device_config = PLAYBACK_0_TO_I2S |
         PLAYBACK_1_TO_SPDIF |
         CAPTURE_0_FROM_I2S_2 |
