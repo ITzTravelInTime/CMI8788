@@ -673,13 +673,6 @@ int XonarAudioEngine::add_pcm1796_controls(struct oxygen *chip)
     return 0;
 }
 
-
-void PCIAudioDevice::oxygen_init(struct oxygen *chip)
-{
-}
-
-
-
 bool XonarAudioEngine::init(struct oxygen *chip, int model)
 {
     bool result = false;

@@ -57,6 +57,7 @@
 #include "oxygen_regs.h"
 //#include <libkern/OSAtomic.h>
 #include </usr/include/pthread.h>
+#import "XonarAudioEngine.hpp"
 #define dev_err(dev, format, args...) do {IOLog("CMI8788: " format, ##args);} while (0)
 
 /* 1 << PCM_x == OXYGEN_CHANNEL_x */
@@ -343,7 +344,7 @@ static inline void oxygen_clear_bits32(struct oxygen *chip,
 
 class IOPCIDevice;
 class IOMemoryMap;
-
+class XonarAudioEngine;
 #define PCIAudioDevice com_CMedia_CMI8788_PCIAudioDevice
 
 class PCIAudioDevice : public IOAudioDevice
@@ -358,7 +359,7 @@ class PCIAudioDevice : public IOAudioDevice
     struct oxygen               *deviceRegisters;
     
     virtual bool initHardware(IOService *provider);
-    virtual bool createAudioEngine();
+    virtual bool createAudioEngine(XonarAudioEngine *instance);
     virtual void free();
     
     static IOReturn volumeChangeHandler(IOService *target, IOAudioControl *volumeControl, SInt32 oldValue, SInt32 newValue);

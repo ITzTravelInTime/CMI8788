@@ -50,8 +50,8 @@
 #include <IOKit/IOLib.h>
 
 #include <IOKit/pci/IOPCIDevice.h>
+#include "CMI8788.hpp"
 #include "XonarHDAVAudioEngine.hpp"
-//#include "CMI8788.hpp"
 #include "cm9780.h"
 #include "ac97.h"
 
@@ -173,7 +173,8 @@ void PCIAudioDevice::oxygen_restore_eeprom(IOPCIDevice *device, struct oxygen *c
 bool PCIAudioDevice::initHardware(IOService *provider)
 {
     bool result = false;
-    
+    XonarAudioEngine *audioEngineInstance = NULL;
+    audioEngineInstance = new XonarAudioEngine;
     IOLog("SamplePCIAudioDevice[%p]::initHardware(%p)\n", this, provider);
     
     if (!super::initHardware(provider)) {
@@ -243,10 +244,13 @@ bool PCIAudioDevice::initHardware(IOService *provider)
     //oxygen_init(deviceRegisters);
     //Before:AUdioEngine's init didn't do much. now it instantiates everything like oxygen_init.
     //so, by creating the engine, we instantiate the registers as well.
-//#error Put your own hardware initialization code here...and in other routines!!
+    if (!audioEngineInstance->init(deviceRegisters,0))
+        goto Done;
+    //#error Put your own hardware initialization code here...and in other routines!!
+
     
     //At this point, we should be at the chip->model.init() part of the oxygen_pci_probe function.
-    if (!createAudioEngine()) {
+    if (!createAudioEngine(audioEngineInstance)) {
         goto Done;
     }
     
@@ -276,15 +280,15 @@ void PCIAudioDevice::free()
     super::free();
 }
 
-bool PCIAudioDevice::createAudioEngine()
+bool PCIAudioDevice::createAudioEngine(XonarAudioEngine *audioEngineInstance)
 {
     bool result = false;
-    XonarAudioEngine *AudioEngineInstance = NULL;
+    //XonarAudioEngine *AudioEngineInstance = NULL;
     XonarHDAVAudioEngine *audioEngine = NULL;
     IOAudioControl *control;
     
     IOLog("SamplePCIAudioDevice[%p]::createAudioEngine()\n", this);
-    AudioEngineInstance = new XonarAudioEngine;
+   // AudioEngineInstance = new XonarAudioEngine;
     audioEngine = new XonarHDAVAudioEngine;
     if (!audioEngine) {
         goto Done;
@@ -293,7 +297,8 @@ bool PCIAudioDevice::createAudioEngine()
     // Init the new audio engine with the device registers so it can access them if necessary
     // The audio engine subclass could be defined to take any number of parameters for its
     // initialization - use it like a constructor
-    if (!audioEngine->init(AudioEngineInstance,deviceRegisters)) {
+    
+    if (!audioEngine->init(audioEngineInstance,deviceRegisters)) {
         goto Done;
     }
     
