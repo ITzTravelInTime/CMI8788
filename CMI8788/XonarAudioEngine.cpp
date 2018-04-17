@@ -1370,9 +1370,12 @@ bool XonarAudioEngine::interruptFilter(OSObject *owner, IOFilterInterruptEventSo
     elapsed_streams = status & chip->pcm_running;
     
     OSSpinLockUnlock(&chip->reg_lock);
-    
+    /* Not sure if we need this loop since OSX handles PCM very differently
+     *from Linux/ALSA. commenting out for now since there is no equivalent of
+     *snd_pcm_period_elapsed (updates the position and tells us if we've run over
+     */
     for (i = 0; i < PCM_COUNT; ++i)
-        if ((elapsed_streams & (1 << i)) && chip->streams[i])
+        //if ((elapsed_streams & (1 << i)) && chip->streams[i])
             //         snd_pcm_period_elapsed(chip->streams[i]);
             
             if (status & OXYGEN_INT_SPDIF_IN_DETECT) {
@@ -1431,22 +1434,6 @@ bool XonarAudioEngine::interruptFilter(OSObject *owner, IOFilterInterruptEventSo
     return true;
 }
 
-
-
-
-//bool XonarAudioEngine::interruptFilter(OSObject *owner, IOFilterInterruptEventSource *source)
-//{
-//    XonarAudioEngine *audioEngine = OSDynamicCast(XonarAudioEngine, owner);
-//
-//    // We've cast the audio engine from the owner which we passed in when we created the interrupt
-//    // event source
-//    if (audioEngine) {
-//        // Then, filterInterrupt() is called on the specified audio engine
-//        audioEngine->filterInterrupt(source->getIntIndex());
-//    }
-//
-//    return false;
-//}
 
 void XonarAudioEngine::filterInterrupt(int index)
 {
