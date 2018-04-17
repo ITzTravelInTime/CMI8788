@@ -426,6 +426,27 @@ IOReturn PCIAudioDevice::volumeChanged(IOAudioControl *volumeControl, SInt32 old
         IOLog("\t-> Channel %ld\n", volumeControl->getChannelID());
     }
     
+    static int dac_volume_put(struct snd_kcontrol *ctl,
+                              struct snd_ctl_elem_value *value)
+    {
+        struct oxygen *chip = ctl->private_data;
+        unsigned int i;
+        int changed;
+        
+        changed = 0;
+        mutex_lock(&chip->mutex);
+        for (i = 0; i < chip->model.dac_channels_mixer; ++i)
+            if (value->value.integer.value[i] != chip->dac_volume[i]) {
+                chip->dac_volume[i] = value->value.integer.value[i];
+                changed = 1;
+            }
+        if (changed)
+            chip->model.update_dac_volume(chip);
+        mutex_unlock(&chip->mutex);
+        return changed;
+    }
+
+    
     // Add hardware volume code change
     
     return kIOReturnSuccess;
