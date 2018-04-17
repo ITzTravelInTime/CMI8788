@@ -216,7 +216,7 @@ bool PCIAudioDevice::initHardware(IOService *provider)
     if (!audioEngineInstance->init(deviceRegisters,HDAV_MODEL))
         goto Done;
     //#error Put your own hardware initialization code here...and in other routines!!
-    
+    this->accessibleEngineInstance = audioEngineInstance;
     
     //see comments in createAudioEngine to follow rest of oxygen_pci_probe
     //(chip->model.init() and onwards)
@@ -472,6 +472,26 @@ IOReturn PCIAudioDevice::outputMuteChanged(IOAudioControl *muteControl, SInt32 o
     IOLog("SamplePCIAudioDevice[%p]::outputMuteChanged(%p, %ld, %ld)\n", this, muteControl, oldValue, newValue);
     
     // Add output mute code here
+    static int dac_volume_put(struct snd_kcontrol *ctl,
+                              struct snd_ctl_elem_value *value)
+    {
+        struct oxygen *chip = ctl->private_data;
+        unsigned int i;
+        int changed;
+        
+        changed = 0;
+        mutex_lock(&chip->mutex);
+        for (i = 0; i < chip->model.dac_channels_mixer; ++i)
+            if (value->value.integer.value[i] != chip->dac_volume[i]) {
+                chip->dac_volume[i] = value->value.integer.value[i];
+                changed = 1;
+            }
+        if (changed)
+            chip->model.update_dac_volume(chip);
+        mutex_unlock(&chip->mutex);
+        return changed;
+    }
+
     
     return kIOReturnSuccess;
 }
