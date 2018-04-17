@@ -151,7 +151,7 @@ class XonarAudioEngine : public IOAudioEngine
     static void                            *dev_id;
     
 public:
-    
+    struct oxygen* chipData = (struct oxygen*) dev_id;
     
     
     

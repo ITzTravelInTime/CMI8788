@@ -412,39 +412,41 @@ IOReturn PCIAudioDevice::volumeChangeHandler(IOService *target, IOAudioControl *
     
     audioDevice = (PCIAudioDevice *)target;
     if (audioDevice) {
-        result = audioDevice->volumeChanged(volumeControl, oldValue, newValue);
+        result = audioDevice->volumeChanged(volumeControl, audioDevice->accessibleEngineInstance, oldValue, newValue);
     }
     
     return result;
 }
 
-IOReturn PCIAudioDevice::volumeChanged(IOAudioControl *volumeControl, SInt32 oldValue, SInt32 newValue)
+IOReturn PCIAudioDevice::volumeChanged(IOAudioControl *volumeControl, XonarAudioEngine *engine, SInt32 oldValue, SInt32 newValue)
 {
     IOLog("SamplePCIAudioDevice[%p]::volumeChanged(%p, %ld, %ld)\n", this, volumeControl, oldValue, newValue);
     
     if (volumeControl) {
         IOLog("\t-> Channel %ld\n", volumeControl->getChannelID());
     }
-    
-    static int dac_volume_put(struct snd_kcontrol *ctl,
-                              struct snd_ctl_elem_value *value)
-    {
-        struct oxygen *chip = ctl->private_data;
+        struct oxygen *chip = engine->chipData;
         unsigned int i;
         int changed;
         
         changed = 0;
-        mutex_lock(&chip->mutex);
-        for (i = 0; i < chip->model.dac_channels_mixer; ++i)
-            if (value->value.integer.value[i] != chip->dac_volume[i]) {
-                chip->dac_volume[i] = value->value.integer.value[i];
+        pthread_mutex_lock(&chip->mutex);
+    /* not sure if i keep dac_volume[i] or use "oldValue", but
+     * i figure it's a good idea to use the hardware reading
+     * at least once for this sort of comparison, as it determines
+     * whether the hardware value is updated 
+     */
+    for (i = 0; i < chip->model.dac_channels_mixer; ++i){
+            if (newValue != chip->dac_volume[i]) {
+                chip->dac_volume[i] = newValue;
                 changed = 1;
             }
+    }
         if (changed)
             chip->model.update_dac_volume(chip);
-        mutex_unlock(&chip->mutex);
+        pthread_mutex_unlock(&chip->mutex);
         return changed;
-    }
+    
 
     
     // Add hardware volume code change

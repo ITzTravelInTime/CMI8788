@@ -151,12 +151,14 @@ struct oxygen_model {
     UInt16 dac_i2s_format;
     UInt16 adc_i2s_format;
     void (*gpio_changed)(struct oxygen *chip);
+    void (*update_dac_volume)(struct oxygen *chip);
+
 };
 
 struct oxygen {
     unsigned long addr;
     OSSpinLock reg_lock;
-    IOLock *mutex;
+    pthread_mutex_t mutex;
     struct snd_card *card;
     struct pci_dev *pci;
     struct snd_rawmidi *midi;
@@ -168,7 +170,6 @@ struct oxygen {
     UInt8 pcm_active;
     UInt8 pcm_running;
     UInt8 dac_routing;
-    // void (*gpio_changed)(struct oxygen *chip);
     UInt8 spdif_playback_enable;
     UInt8 has_ac97_0;
     UInt8 has_ac97_1;
@@ -317,7 +318,7 @@ class XonarAudioEngine;
 class PCIAudioDevice : public IOAudioDevice
 {
     friend class SampleAudioEngine;
-    
+    static XonarAudioEngine            *accessibleEngineInstance;
     OSDeclareDefaultStructors(PCIAudioDevice)
     
     IOPCIDevice					*pciDevice;
@@ -330,7 +331,7 @@ class PCIAudioDevice : public IOAudioDevice
     virtual void free();
     
     static IOReturn volumeChangeHandler(IOService *target, IOAudioControl *volumeControl, SInt32 oldValue, SInt32 newValue);
-    virtual IOReturn volumeChanged(IOAudioControl *volumeControl, SInt32 oldValue, SInt32 newValue);
+    virtual IOReturn volumeChanged(IOAudioControl *volumeControl, XonarAudioEngine *engine, SInt32 oldValue, SInt32 newValue);
     
     static IOReturn outputMuteChangeHandler(IOService *target, IOAudioControl *muteControl, SInt32 oldValue, SInt32 newValue);
     virtual IOReturn outputMuteChanged(IOAudioControl *muteControl, SInt32 oldValue, SInt32 newValue);
