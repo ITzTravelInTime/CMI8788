@@ -725,8 +725,8 @@ bool XonarAudioEngine::init(struct oxygen *chip, int model)
         goto Done;
     }
     
-    chip->spdif_input_bits_work.init();
-    chip->gpio_work.init();
+   // chip->spdif_input_bits_work.init();
+   // chip->gpio_work.init();
     
     //hardcoding relevant portions from get_xonar_model for HDAV1.3 for the time being.
     //if i can get a single model to work, i'll add others....
@@ -1027,11 +1027,12 @@ bool XonarAudioEngine::initHardware(IOService *provider)
     // our secondary interrupt handler is to be called.  In our case, we
     // can do the work in the filter routine and then return false to
     // indicate that we do not want our secondary handler called
-    interruptEventSource = IOFilterInterruptEventSource::filterInterruptEventSource(this,
+    interruptEventSource_main = IOFilterInterruptEventSource::filterInterruptEventSource(this,
                                                                                     XonarAudioEngine::interruptHandler,
                                                                                     XonarAudioEngine::interruptFilter,                                                                                                                                                                       audioDevice->getProvider());
-    workLoop->addEventSource(interruptEventSource);
-    if (!interruptEventSource) {
+    workLoop->addEventSource(interruptEventSource_main);
+    
+    if (!interruptEventSource_main || !gpioEventSource || !spdifEventSource) {
         goto Done;
     }
     
@@ -1042,7 +1043,7 @@ bool XonarAudioEngine::initHardware(IOService *provider)
     // be done until performAudioEngineStart() is called, and can probably be disabled
     // when performAudioEngineStop() is called and the audio engine is no longer running
     // Although this really depends on the specific hardware
-    workLoop->addEventSource(interruptEventSource);
+    workLoop->addEventSource(interruptEventSource_main);
     
     // Allocate our input and output buffers - a real driver will likely need to allocate its buffers
     // differently
@@ -1086,9 +1087,9 @@ void XonarAudioEngine::free()
     
     // We need to free our resources when we're going away
     
-    if (interruptEventSource) {
-        interruptEventSource->release();
-        interruptEventSource = NULL;
+    if (interruptEventSource_main) {
+        interruptEventSource_main->release();
+        interruptEventSource_main = NULL;
     }
     
     if (outputBuffer) {
@@ -1154,16 +1155,16 @@ void XonarAudioEngine::stop(IOService *provider)
     // the interrupt event source from the IOWorkLoop
     // Additionally, we'll go ahead and release the interrupt event source since it isn't
     // needed any more
-    if (interruptEventSource) {
+    if (interruptEventSource_main) {
         IOWorkLoop *wl;
         
         wl = getWorkLoop();
         if (wl) {
-            wl->removeEventSource(interruptEventSource);
+            wl->removeEventSource(interruptEventSource_main);
         }
         
-        interruptEventSource->release();
-        interruptEventSource = NULL;
+        interruptEventSource_main->release();
+        interruptEventSource_main = NULL;
     }
     
     // Add code to shut down hardware (beyond what is needed to simply stop the audio engine)
@@ -1178,7 +1179,7 @@ IOReturn XonarAudioEngine::performAudioEngineStart()
     
     // The interruptEventSource needs to be enabled to allow interrupts to start firing
     assert(interruptEventSource);
-    interruptEventSource->enable();
+    interruptEventSource_main->enable();
     
     // When performAudioEngineStart() gets called, the audio engine should be started from the beginning
     // of the sample buffer.  Because it is starting on the first sample, a new timestamp is needed
@@ -1201,8 +1202,8 @@ IOReturn XonarAudioEngine::performAudioEngineStop()
     IOLog("XonarAudioEngine[%p]::performAudioEngineStop()\n", this);
     
     // Assuming we don't need interrupts after stopping the audio engine, we can disable them here
-    assert(interruptEventSource);
-    interruptEventSource->disable();
+    assert(interruptEventSource_main);
+    interruptEventSource_main->disable();
     
     // Add audio - I/O stop code here
     
@@ -1257,7 +1258,7 @@ IOReturn XonarAudioEngine::performFormatChange(IOAudioStream *audioStream, const
     return kIOReturnSuccess;
 }
 
-void XonarAudioEngine::oxygen_gpio_changed(struct work_struct *work)
+void XonarAudioEngine::oxygen_gpio_changed(void)
 {
     struct oxygen *chip = (struct oxygen*) dev_id;
     if (chip->model.gpio_changed)
@@ -1266,7 +1267,7 @@ void XonarAudioEngine::oxygen_gpio_changed(struct work_struct *work)
 
 
 //
-void XonarAudioEngine::oxygen_spdif_input_bits_changed(struct work_struct *work)
+void XonarAudioEngine::oxygen_spdif_input_bits_changed(void)
 {
     struct oxygen *chip = (struct oxygen*) dev_id;
     UInt32 reg;
@@ -1338,6 +1339,7 @@ void XonarAudioEngine::interruptHandler(OSObject *owner, IOInterruptEventSource 
 }
 bool XonarAudioEngine::interruptFilter(OSObject *owner, IOFilterInterruptEventSource *src)
 {
+    XonarAudioEngine *callingInstance = OSDynamicCast(XonarAudioEngine, owner);
     struct oxygen *chip = (struct oxygen*)dev_id;
     unsigned int status, clear, elapsed_streams, i;
     
@@ -1380,14 +1382,39 @@ bool XonarAudioEngine::interruptFilter(OSObject *owner, IOFilterInterruptEventSo
                          OXYGEN_SPDIF_RATE_INT)) {
                     /* write the interrupt bit(s) to clear */
                     oxygen_write32(chip, OXYGEN_SPDIF_CONTROL, i);
+                    //Linux Call below:
                     //    schedule_work(&chip->spdif_input_bits_work);
+                    //Experimental OSX-equivalent call below...
+                    /* Conceptually i *think* this function is the IOWorkLoop context,
+                     * so by using the dynamic cast (thanks osxbook), i hope to recover
+                     * the calling (single) class, and then use its member functions to perform
+                     * the work. in this case, checking the spdif bits*/
+                    callingInstance->workLoop->runAction((Action)callingInstance->oxygen_spdif_input_bits_changed, 0);
                 }
                 OSSpinLockUnlock(&chip->reg_lock);
             }
     
     if (status & OXYGEN_INT_GPIO)
+        //Linux call below:
         //schedule_work(&chip->gpio_work);
-        
+        //Experimental OSX-equivalent (see note above):
+        callingInstance->workLoop->runAction((Action)callingInstance->oxygen_gpio_changed, 0);
+        /* Commentary on substituting schedule_work with runAction:
+         * This *seems* to make sense, no? runAction runs in a single-threaded context w/in the handler.
+         * for OSX it seems we don't even need work_queues because:
+         * 1. each work_queue instance (gpio_work, spdif_input_bits_work) are used within their associated
+         *    functions (gpio_work,spdif_input_bits_changed) to cast the data back to (struct oxygen *)
+         *      -since this OSX driver is OOP, we have access to (struct oxygen*) via dev_id and so
+         *       we don't need pass such structures to the handling functions as we have access.
+         * 2. each of these workqueues seem to schedule work only within the handler, meaning
+         *    we should be able to get away with runAction, since there is no other point in the entire
+         *    driver where we schedule_work for either the gpio or spdif bits.
+         **** 
+         * i could be totally wrong, but i hope i'm not. runAction would be a superior abstraction if it
+         * can replace our need to instantiate "sub"workqueues whose work is added/handled inside the main
+         * interrupt handler....
+         * i hope it does what we need...
+         */
         if (status & OXYGEN_INT_MIDI) {
             // if (chip->midi)
             //     _snd_mpu401_uart_interrupt(0, chip->midi->private_data);
@@ -1400,7 +1427,6 @@ bool XonarAudioEngine::interruptFilter(OSObject *owner, IOFilterInterruptEventSo
         pthread_cond_signal(&chip->ac97_condition);
         pthread_mutex_unlock(&chip->ac97_mutex);
     }
-    //wait_queue_wakeup_one(chip->ac97_waitqueue, (event_t)({ status |= oxygen_read8(chip, OXYGEN_AC97_INTERRUPT_STATUS);status & chip->ac97_maskval;}),1);
     
     return true;
 }

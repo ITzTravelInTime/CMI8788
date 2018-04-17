@@ -177,8 +177,8 @@ struct oxygen {
     IOAudioStreamDataDescriptor *streams[PCM_COUNT];
     //   struct snd_pcm_substream *streams[PCM_COUNT];
     //   struct snd_kcontrol *controls[CONTROL_COUNT];
-    IOWorkLoop spdif_input_bits_work;
-    IOWorkLoop gpio_work;
+    //IOWorkLoop spdif_input_bits_work;
+    //IOWorkLoop gpio_work;
     //wait_queue_t ac97_waitqueue;
     pthread_cond_t  ac97_condition;
     pthread_mutex_t  ac97_mutex;
