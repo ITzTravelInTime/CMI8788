@@ -461,7 +461,7 @@ IOReturn PCIAudioDevice::outputMuteChangeHandler(IOService *target, IOAudioContr
     
     audioDevice = (PCIAudioDevice *)target;
     if (audioDevice) {
-        result = audioDevice->outputMuteChanged(muteControl, audioDevice->accessibleEngineInstance oldValue, newValue);
+        result = audioDevice->outputMuteChanged(muteControl, audioDevice->accessibleEngineInstance, oldValue, newValue);
     }
     
     return result;
@@ -472,21 +472,18 @@ IOReturn PCIAudioDevice::outputMuteChanged(IOAudioControl *muteControl, XonarAud
     IOLog("SamplePCIAudioDevice[%p]::outputMuteChanged(%p, %ld, %ld)\n", this, muteControl, oldValue, newValue);
     
     // Add output mute code here
-    static int dac_mute_put(struct snd_kcontrol *ctl,
-                            struct snd_ctl_elem_value *value)
-    {
-        struct oxygen *chip = ctl->private_data;
+        struct oxygen *chip = engine->chipData;
         int changed;
         
-        mutex_lock(&chip->mutex);
-        changed = (!value->value.integer.value[0]) != chip->dac_mute;
+        pthread_mutex_lock(&chip->mutex);
+        changed = (!newValue) != chip->dac_mute;
         if (changed) {
-            chip->dac_mute = !value->value.integer.value[0];
+            chip->dac_mute = !newValue;
             chip->model.update_dac_mute(chip);
         }
-        mutex_unlock(&chip->mutex);
+        pthread_mutex_unlock(&chip->mutex);
         return changed;
-    }
+    
 
 
     

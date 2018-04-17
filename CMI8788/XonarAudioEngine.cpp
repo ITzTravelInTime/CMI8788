@@ -755,6 +755,7 @@ bool XonarAudioEngine::init(struct oxygen *chip, int model)
         chip->model.adc_i2s_format = OXYGEN_I2S_FORMAT_LJUST;
         chip->model.model_data_size = sizeof(struct xonar_hdav);
         chip->model.update_dac_volume = this->update_pcm1796_volume;
+        chip->model.update_dac_mute = this->update_pcm1796_mute;
         oxygen_clear_bits16(chip,OXYGEN_GPIO_CONTROL,GPIO_DB_MASK);
         switch (oxygen_read16(chip, OXYGEN_GPIO_DATA) & GPIO_DB_MASK) {
             default:

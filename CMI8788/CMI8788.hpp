@@ -139,6 +139,7 @@ struct oxygen_model {
     size_t model_data_size;
     const char *shortname; 
     unsigned int device_config;
+    void (*update_dac_mute)(struct oxygen *chip);
     UInt8 dac_channels_pcm;
     UInt8 dac_channels_mixer;
     UInt8 dac_volume_min;

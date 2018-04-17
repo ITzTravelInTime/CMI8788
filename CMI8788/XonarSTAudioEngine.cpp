@@ -351,7 +351,7 @@ bool XonarSTAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip)
     
     // the below aren't correct. have to bridge the workqueue calls to IOWorkLoop
     //queue_init(&chip->ac97_waitqueue);
-    chip->mutex = OS_SPINLOCK_INIT;
+    pthread_mutex_init(&chip->mutex,NULL);
     //set the pointer to XonarAudioEngine.
     this->engineInstance = engine;
     
