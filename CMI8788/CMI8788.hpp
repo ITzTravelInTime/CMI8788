@@ -174,9 +174,9 @@ struct oxygen {
     UInt8 has_ac97_1;
     UInt32 spdif_bits;
     UInt32 spdif_pcm_bits;
-    IOAudioStream *streams[PCM_COUNT];
+    //IOAudioStream *streams[PCM_COUNT];
     //   struct snd_pcm_substream *streams[PCM_COUNT];
-    IOAudioControl *controls[CONTROL_COUNT];
+    //IOAudioControl *controls[CONTROL_COUNT];
     //IOWorkLoop spdif_input_bits_work;
     //IOWorkLoop gpio_work;
     //wait_queue_t ac97_waitqueue;
