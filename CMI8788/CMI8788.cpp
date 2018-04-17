@@ -287,10 +287,10 @@ bool PCIAudioDevice::createAudioEngine(XonarAudioEngine *audioEngineInstance)
     // and a db range from -22.5 to 0.0
     // Once each control is added to the audio engine, they should be released
     // so that when the audio engine is done with them, they get freed properly
-    control = IOAudioLevelControl::createVolumeControl(65535,	// Initial value
-                                                       0,		// min value
-                                                       65535,	// max value
-                                                       (-22 << 16) + (32768),	// -22.5 in IOFixed (16.16)
+    control = IOAudioLevelControl::createVolumeControl((deviceRegisters->model.dac_volume_max+deviceRegisters->model.dac_volume_min)/2,	// Initial value
+                                                       deviceRegisters->model.dac_volume_min,		// min value
+                                                       deviceRegisters->model.dac_volume_max,	// max value
+                                                       -6000,	// taken from xonar_pcm179x.c:986 DECLARE_TLV_DB_SCALE(pcm1796_db_scale,-6000,50))
                                                        0,		// max 0.0 in IOFixed
                                                        kIOAudioControlChannelIDDefaultLeft,
                                                        kIOAudioControlChannelNameLeft,
@@ -304,10 +304,10 @@ bool PCIAudioDevice::createAudioEngine(XonarAudioEngine *audioEngineInstance)
     audioEngine->addDefaultAudioControl(control);
     control->release();
     
-    control = IOAudioLevelControl::createVolumeControl(65535,	// Initial value
-                                                       0,		// min value
-                                                       65535,	// max value
-                                                       (-22 << 16) + (32768),	// min -22.5 in IOFixed (16.16)
+    control = IOAudioLevelControl::createVolumeControl((deviceRegisters->model.dac_volume_max+deviceRegisters->model.dac_volume_min)/2,	// Initial value
+                                                       deviceRegisters->model.dac_volume_min,		// min value
+                                                       deviceRegisters->model.dac_volume_max,	// max value
+                                                       -6000,	// min -22.5 in IOFixed (16.16)
                                                        0,		// max 0.0 in IOFixed
                                                        kIOAudioControlChannelIDDefaultRight,	// Affects right channel
                                                        kIOAudioControlChannelNameRight,
