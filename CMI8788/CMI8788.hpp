@@ -334,7 +334,7 @@ class PCIAudioDevice : public IOAudioDevice
     virtual IOReturn volumeChanged(IOAudioControl *volumeControl, XonarAudioEngine *engine, SInt32 oldValue, SInt32 newValue);
     
     static IOReturn outputMuteChangeHandler(IOService *target, IOAudioControl *muteControl, SInt32 oldValue, SInt32 newValue);
-    virtual IOReturn outputMuteChanged(IOAudioControl *muteControl, SInt32 oldValue, SInt32 newValue);
+    virtual IOReturn outputMuteChanged(IOAudioControl *muteControl, XonarAudioEngine *engine, SInt32 oldValue, SInt32 newValue);
     
     static IOReturn gainChangeHandler(IOService *target, IOAudioControl *gainControl, SInt32 oldValue, SInt32 newValue);
     virtual IOReturn gainChanged(IOAudioControl *gainControl, SInt32 oldValue, SInt32 newValue);
