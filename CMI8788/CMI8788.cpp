@@ -425,31 +425,31 @@ IOReturn PCIAudioDevice::volumeChanged(IOAudioControl *volumeControl, XonarAudio
     if (volumeControl) {
         IOLog("\t-> Channel %ld\n", volumeControl->getChannelID());
     }
-        struct oxygen *chip = engine->chipData;
-        unsigned int i;
-        int changed;
-        
-        changed = 0;
-        pthread_mutex_lock(&chip->mutex);
+    
+    
+    // Add hardware volume code change
+    struct oxygen *chip = engine->chipData;
+    unsigned int i;
+    int changed;
+    
+    changed = 0;
+    pthread_mutex_lock(&chip->mutex);
     /* not sure if i keep dac_volume[i] or use "oldValue", but
      * i figure it's a good idea to use the hardware reading
      * at least once for this sort of comparison, as it determines
-     * whether the hardware value is updated 
+     * whether the hardware value is updated
      */
     for (i = 0; i < chip->model.dac_channels_mixer; ++i){
-            if (newValue != chip->dac_volume[i]) {
-                chip->dac_volume[i] = newValue;
-                changed = 1;
-            }
+        if (newValue != chip->dac_volume[i]) {
+            chip->dac_volume[i] = newValue;
+            changed = 1;
+        }
     }
-        if (changed)
-            chip->model.update_dac_volume(chip);
-        pthread_mutex_unlock(&chip->mutex);
-        return changed;
+    if (changed)
+        chip->model.update_dac_volume(chip);
+    pthread_mutex_unlock(&chip->mutex);
+    return changed;
     
-
-    
-    // Add hardware volume code change
     
     return kIOReturnSuccess;
 }
