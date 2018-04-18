@@ -215,46 +215,46 @@ struct oxygen {
 
 
 
-UInt8 oxygen_read8(struct oxygen *chip, unsigned int reg)
+static UInt8 oxygen_read8(struct oxygen *chip, unsigned int reg)
 {
     return inb(chip->addr + reg);
 }
 //EXPORT_SYMBOL(oxygen_read8);
 
-UInt16 oxygen_read16(struct oxygen *chip, unsigned int reg)
+static UInt16 oxygen_read16(struct oxygen *chip, unsigned int reg)
 {
     return inw(chip->addr + reg);
 }
 //EXPORT_SYMBOL(oxygen_read16);
 
-UInt32 oxygen_read32(struct oxygen *chip, unsigned int reg)
+static UInt32 oxygen_read32(struct oxygen *chip, unsigned int reg)
 {
     return inl(chip->addr + reg);
 }
 ////EXPORT_SYMBOL(oxygen_read32);
 
-void oxygen_write8(struct oxygen *chip, unsigned int reg, UInt8 value)
+static void oxygen_write8(struct oxygen *chip, unsigned int reg, UInt8 value)
 {
     outb(value, chip->addr + reg);
     chip->saved_registers._8[reg] = value;
 }
 //EXPORT_SYMBOL(oxygen_write8);
 
-void oxygen_write16(struct oxygen *chip, unsigned int reg, UInt16 value)
+static void oxygen_write16(struct oxygen *chip, unsigned int reg, UInt16 value)
 {
     outw(value, chip->addr + reg);
     chip->saved_registers._16[reg / 2] = OSSwapHostToLittleInt16(value);
 }
 //EXPORT_SYMBOL(oxygen_write16);
 
-void oxygen_write32(struct oxygen *chip, unsigned int reg, UInt32 value)
+static void oxygen_write32(struct oxygen *chip, unsigned int reg, UInt32 value)
 {
     outl(value, chip->addr + reg);
     chip->saved_registers._32[reg / 4] = OSSwapHostToLittleInt32(value);
 }
 //EXPORT_SYMBOL(oxygen_write32);
 
-void oxygen_write8_masked(struct oxygen *chip, unsigned int reg,
+static void oxygen_write8_masked(struct oxygen *chip, unsigned int reg,
                           UInt8 value, UInt8 mask)
 {
     UInt8 tmp = inb(chip->addr + reg);
@@ -265,7 +265,7 @@ void oxygen_write8_masked(struct oxygen *chip, unsigned int reg,
 }
 //EXPORT_SYMBOL(oxygen_write8_masked);
 
-void oxygen_write16_masked(struct oxygen *chip, unsigned int reg,
+static void oxygen_write16_masked(struct oxygen *chip, unsigned int reg,
                            UInt16 value, UInt16 mask)
 {
     UInt16 tmp = inw(chip->addr + reg);
@@ -276,7 +276,7 @@ void oxygen_write16_masked(struct oxygen *chip, unsigned int reg,
 }
 //EXPORT_SYMBOL(oxygen_write16_masked);
 
-void oxygen_write32_masked(struct oxygen *chip, unsigned int reg,
+static void oxygen_write32_masked(struct oxygen *chip, unsigned int reg,
                            UInt32 value, UInt32 mask)
 {
     UInt32 tmp = inl(chip->addr + reg);

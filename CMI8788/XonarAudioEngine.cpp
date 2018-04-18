@@ -1219,7 +1219,7 @@ IOReturn XonarAudioEngine::performAudioEngineStart()
     
     // Add audio - I/O start code here
     
-#error performAudioEngineStart() - driver will not work until audio engine start code is added
+//#error performAudioEngineStart() - driver will not work until audio engine start code is added
     
     return kIOReturnSuccess;
 }
@@ -1234,7 +1234,7 @@ IOReturn XonarAudioEngine::performAudioEngineStop()
     
     // Add audio - I/O stop code here
     
-#error performAudioEngineStop() - driver will not work until audio engine stop code is added
+//#error performAudioEngineStop() - driver will not work until audio engine stop code is added
     
     return kIOReturnSuccess;
 }
@@ -1250,7 +1250,7 @@ UInt32 XonarAudioEngine::getCurrentSampleFrame()
     // frame returned by this function.  If it is too large a value, sound data that hasn't been played will be
     // erased.
     
-#error getCurrentSampleFrame() - driver will not work until correct sample frame is returned
+//#error getCurrentSampleFrame() - driver will not work until correct sample frame is returned
     
     // Change to return the real value
     return 0;
