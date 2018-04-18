@@ -10,8 +10,6 @@
 	<string>com.CMedia.CMI8788.PCIAudioDriver</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
-	<key>CFBundleName</key>
-	<string>CMI8788</string>
 	<key>CFBundlePackageType</key>
 	<string>KEXT</string>
 	<key>CFBundleShortVersionString</key>
@@ -37,7 +35,7 @@
 	<key>OSBundleLibraries</key>
 	<dict>
 		<key>com.apple.iokit.IOAudioFamily</key>
-		<string>1.1f6</string>
+		<string>1.1fc6</string>
 		<key>com.apple.iokit.IOPCIDevice</key>
 		<string>1.0</string>
 	</dict>
