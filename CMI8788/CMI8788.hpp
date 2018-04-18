@@ -97,7 +97,23 @@
 #define AC97_FMIC_SWITCH	0x4000
 #define MSEC_PER_SEC        1000L
 #define HZ                  1024
-#define BUFFER_SIZE			(NUM_SAMPLE_FRAMES * NUM_CHANNELS * BIT_DEPTH / 8)
+//#define BUFFER_SIZE			(NUM_SAMPLE_FRAMES * NUM_CHANNELS * BIT_DEPTH / 8)
+/* the below has been taken fro oxygen_pcm.c*/
+/* most DMA channels have a 16-bit counter for 32-bit words */
+#define BUFFER_BYTES_MAX                ((1 << 16) * 4)
+/* the multichannel DMA channel has a 24-bit counter */
+#define BUFFER_BYTES_MAX_MULTICH        ((1 << 24) * 4)
+
+#define FIFO_BYTES                      256
+#define FIFO_BYTES_MULTICH              1024
+
+#define PERIOD_BYTES_MIN                64
+
+#define DEFAULT_BUFFER_BYTES            (BUFFER_BYTES_MAX / 2)
+#define DEFAULT_BUFFER_BYTES_MULTICH    (1024 * 1024)
+/*end oxygen_pcm.c macro def'ns */
+
+
 
 #define IEC958_AES1_CON_DIGDIGCONV_ID   0x02
 #define IEC958_AES1_CON_PCM_CODER       (IEC958_AES1_CON_DIGDIGCONV_ID|0x00)

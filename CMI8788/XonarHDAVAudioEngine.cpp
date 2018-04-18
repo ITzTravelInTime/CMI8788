@@ -368,18 +368,18 @@ bool XonarHDAVAudioEngine::initHardware(IOService *provider)
     
     // Allocate our input and output buffers - a real driver will likely need to allocate its buffers
     // differently
-    outputBuffer = (SInt16 *)IOMalloc(BUFFER_SIZE);
+    outputBuffer = (SInt16 *)IOMalloc(DEFAULT_BUFFER_BYTES);
     if (!outputBuffer) {
         goto Done;
     }
     
-    inputBuffer = (SInt16 *)IOMalloc(BUFFER_SIZE);
+    inputBuffer = (SInt16 *)IOMalloc(DEFAULT_BUFFER_BYTES);
     if (!inputBuffer) {
         goto Done;
     }
     
     // Create an IOAudioStream for each buffer and add it to this audio engine
-    audioStream = createNewAudioStream(kIOAudioStreamDirectionOutput, outputBuffer, BUFFER_SIZE);
+    audioStream = createNewAudioStream(kIOAudioStreamDirectionOutput, outputBuffer, DEFAULT_BUFFER_BYTES);
     if (!audioStream) {
         goto Done;
     }
@@ -387,7 +387,7 @@ bool XonarHDAVAudioEngine::initHardware(IOService *provider)
     addAudioStream(audioStream);
     audioStream->release();
     
-    audioStream = createNewAudioStream(kIOAudioStreamDirectionInput, inputBuffer, BUFFER_SIZE);
+    audioStream = createNewAudioStream(kIOAudioStreamDirectionInput, inputBuffer, DEFAULT_BUFFER_BYTES);
     if (!audioStream) {
         goto Done;
     }
@@ -414,12 +414,12 @@ void XonarHDAVAudioEngine::free()
     }
     
     if (outputBuffer) {
-        IOFree(outputBuffer, BUFFER_SIZE);
+        IOFree(outputBuffer, DEFAULT_BUFFER_BYTES);
         outputBuffer = NULL;
     }
     
     if (inputBuffer) {
-        IOFree(inputBuffer, BUFFER_SIZE);
+        IOFree(inputBuffer, DEFAULT_BUFFER_BYTES);
         inputBuffer = NULL;
     }
     

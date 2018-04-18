@@ -1048,18 +1048,18 @@ bool XonarAudioEngine::initHardware(IOService *provider)
     
     // Allocate our input and output buffers - a real driver will likely need to allocate its buffers
     // differently
-    outputBuffer = (SInt16 *)IOMalloc(BUFFER_SIZE);
+    outputBuffer = (SInt16 *)IOMalloc(DEFAULT_BUFFER_BYTES);
     if (!outputBuffer) {
         goto Done;
     }
     
-    inputBuffer = (SInt16 *)IOMalloc(BUFFER_SIZE);
+    inputBuffer = (SInt16 *)IOMalloc(DEFAULT_BUFFER_BYTES);
     if (!inputBuffer) {
         goto Done;
     }
     
     // Create an IOAudioStream for each buffer and add it to this audio engine
-    audioStream = createNewAudioStream(kIOAudioStreamDirectionOutput, outputBuffer, BUFFER_SIZE);
+    audioStream = createNewAudioStream(kIOAudioStreamDirectionOutput, outputBuffer, DEFAULT_BUFFER_BYTES);
     if (!audioStream) {
         goto Done;
     }
@@ -1067,7 +1067,7 @@ bool XonarAudioEngine::initHardware(IOService *provider)
     addAudioStream(audioStream);
     audioStream->release();
     
-    audioStream = createNewAudioStream(kIOAudioStreamDirectionInput, inputBuffer, BUFFER_SIZE);
+    audioStream = createNewAudioStream(kIOAudioStreamDirectionInput, inputBuffer, DEFAULT_BUFFER_BYTES);
     if (!audioStream) {
         goto Done;
     }
@@ -1094,12 +1094,12 @@ void XonarAudioEngine::free()
     }
     
     if (outputBuffer) {
-        IOFree(outputBuffer, BUFFER_SIZE);
+        IOFree(outputBuffer, DEFAULT_BUFFER_BYTES);
         outputBuffer = NULL;
     }
     
     if (inputBuffer) {
-        IOFree(inputBuffer, BUFFER_SIZE);
+        IOFree(inputBuffer, DEFAULT_BUFFER_BYTES);
         inputBuffer = NULL;
     }
     
@@ -1135,9 +1135,22 @@ IOAudioStream *XonarAudioEngine::createNewAudioStream(IOAudioStreamDirection dir
             
             // This device only allows a single format and a choice of 2 different sample rates
             rate.fraction = 0;
+            //the below is copying the .rates entry of oxygen_stereo_hardware in oxygen_pcm.c...
+            rate.whole = 32000;
+            audioStream->addAvailableFormat(&format, &rate, &rate);
             rate.whole = 44100;
             audioStream->addAvailableFormat(&format, &rate, &rate);
             rate.whole = 48000;
+            audioStream->addAvailableFormat(&format, &rate, &rate);
+            rate.whole = 64000;
+            audioStream->addAvailableFormat(&format, &rate, &rate);
+            rate.whole = 88200;
+            audioStream->addAvailableFormat(&format, &rate, &rate);
+            rate.whole = 96000;
+            audioStream->addAvailableFormat(&format, &rate, &rate);
+            rate.whole = 176400;
+            audioStream->addAvailableFormat(&format, &rate, &rate);
+            rate.whole = 192000;
             audioStream->addAvailableFormat(&format, &rate, &rate);
             
             // Finally, the IOAudioStream's current format needs to be indicated
@@ -1189,6 +1202,19 @@ IOReturn XonarAudioEngine::performAudioEngineStart()
     // By default takeTimeStamp() will increment the current loop count in addition to taking the current
     // timestamp.  Since we are starting a new audio engine run, and not looping, we don't want the loop count
     // to be incremented.  To accomplish that, false is passed to takeTimeStamp().
+    
+    /* ^^ this seems like where we'd need something like snd_pcm_period_elapsed.
+     * providing first conditional from alsa main interrupt handler (oxygen_interrupt, oxygen_lib.c line 100-101):
+     *
+    // for(i = 0; i < PCM_COUNT; ++i) <- /*we don't need the loop here as each
+    //                                      IOAudioStream instance should do this*/
+    //      if ((elapsed_streams & (1 << i)) && chip->streams[i])
+    //          snd_pcm_period_elapsed(chip->streams[i]);
+    //..
+    /*
+     * need a way to update the frame pointers at the beginning of each interrupt so that the ensuing
+     * operations are applied to a fresh chunk of data (process per-chunk i guess).
+     */
     takeTimeStamp(false);
     
     // Add audio - I/O start code here
@@ -1374,6 +1400,8 @@ bool XonarAudioEngine::interruptFilter(OSObject *owner, IOFilterInterruptEventSo
     /* Not sure if we need this loop since OSX handles PCM very differently
      *from Linux/ALSA. commenting out for now since there is no equivalent of
      *snd_pcm_period_elapsed (updates the position and tells us if we've run over
+     *edit: seems like we'll need the elapsed_streams/snd_pcm_period collapsed to 
+     * go in
      */
     for (i = 0; i < PCM_COUNT; ++i)
         //if ((elapsed_streams & (1 << i)) && chip->streams[i])
