@@ -46,7 +46,7 @@
 
 #include <IOKit/audio/IOAudioEngine.h>
 
-#include "CMI8788.hpp"
+#include "PCIAudioDevice.hpp"
 #include "XonarAudioEngine.hpp"
 #include "XonarD2XAudioEngine.hpp"
 
@@ -92,8 +92,8 @@ public:
     
     virtual IOReturn performFormatChange(IOAudioStream *audioStream, const IOAudioStreamFormat *newFormat, const IOAudioSampleRate *newSampleRate);
     
-    virtual IOReturn clipOutputSamples(const void *mixBuf, void *sampleBuf, UInt32 firstSampleFrame, UInt32 numSampleFrames, const IOAudioStreamFormat *streamFormat, IOAudioStream *audioStream);
-    virtual IOReturn convertInputSamples(const void *sampleBuf, void *destBuf, UInt32 firstSampleFrame, UInt32 numSampleFrames, const IOAudioStreamFormat *streamFormat, IOAudioStream *audioStream);
+    //virtual IOReturn clipOutputSamples(const void *mixBuf, void *sampleBuf, UInt32 firstSampleFrame, UInt32 numSampleFrames, const IOAudioStreamFormat *streamFormat, IOAudioStream *audioStream);
+    //virtual IOReturn convertInputSamples(const void *sampleBuf, void *destBuf, UInt32 firstSampleFrame, UInt32 numSampleFrames, const IOAudioStreamFormat *streamFormat, IOAudioStream *audioStream);
     
     static void interruptHandler(OSObject *owner, IOInterruptEventSource *source, int count);
     static bool interruptFilter(OSObject *owner, IOFilterInterruptEventSource *source);

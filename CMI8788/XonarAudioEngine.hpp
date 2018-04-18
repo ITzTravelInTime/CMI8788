@@ -46,7 +46,7 @@
 
 #include <IOKit/audio/IOAudioEngine.h>
 
-#include "CMI8788.hpp"
+#include "PCIAudioDevice.hpp"
 
 #define XonarAudioEngine com_CMedia_CMI8788_XonarAudioEngine
 #define XonarHDAVAudioEngine com_CMedia_CMI8788_XonarHDAVAudioEngine

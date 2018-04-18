@@ -50,7 +50,7 @@
 #include <IOKit/IOLib.h>
 
 #include <IOKit/pci/IOPCIDevice.h>
-#include "CMI8788.hpp"
+#include "PCIAudioDevice.hpp"
 #include "XonarHDAVAudioEngine.hpp"
 #include "cm9780.h"
 #include "ac97.h"
