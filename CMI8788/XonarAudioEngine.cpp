@@ -1106,6 +1106,86 @@ void XonarAudioEngine::free()
     super::free();
 }
 
+IOReturn XonarAudioEngine::clipOutputSamples(const void *mixBuf,
+                                                 
+                                                 void *sampleBuf, UInt32 firstSampleFrame, UInt32 numSampleFrames,
+                                                 
+                                                 const IOAudioStreamFormat *streamFormat, IOAudioStream *audioStream)
+
+{
+    
+    UInt32 sampleIndex, maxSampleIndex;
+    float *floatMixBuf;
+    SInt16 *outputBuf;
+    
+    
+    
+    floatMixBuf = (float *)mixBuf;
+    outputBuf = (SInt16 *)sampleBuf;
+    
+    
+    
+    maxSampleIndex = (firstSampleFrame + numSampleFrames)*streamFormat->fNumChannels;
+    
+    
+    
+    for (sampleIndex = (firstSampleFrame * streamFormat->fNumChannels);
+         sampleIndex < maxSampleIndex; sampleIndex++)  {
+        
+        float inSample;
+        inSample = floatMixBuf[sampleIndex];
+        const static float divisor = ( 1.0 / 32768 );
+        
+        // Note: A softer clipping operation could be done here
+        if (inSample > (1.0 - divisor)) {
+            inSample = 1.0 - divisor;
+        } else if (inSample < -1.0) {
+            inSample = -1.0;
+        }
+        
+        outputBuf[sampleIndex] = (SInt16) (inSample * 32768.0);
+        
+    }
+    
+    return kIOReturnSuccess;
+    
+}
+
+IOReturn XonarAudioEngine::convertInputSamples(const void *sampleBuf,
+                                                   void *destBuf, UInt32 firstSampleFrame, UInt32 numSampleFrames,
+                                                   const IOAudioStreamFormat *streamFormat, IOAudioStream
+                                                   *audioStream)
+{
+    UInt32 numSamplesLeft;
+    float *floatDestBuf;
+    SInt16 *inputBuf;
+    
+    // Note: Source is offset by firstSampleFrame
+    inputBuf = &(((SInt16 *)sampleBuf)[firstSampleFrame *
+                                       streamFormat->fNumChannels]);
+    
+    // Note: Destination is not.
+    floatDestBuf = (float *)destBuf;
+    
+    numSamplesLeft = numSampleFrames * streamFormat->fNumChannels;
+    
+    const static float divisor = ( 1.0 / 32768 );
+    while (numSamplesLeft > 0) {
+        SInt16 inputSample;
+        inputSample = *inputBuf;
+        
+        if (inputSample >= 0) {
+            *floatDestBuf = inputSample * divisor;
+        }
+        
+        ++inputBuf;
+        ++floatDestBuf;
+        --numSamplesLeft;
+    }
+    
+    return kIOReturnSuccess;
+}
+
 IOAudioStream *XonarAudioEngine::createNewAudioStream(IOAudioStreamDirection direction, void *sampleBuffer, UInt32 sampleBufferSize)
 {
     IOAudioStream *audioStream;
