@@ -148,10 +148,10 @@ class XonarAudioEngine : public IOAudioEngine
     IOFilterInterruptEventSource	*gpioEventSource;
     IOFilterInterruptEventSource	*spdifEventSource;
     //need this for the interrupt handler, as the filterInterrupt OS call doesn't allow us to pass parameters.
-    static void                            *dev_id;
+    void                            *dev_id;
     
 public:
-    struct oxygen* chipData = (struct oxygen*) dev_id;
+    struct oxygen* chipData;// = (struct oxygen*) dev_id;
     
     
     
@@ -194,8 +194,8 @@ public:
     
     UInt16 oxygen_read_ac97(struct oxygen *chip, unsigned int codec,
                             unsigned int index);
-    void oxygen_write_ac97(struct oxygen *chip, unsigned int codec,
-                           unsigned int index, UInt16 data);
+    //void oxygen_write_ac97(struct oxygen *chip, unsigned int codec,
+    //                       unsigned int index, UInt16 data);
     void oxygen_write_ac97_masked(struct oxygen *chip, unsigned int codec,
                                   unsigned int index, UInt16 data, UInt16 mask);
     //static void xonar_line_mic_ac97_switch(struct oxygen *chip,
@@ -205,7 +205,7 @@ public:
                                   struct snd_ctl_elem_value *value);
     int xonar_gpio_bit_switch_put(struct snd_kcontrol *ctl,
                                   struct snd_ctl_elem_value *value);
-    static void oxygen_gpio_changed(void);
+    static void oxygen_gpio_changed(struct oxygen* chip);
     /* model-specific card drivers */
     
     int get_xonar_pcm179x_model(struct oxygen *chip,
@@ -223,7 +223,7 @@ public:
     static void oxygen_read_uart(struct oxygen *chip);
     static void oxygen_write_uart(struct oxygen *chip, UInt8 data);
     
-    static void oxygen_spdif_input_bits_changed(void);
+    static void oxygen_spdif_input_bits_changed(struct oxygen *chip);
     
     
 };

@@ -983,8 +983,9 @@ bool XonarAudioEngine::init(struct oxygen *chip, int model)
     //  ak4396_init(chip);
     //  wm8785_init(chip);
 
+    this->dev_id = chip;
     //save ptr to oxygen struct from PCIDriver into private class var dev_id for interrupthandler
-    dev_id = chip;
+    chipData = (struct oxygen*) this->dev_id;// = chip;
     result = true;
     
 Done:
@@ -1365,18 +1366,18 @@ IOReturn XonarAudioEngine::performFormatChange(IOAudioStream *audioStream, const
     return kIOReturnSuccess;
 }
 
-void XonarAudioEngine::oxygen_gpio_changed(void)
+void XonarAudioEngine::oxygen_gpio_changed(struct oxygen* chip)
 {
-    struct oxygen *chip = (struct oxygen*) dev_id;
+    //struct oxygen *chip; = (struct oxygen*) this->dev_id;
     if (chip->model.gpio_changed)
         chip->model.gpio_changed(chip);
 }
 
 
 //
-void XonarAudioEngine::oxygen_spdif_input_bits_changed(void)
+void XonarAudioEngine::oxygen_spdif_input_bits_changed(struct oxygen* chip)
 {
-    struct oxygen *chip = (struct oxygen*) dev_id;
+    //struct oxygen *chip;// = (struct oxygen*) dev_id;
     UInt32 reg;
     /*
      * This function gets called when there is new activity on the SPDIF
@@ -1447,7 +1448,7 @@ void XonarAudioEngine::interruptHandler(OSObject *owner, IOInterruptEventSource 
 bool XonarAudioEngine::interruptFilter(OSObject *owner, IOFilterInterruptEventSource *src)
 {
     XonarAudioEngine *callingInstance = OSDynamicCast(XonarAudioEngine, owner);
-    struct oxygen *chip = (struct oxygen*)dev_id;
+    struct oxygen *chip;// = (struct oxygen*)dev_id;
     unsigned int status, clear, elapsed_streams, i;
     
     status = oxygen_read16(chip, OXYGEN_INTERRUPT_STATUS);
@@ -1501,7 +1502,7 @@ bool XonarAudioEngine::interruptFilter(OSObject *owner, IOFilterInterruptEventSo
                      * so by using the dynamic cast (thanks osxbook), i hope to recover
                      * the calling (single) class, and then use its member functions to perform
                      * the work. in this case, checking the spdif bits*/
-                    callingInstance->workLoop->runAction((Action)callingInstance->oxygen_spdif_input_bits_changed, 0);
+                    callingInstance->workLoop->runAction((Action)callingInstance->oxygen_spdif_input_bits_changed, callingInstance, callingInstance->dev_id);
                 }
                 OSSpinLockUnlock(&chip->reg_lock);
             }
@@ -1510,7 +1511,7 @@ bool XonarAudioEngine::interruptFilter(OSObject *owner, IOFilterInterruptEventSo
         //Linux call below:
         //schedule_work(&chip->gpio_work);
         //Experimental OSX-equivalent (see note above):
-        callingInstance->workLoop->runAction((Action)callingInstance->oxygen_gpio_changed, 0);
+        callingInstance->workLoop->runAction((Action)callingInstance->oxygen_gpio_changed, callingInstance, callingInstance->dev_id);
         /* Commentary on substituting schedule_work with runAction:
          * This *seems* to make sense, no? runAction runs in a single-threaded context w/in the handler.
          * for OSX it seems we don't even need work_queues because:
