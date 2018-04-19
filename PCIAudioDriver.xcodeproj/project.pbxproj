@@ -1,0 +1,388 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		CE235FA0207DBA0600AF3203 /* PCIAudioDevice.hpp in Headers */ = {isa = PBXBuildFile; fileRef = CE235F9F207DBA0600AF3203 /* PCIAudioDevice.hpp */; };
+		CE235FA2207DBA0600AF3203 /* PCIAudioDevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CE235FA1207DBA0600AF3203 /* PCIAudioDevice.cpp */; };
+		CE44242B207FF78500158F35 /* ak4396.h in Headers */ = {isa = PBXBuildFile; fileRef = CE442427207FF78500158F35 /* ak4396.h */; };
+		CE44242C207FF78500158F35 /* oxygen_regs.h in Headers */ = {isa = PBXBuildFile; fileRef = CE442428207FF78500158F35 /* oxygen_regs.h */; };
+		CE44242E207FF78500158F35 /* wm8785.h in Headers */ = {isa = PBXBuildFile; fileRef = CE44242A207FF78500158F35 /* wm8785.h */; };
+		CE44242F207FF99000158F35 /* XonarAudioEngine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CE442425207FDBE100158F35 /* XonarAudioEngine.cpp */; };
+		CE442430207FF99200158F35 /* XonarAudioEngine.hpp in Headers */ = {isa = PBXBuildFile; fileRef = CE442426207FDBE100158F35 /* XonarAudioEngine.hpp */; };
+		CE4D4758208813BB006016DF /* libsystem_pthread.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = CE4D4757208813BB006016DF /* libsystem_pthread.tbd */; };
+		CE4D475B208813C8006016DF /* libpthread.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = CE4D4759208813C8006016DF /* libpthread.tbd */; };
+		CE4D475C208813C8006016DF /* libsystem_pthread.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = CE4D475A208813C8006016DF /* libsystem_pthread.tbd */; };
+		CEACF3E120806D6D00D01190 /* ac97.h in Headers */ = {isa = PBXBuildFile; fileRef = CEACF3E020806D6D00D01190 /* ac97.h */; };
+		CEACF3E5208074C200D01190 /* cm9780.h in Headers */ = {isa = PBXBuildFile; fileRef = CEACF3E4208074C200D01190 /* cm9780.h */; };
+		CEACF3EC2081216300D01190 /* pcm1796.h in Headers */ = {isa = PBXBuildFile; fileRef = CEACF3E62081216300D01190 /* pcm1796.h */; };
+		CEACF3F32081219A00D01190 /* cs2000.h in Headers */ = {isa = PBXBuildFile; fileRef = CEACF3F22081219A00D01190 /* cs2000.h */; };
+		CEACF3FC20829E4F00D01190 /* XonarSTAudioEngine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEACF3FA20829E4F00D01190 /* XonarSTAudioEngine.cpp */; };
+		CEACF3FF2082A09600D01190 /* XonarSTAudioEngine.hpp in Headers */ = {isa = PBXBuildFile; fileRef = CEACF3FE2082A09600D01190 /* XonarSTAudioEngine.hpp */; };
+		CEACF4052082F65E00D01190 /* XonarHDAVAudioEngine.hpp in Headers */ = {isa = PBXBuildFile; fileRef = CEACF4042082F65E00D01190 /* XonarHDAVAudioEngine.hpp */; };
+		CEACF4072082F67D00D01190 /* XonarHDAVAudioEngine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEACF4062082F67D00D01190 /* XonarHDAVAudioEngine.cpp */; };
+		CEACF40D2083177100D01190 /* XonarD2XAudioEngine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEACF40C2083177100D01190 /* XonarD2XAudioEngine.cpp */; };
+		CEACF40F208317AC00D01190 /* XonarD2XAudioEngine.hpp in Headers */ = {isa = PBXBuildFile; fileRef = CEACF40E208317AC00D01190 /* XonarD2XAudioEngine.hpp */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		CE235F9C207DBA0600AF3203 /* PCIAudioDriver.kext */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PCIAudioDriver.kext; sourceTree = BUILT_PRODUCTS_DIR; };
+		CE235F9F207DBA0600AF3203 /* PCIAudioDevice.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = PCIAudioDevice.hpp; sourceTree = "<group>"; };
+		CE235FA1207DBA0600AF3203 /* PCIAudioDevice.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = PCIAudioDevice.cpp; sourceTree = "<group>"; };
+		CE235FA3207DBA0600AF3203 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		CE442425207FDBE100158F35 /* XonarAudioEngine.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = XonarAudioEngine.cpp; sourceTree = "<group>"; };
+		CE442426207FDBE100158F35 /* XonarAudioEngine.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = XonarAudioEngine.hpp; sourceTree = "<group>"; };
+		CE442427207FF78500158F35 /* ak4396.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ak4396.h; sourceTree = "<group>"; };
+		CE442428207FF78500158F35 /* oxygen_regs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = oxygen_regs.h; sourceTree = "<group>"; };
+		CE44242A207FF78500158F35 /* wm8785.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = wm8785.h; sourceTree = "<group>"; };
+		CE4D4757208813BB006016DF /* libsystem_pthread.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsystem_pthread.tbd; path = usr/lib/system/introspection/libsystem_pthread.tbd; sourceTree = SDKROOT; };
+		CE4D4759208813C8006016DF /* libpthread.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libpthread.tbd; path = usr/lib/libpthread.tbd; sourceTree = SDKROOT; };
+		CE4D475A208813C8006016DF /* libsystem_pthread.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsystem_pthread.tbd; path = usr/lib/system/libsystem_pthread.tbd; sourceTree = SDKROOT; };
+		CEACF3E020806D6D00D01190 /* ac97.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ac97.h; sourceTree = "<group>"; };
+		CEACF3E4208074C200D01190 /* cm9780.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cm9780.h; sourceTree = "<group>"; };
+		CEACF3E62081216300D01190 /* pcm1796.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = pcm1796.h; sourceTree = "<group>"; };
+		CEACF3F22081219A00D01190 /* cs2000.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cs2000.h; sourceTree = "<group>"; };
+		CEACF3FA20829E4F00D01190 /* XonarSTAudioEngine.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = XonarSTAudioEngine.cpp; sourceTree = "<group>"; };
+		CEACF3FE2082A09600D01190 /* XonarSTAudioEngine.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = XonarSTAudioEngine.hpp; sourceTree = "<group>"; };
+		CEACF4042082F65E00D01190 /* XonarHDAVAudioEngine.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = XonarHDAVAudioEngine.hpp; sourceTree = "<group>"; };
+		CEACF4062082F67D00D01190 /* XonarHDAVAudioEngine.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = XonarHDAVAudioEngine.cpp; sourceTree = "<group>"; };
+		CEACF40C2083177100D01190 /* XonarD2XAudioEngine.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = XonarD2XAudioEngine.cpp; sourceTree = "<group>"; };
+		CEACF40E208317AC00D01190 /* XonarD2XAudioEngine.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = XonarD2XAudioEngine.hpp; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		CE235F98207DBA0600AF3203 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CE4D475B208813C8006016DF /* libpthread.tbd in Frameworks */,
+				CE4D475C208813C8006016DF /* libsystem_pthread.tbd in Frameworks */,
+				CE4D4758208813BB006016DF /* libsystem_pthread.tbd in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		CE235F92207DBA0600AF3203 = {
+			isa = PBXGroup;
+			children = (
+				CE4D4759208813C8006016DF /* libpthread.tbd */,
+				CE4D475A208813C8006016DF /* libsystem_pthread.tbd */,
+				CE4D4757208813BB006016DF /* libsystem_pthread.tbd */,
+				CE235F9E207DBA0600AF3203 /* PCIAudioDriver */,
+				CE235F9D207DBA0600AF3203 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		CE235F9D207DBA0600AF3203 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				CE235F9C207DBA0600AF3203 /* PCIAudioDriver.kext */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		CE235F9E207DBA0600AF3203 /* PCIAudioDriver */ = {
+			isa = PBXGroup;
+			children = (
+				CEACF3E020806D6D00D01190 /* ac97.h */,
+				CE442427207FF78500158F35 /* ak4396.h */,
+				CEACF3E4208074C200D01190 /* cm9780.h */,
+				CEACF3F22081219A00D01190 /* cs2000.h */,
+				CE442428207FF78500158F35 /* oxygen_regs.h */,
+				CEACF3E62081216300D01190 /* pcm1796.h */,
+				CE44242A207FF78500158F35 /* wm8785.h */,
+				CEACF4062082F67D00D01190 /* XonarHDAVAudioEngine.cpp */,
+				CEACF4042082F65E00D01190 /* XonarHDAVAudioEngine.hpp */,
+				CE442425207FDBE100158F35 /* XonarAudioEngine.cpp */,
+				CE442426207FDBE100158F35 /* XonarAudioEngine.hpp */,
+				CEACF3FA20829E4F00D01190 /* XonarSTAudioEngine.cpp */,
+				CEACF3FE2082A09600D01190 /* XonarSTAudioEngine.hpp */,
+				CEACF40C2083177100D01190 /* XonarD2XAudioEngine.cpp */,
+				CEACF40E208317AC00D01190 /* XonarD2XAudioEngine.hpp */,
+				CE235FA1207DBA0600AF3203 /* PCIAudioDevice.cpp */,
+				CE235F9F207DBA0600AF3203 /* PCIAudioDevice.hpp */,
+				CE235FA3207DBA0600AF3203 /* Info.plist */,
+			);
+			name = PCIAudioDriver;
+			path = CMI8788;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXHeadersBuildPhase section */
+		CE235F99207DBA0600AF3203 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CEACF3E120806D6D00D01190 /* ac97.h in Headers */,
+				CE44242E207FF78500158F35 /* wm8785.h in Headers */,
+				CEACF3FF2082A09600D01190 /* XonarSTAudioEngine.hpp in Headers */,
+				CEACF3F32081219A00D01190 /* cs2000.h in Headers */,
+				CE442430207FF99200158F35 /* XonarAudioEngine.hpp in Headers */,
+				CE44242B207FF78500158F35 /* ak4396.h in Headers */,
+				CE235FA0207DBA0600AF3203 /* PCIAudioDevice.hpp in Headers */,
+				CEACF40F208317AC00D01190 /* XonarD2XAudioEngine.hpp in Headers */,
+				CE44242C207FF78500158F35 /* oxygen_regs.h in Headers */,
+				CEACF3EC2081216300D01190 /* pcm1796.h in Headers */,
+				CEACF3E5208074C200D01190 /* cm9780.h in Headers */,
+				CEACF4052082F65E00D01190 /* XonarHDAVAudioEngine.hpp in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
+/* Begin PBXNativeTarget section */
+		CE235F9B207DBA0600AF3203 /* PCIAudioDriver */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CE235FA6207DBA0600AF3203 /* Build configuration list for PBXNativeTarget "PCIAudioDriver" */;
+			buildPhases = (
+				CE235F97207DBA0600AF3203 /* Sources */,
+				CE235F98207DBA0600AF3203 /* Frameworks */,
+				CE235F99207DBA0600AF3203 /* Headers */,
+				CE235F9A207DBA0600AF3203 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = PCIAudioDriver;
+			productName = CMI8788;
+			productReference = CE235F9C207DBA0600AF3203 /* PCIAudioDriver.kext */;
+			productType = "com.apple.product-type.kernel-extension";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		CE235F93207DBA0600AF3203 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0720;
+				ORGANIZATIONNAME = CMedia;
+				TargetAttributes = {
+					CE235F9B207DBA0600AF3203 = {
+						CreatedOnToolsVersion = 7.2.1;
+						DevelopmentTeam = 7C2JP6CU5D;
+					};
+				};
+			};
+			buildConfigurationList = CE235F96207DBA0600AF3203 /* Build configuration list for PBXProject "PCIAudioDriver" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = CE235F92207DBA0600AF3203;
+			productRefGroup = CE235F9D207DBA0600AF3203 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				CE235F9B207DBA0600AF3203 /* PCIAudioDriver */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		CE235F9A207DBA0600AF3203 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		CE235F97207DBA0600AF3203 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CEACF40D2083177100D01190 /* XonarD2XAudioEngine.cpp in Sources */,
+				CEACF4072082F67D00D01190 /* XonarHDAVAudioEngine.cpp in Sources */,
+				CE235FA2207DBA0600AF3203 /* PCIAudioDevice.cpp in Sources */,
+				CE44242F207FF99000158F35 /* XonarAudioEngine.cpp in Sources */,
+				CEACF3FC20829E4F00D01190 /* XonarSTAudioEngine.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		CE235FA4207DBA0600AF3203 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.10;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		CE235FA5207DBA0600AF3203 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.10;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		CE235FA7207DBA0600AF3203 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = YES;
+				ARCHS = "$(ARCHS_STANDARD)";
+				CLANG_WARN_OBJC_IMPLICIT_ATOMIC_PROPERTIES = NO;
+				CODE_SIGN_IDENTITY = "";
+				COMBINE_HIDPI_IMAGES = YES;
+				COPY_HEADERS_RUN_UNIFDEF = YES;
+				CURRENT_PROJECT_VERSION = 1.0.0d1;
+				GCC_USE_STANDARD_INCLUDE_SEARCHING = YES;
+				HEADER_SEARCH_PATHS = "";
+				INFOPLIST_FILE = CMI8788/Info.plist;
+				LIBRARY_SEARCH_PATHS = (
+					"$(SDKROOT)/usr/lib/system/introspection",
+					"$(SDKROOT)/usr/lib/system",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.10;
+				MODULE_NAME = PCIAudioDriver;
+				MODULE_VERSION = 1.0.0d1;
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = (
+					"-L/usr/lib",
+					"-lpthread",
+				);
+				PRECOMPS_INCLUDE_HEADERS_FROM_BUILT_PRODUCTS_DIR = NO;
+				PRODUCT_NAME = PCIAudioDriver;
+				PROVISIONING_PROFILE = "";
+				SDKROOT = macosx10.11;
+				USER_HEADER_SEARCH_PATHS = "";
+				WRAPPER_EXTENSION = kext;
+			};
+			name = Debug;
+		};
+		CE235FA8207DBA0600AF3203 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = YES;
+				ARCHS = "$(ARCHS_STANDARD)";
+				CLANG_WARN_OBJC_IMPLICIT_ATOMIC_PROPERTIES = NO;
+				CODE_SIGN_IDENTITY = "";
+				COMBINE_HIDPI_IMAGES = YES;
+				COPY_HEADERS_RUN_UNIFDEF = YES;
+				CURRENT_PROJECT_VERSION = 1.0.0d1;
+				GCC_USE_STANDARD_INCLUDE_SEARCHING = YES;
+				HEADER_SEARCH_PATHS = "";
+				INFOPLIST_FILE = CMI8788/Info.plist;
+				LIBRARY_SEARCH_PATHS = (
+					"$(SDKROOT)/usr/lib/system/introspection",
+					"$(SDKROOT)/usr/lib/system",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.10;
+				MODULE_NAME = PCIAudioDriver;
+				MODULE_VERSION = 1.0.0d1;
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = (
+					"-L/usr/lib",
+					"-lpthread",
+				);
+				PRECOMPS_INCLUDE_HEADERS_FROM_BUILT_PRODUCTS_DIR = NO;
+				PRODUCT_NAME = PCIAudioDriver;
+				PROVISIONING_PROFILE = "";
+				SDKROOT = macosx10.11;
+				USER_HEADER_SEARCH_PATHS = "";
+				WRAPPER_EXTENSION = kext;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		CE235F96207DBA0600AF3203 /* Build configuration list for PBXProject "PCIAudioDriver" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CE235FA4207DBA0600AF3203 /* Debug */,
+				CE235FA5207DBA0600AF3203 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CE235FA6207DBA0600AF3203 /* Build configuration list for PBXNativeTarget "PCIAudioDriver" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CE235FA7207DBA0600AF3203 /* Debug */,
+				CE235FA8207DBA0600AF3203 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = CE235F93207DBA0600AF3203 /* Project object */;
+}
