@@ -97,7 +97,6 @@ public:
     static bool interruptFilter(OSObject *owner, IOFilterInterruptEventSource *source);
     virtual void filterInterrupt(int index);
     
-    virtual void xonar_hdav_init(struct oxygen *chip);
     virtual void xonar_hdav_resume(struct oxygen *chip);
     virtual void set_hdav_params(struct oxygen *chip);
     virtual void xonar_hdav_cleanup(struct oxygen *chip);

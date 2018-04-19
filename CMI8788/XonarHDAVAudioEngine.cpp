@@ -194,6 +194,7 @@ static void xonar_hdmi_uart_input(struct oxygen *chip)
 bool XonarHDAVAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip)
 {
     
+    /* sample driver init code (from SamplePCIAudioEngine.cpp's ::init) */
     bool result = false;
     
     IOLog("XonarHDAVAudioEngine[%p]::init(%p)\n", this, chip);
@@ -205,6 +206,10 @@ bool XonarHDAVAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip)
     if (!super::init(NULL)) {
         goto Done;
     }
+    /* end sample driver template */
+    
+    // as far as i can see, these chips are slightly farther off (not used by
+    // the hdav1.3 deluxe [from what i could discern]).
     //  ak4396_init(chip);
     //  wm8785_init(chip);
     
@@ -212,8 +217,7 @@ bool XonarHDAVAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip)
     deviceRegisters = (struct xonar_hdav*)chip->model_data;
     this->engineInstance = engine;
 
-    xonar_hdav_init(chip);
-    
+    /* begin ALSA oxygen_init code */
     oxygen_write16(chip, OXYGEN_2WIRE_BUS_STATUS,
                    OXYGEN_2WIRE_LENGTH_8 |
                    OXYGEN_2WIRE_INTERRUPT_MASK |
@@ -240,11 +244,13 @@ bool XonarHDAVAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip)
     xonar_hdmi_init(chip, &deviceRegisters->hdmi);
     this->engineInstance->xonar_enable_output(chip);
     result = true;
-    
+    /* end alsa oxygen_init, begin last bit of SamplePCIAudioEngine.cpp's init
+    */
     goto Done;
+    /* last bits of alsa's oxygen_init */
     // snd_component_add(chip->card, "PCM1796");
     // snd_component_add(chip->card, "CS5381");
-    
+    /* begin last bits of APPUL's samplepciaudioengine::init */
 Done:
     return result;
     

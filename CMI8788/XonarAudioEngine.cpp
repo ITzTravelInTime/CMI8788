@@ -985,7 +985,7 @@ bool XonarAudioEngine::init(struct oxygen *chip, int model)
 
     this->dev_id = chip;
     //save ptr to oxygen struct from PCIDriver into private class var dev_id for interrupthandler
-    chipData = (struct oxygen*) this->dev_id;// = chip;
+    chipData = (struct oxygen*) this->dev_id;
     result = true;
     
 Done:

@@ -338,7 +338,7 @@ class XonarAudioEngine;
 class PCIAudioDevice : public IOAudioDevice
 {
     friend class SampleAudioEngine;
-    static XonarAudioEngine            *accessibleEngineInstance;
+    XonarAudioEngine            *accessibleEngineInstance;
     OSDeclareDefaultStructors(PCIAudioDevice)
     
     IOPCIDevice					*pciDevice;
