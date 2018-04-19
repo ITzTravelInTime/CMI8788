@@ -43,10 +43,11 @@
 
 #ifndef _SAMPLEPCIAUDIODEVICE_H
 #define _SAMPLEPCIAUDIODEVICE_H
+#define __APPLE_API_EVOLVING
 #include <libkern/OSAtomic.h>
 #import <stdio.h>
 #define _POSIX_C_SOURCE
-#import <pthread.h>
+#include <pthread.h>
 // to remove conflict with mach_port_t (happens when you use pthreads)
 #include <IOKit/audio/IOAudioDevice.h>
 #include <IOKit/IOWorkLoop.h>
