@@ -55,7 +55,7 @@
 #include <machine/limits.h>
 //#include <kern/waitq.h>
 #include "oxygen_regs.h"
-//#include <libkern/OSAtomic.h>
+#include <libkern/OSAtomic.h>
 #include <pthread.h>
 #import "XonarAudioEngine.hpp"
 #define dev_err(dev, format, args...) do {IOLog("CMI8788: " format, ##args);} while (0)
