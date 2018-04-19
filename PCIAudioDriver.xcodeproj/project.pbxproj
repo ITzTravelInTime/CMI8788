@@ -16,6 +16,9 @@
 		CE442430207FF99200158F35 /* XonarAudioEngine.hpp in Headers */ = {isa = PBXBuildFile; fileRef = CE442426207FDBE100158F35 /* XonarAudioEngine.hpp */; };
 		CE5601832089036E001A5D0D /* libpthread.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE5601812089036E001A5D0D /* libpthread.dylib */; };
 		CE5601842089036E001A5D0D /* libsystem_pthread.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE5601822089036E001A5D0D /* libsystem_pthread.dylib */; };
+		CE560186208905AD001A5D0D /* libsystem_platform.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE560185208905AD001A5D0D /* libsystem_platform.dylib */; };
+		CE56018920890620001A5D0D /* libsystem_c.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE56018720890620001A5D0D /* libsystem_c.dylib */; };
+		CE56018A20890620001A5D0D /* libsystem_kernel.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE56018820890620001A5D0D /* libsystem_kernel.dylib */; };
 		CEACF3E120806D6D00D01190 /* ac97.h in Headers */ = {isa = PBXBuildFile; fileRef = CEACF3E020806D6D00D01190 /* ac97.h */; };
 		CEACF3E5208074C200D01190 /* cm9780.h in Headers */ = {isa = PBXBuildFile; fileRef = CEACF3E4208074C200D01190 /* cm9780.h */; };
 		CEACF3EC2081216300D01190 /* pcm1796.h in Headers */ = {isa = PBXBuildFile; fileRef = CEACF3E62081216300D01190 /* pcm1796.h */; };
@@ -40,6 +43,9 @@
 		CE44242A207FF78500158F35 /* wm8785.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = wm8785.h; sourceTree = "<group>"; };
 		CE5601812089036E001A5D0D /* libpthread.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libpthread.dylib; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.10.sdk/usr/lib/libpthread.dylib; sourceTree = DEVELOPER_DIR; };
 		CE5601822089036E001A5D0D /* libsystem_pthread.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libsystem_pthread.dylib; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.10.sdk/usr/lib/system/libsystem_pthread.dylib; sourceTree = DEVELOPER_DIR; };
+		CE560185208905AD001A5D0D /* libsystem_platform.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libsystem_platform.dylib; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.10.sdk/usr/lib/system/libsystem_platform.dylib; sourceTree = DEVELOPER_DIR; };
+		CE56018720890620001A5D0D /* libsystem_c.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libsystem_c.dylib; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.10.sdk/usr/lib/system/libsystem_c.dylib; sourceTree = DEVELOPER_DIR; };
+		CE56018820890620001A5D0D /* libsystem_kernel.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libsystem_kernel.dylib; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.10.sdk/usr/lib/system/libsystem_kernel.dylib; sourceTree = DEVELOPER_DIR; };
 		CEACF3E020806D6D00D01190 /* ac97.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ac97.h; sourceTree = "<group>"; };
 		CEACF3E4208074C200D01190 /* cm9780.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cm9780.h; sourceTree = "<group>"; };
 		CEACF3E62081216300D01190 /* pcm1796.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = pcm1796.h; sourceTree = "<group>"; };
@@ -57,6 +63,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CE56018920890620001A5D0D /* libsystem_c.dylib in Frameworks */,
+				CE56018A20890620001A5D0D /* libsystem_kernel.dylib in Frameworks */,
+				CE560186208905AD001A5D0D /* libsystem_platform.dylib in Frameworks */,
 				CE5601832089036E001A5D0D /* libpthread.dylib in Frameworks */,
 				CE5601842089036E001A5D0D /* libsystem_pthread.dylib in Frameworks */,
 			);
@@ -68,6 +77,9 @@
 		CE235F92207DBA0600AF3203 = {
 			isa = PBXGroup;
 			children = (
+				CE56018720890620001A5D0D /* libsystem_c.dylib */,
+				CE56018820890620001A5D0D /* libsystem_kernel.dylib */,
+				CE560185208905AD001A5D0D /* libsystem_platform.dylib */,
 				CE5601812089036E001A5D0D /* libpthread.dylib */,
 				CE5601822089036E001A5D0D /* libsystem_pthread.dylib */,
 				CE235F9E207DBA0600AF3203 /* PCIAudioDriver */,
@@ -317,8 +329,14 @@
 				MODULE_NAME = PCIAudioDriver;
 				MODULE_VERSION = 1.0.0d1;
 				ONLY_ACTIVE_ARCH = YES;
-				OTHER_CFLAGS = "";
-				OTHER_CPLUSPLUSFLAGS = "";
+				OTHER_CFLAGS = (
+					"-D__KERNEL__",
+					"-pthread",
+				);
+				OTHER_CPLUSPLUSFLAGS = (
+					"-D__KERNEL__",
+					"-pthread",
+				);
 				OTHER_LDFLAGS = "";
 				PRECOMPS_INCLUDE_HEADERS_FROM_BUILT_PRODUCTS_DIR = NO;
 				PRODUCT_NAME = PCIAudioDriver;
@@ -352,8 +370,14 @@
 				MODULE_NAME = PCIAudioDriver;
 				MODULE_VERSION = 1.0.0d1;
 				ONLY_ACTIVE_ARCH = YES;
-				OTHER_CFLAGS = "";
-				OTHER_CPLUSPLUSFLAGS = "";
+				OTHER_CFLAGS = (
+					"-D__KERNEL__",
+					"-pthread",
+				);
+				OTHER_CPLUSPLUSFLAGS = (
+					"-D__KERNEL__",
+					"-pthread",
+				);
 				OTHER_LDFLAGS = "";
 				PRECOMPS_INCLUDE_HEADERS_FROM_BUILT_PRODUCTS_DIR = NO;
 				PRODUCT_NAME = PCIAudioDriver;
