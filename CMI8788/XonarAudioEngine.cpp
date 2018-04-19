@@ -46,7 +46,6 @@
 #include <libkern/OSByteOrder.h>
 #include <sys/errno.h>
 #include <i386/limits.h>
-#include </usr/include/libkern/OSAtomic.h>
 
 
 #include <IOKit/IOLib.h>
