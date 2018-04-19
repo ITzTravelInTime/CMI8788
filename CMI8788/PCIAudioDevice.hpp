@@ -44,7 +44,7 @@
 #ifndef _SAMPLEPCIAUDIODEVICE_H
 #define _SAMPLEPCIAUDIODEVICE_H
 #define __APPLE_API_EVOLVING
-#include <libkern/OSAtomic.h>
+//#include <libkern/OSAtomic.h>
 #import <stdio.h>
 #define _POSIX_C_SOURCE
 #include <pthread.h>
