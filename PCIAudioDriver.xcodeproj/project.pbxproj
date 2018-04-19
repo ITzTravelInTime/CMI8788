@@ -14,9 +14,6 @@
 		CE44242E207FF78500158F35 /* wm8785.h in Headers */ = {isa = PBXBuildFile; fileRef = CE44242A207FF78500158F35 /* wm8785.h */; };
 		CE44242F207FF99000158F35 /* XonarAudioEngine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CE442425207FDBE100158F35 /* XonarAudioEngine.cpp */; };
 		CE442430207FF99200158F35 /* XonarAudioEngine.hpp in Headers */ = {isa = PBXBuildFile; fileRef = CE442426207FDBE100158F35 /* XonarAudioEngine.hpp */; };
-		CE4D4758208813BB006016DF /* libsystem_pthread.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = CE4D4757208813BB006016DF /* libsystem_pthread.tbd */; };
-		CE4D475B208813C8006016DF /* libpthread.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = CE4D4759208813C8006016DF /* libpthread.tbd */; };
-		CE4D475C208813C8006016DF /* libsystem_pthread.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = CE4D475A208813C8006016DF /* libsystem_pthread.tbd */; };
 		CEACF3E120806D6D00D01190 /* ac97.h in Headers */ = {isa = PBXBuildFile; fileRef = CEACF3E020806D6D00D01190 /* ac97.h */; };
 		CEACF3E5208074C200D01190 /* cm9780.h in Headers */ = {isa = PBXBuildFile; fileRef = CEACF3E4208074C200D01190 /* cm9780.h */; };
 		CEACF3EC2081216300D01190 /* pcm1796.h in Headers */ = {isa = PBXBuildFile; fileRef = CEACF3E62081216300D01190 /* pcm1796.h */; };
@@ -39,9 +36,6 @@
 		CE442427207FF78500158F35 /* ak4396.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ak4396.h; sourceTree = "<group>"; };
 		CE442428207FF78500158F35 /* oxygen_regs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = oxygen_regs.h; sourceTree = "<group>"; };
 		CE44242A207FF78500158F35 /* wm8785.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = wm8785.h; sourceTree = "<group>"; };
-		CE4D4757208813BB006016DF /* libsystem_pthread.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsystem_pthread.tbd; path = usr/lib/system/introspection/libsystem_pthread.tbd; sourceTree = SDKROOT; };
-		CE4D4759208813C8006016DF /* libpthread.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libpthread.tbd; path = usr/lib/libpthread.tbd; sourceTree = SDKROOT; };
-		CE4D475A208813C8006016DF /* libsystem_pthread.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsystem_pthread.tbd; path = usr/lib/system/libsystem_pthread.tbd; sourceTree = SDKROOT; };
 		CEACF3E020806D6D00D01190 /* ac97.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ac97.h; sourceTree = "<group>"; };
 		CEACF3E4208074C200D01190 /* cm9780.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cm9780.h; sourceTree = "<group>"; };
 		CEACF3E62081216300D01190 /* pcm1796.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = pcm1796.h; sourceTree = "<group>"; };
@@ -59,9 +53,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CE4D475B208813C8006016DF /* libpthread.tbd in Frameworks */,
-				CE4D475C208813C8006016DF /* libsystem_pthread.tbd in Frameworks */,
-				CE4D4758208813BB006016DF /* libsystem_pthread.tbd in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -71,9 +62,6 @@
 		CE235F92207DBA0600AF3203 = {
 			isa = PBXGroup;
 			children = (
-				CE4D4759208813C8006016DF /* libpthread.tbd */,
-				CE4D475A208813C8006016DF /* libsystem_pthread.tbd */,
-				CE4D4757208813BB006016DF /* libsystem_pthread.tbd */,
 				CE235F9E207DBA0600AF3203 /* PCIAudioDriver */,
 				CE235F9D207DBA0600AF3203 /* Products */,
 			);
@@ -234,11 +222,13 @@
 				CODE_SIGN_IDENTITY = "-";
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_NS_ASSERTIONS = YES;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_ENABLE_KERNEL_DEVELOPMENT = YES;
+				GCC_NO_COMMON_BLOCKS = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
@@ -254,6 +244,7 @@
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
+				STRIP_STYLE = debugging;
 			};
 			name = Debug;
 		};
@@ -277,10 +268,11 @@
 				CODE_SIGN_IDENTITY = "-";
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_NS_ASSERTIONS = YES;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
-				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_ENABLE_KERNEL_DEVELOPMENT = YES;
+				GCC_NO_COMMON_BLOCKS = NO;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
@@ -290,6 +282,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = macosx;
+				STRIP_STYLE = debugging;
 			};
 			name = Release;
 		};
@@ -297,30 +290,30 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = YES;
-				ARCHS = "$(ARCHS_STANDARD)";
+				ARCHS = "$(NATIVE_ARCH_ACTUAL)";
+				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_WARN_OBJC_IMPLICIT_ATOMIC_PROPERTIES = NO;
 				CODE_SIGN_IDENTITY = "";
 				COMBINE_HIDPI_IMAGES = YES;
-				COPY_HEADERS_RUN_UNIFDEF = YES;
+				COPY_HEADERS_RUN_UNIFDEF = NO;
 				CURRENT_PROJECT_VERSION = 1.0.0d1;
 				GCC_USE_STANDARD_INCLUDE_SEARCHING = YES;
+				GENERATE_MASTER_OBJECT_FILE = NO;
 				HEADER_SEARCH_PATHS = "";
 				INFOPLIST_FILE = CMI8788/Info.plist;
-				LIBRARY_SEARCH_PATHS = (
-					"$(SDKROOT)/usr/lib/system/introspection",
-					"$(SDKROOT)/usr/lib/system",
-				);
-				MACOSX_DEPLOYMENT_TARGET = 10.10;
+				LIBRARY_SEARCH_PATHS = "";
+				LINK_WITH_STANDARD_LIBRARIES = NO;
+				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				MODULE_NAME = PCIAudioDriver;
 				MODULE_VERSION = 1.0.0d1;
-				ONLY_ACTIVE_ARCH = NO;
-				OTHER_LDFLAGS = (
-					"-L/usr/lib",
-					"-lpthread",
-				);
+				ONLY_ACTIVE_ARCH = YES;
+				OTHER_CFLAGS = "";
+				OTHER_CPLUSPLUSFLAGS = "-pthread";
+				OTHER_LDFLAGS = "";
 				PRECOMPS_INCLUDE_HEADERS_FROM_BUILT_PRODUCTS_DIR = NO;
 				PRODUCT_NAME = PCIAudioDriver;
 				PROVISIONING_PROFILE = "";
+				SCAN_ALL_SOURCE_FILES_FOR_INCLUDES = NO;
 				SDKROOT = macosx10.11;
 				USER_HEADER_SEARCH_PATHS = "";
 				WRAPPER_EXTENSION = kext;
@@ -331,30 +324,30 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = YES;
-				ARCHS = "$(ARCHS_STANDARD)";
+				ARCHS = "$(NATIVE_ARCH_ACTUAL)";
+				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_WARN_OBJC_IMPLICIT_ATOMIC_PROPERTIES = NO;
 				CODE_SIGN_IDENTITY = "";
 				COMBINE_HIDPI_IMAGES = YES;
-				COPY_HEADERS_RUN_UNIFDEF = YES;
+				COPY_HEADERS_RUN_UNIFDEF = NO;
 				CURRENT_PROJECT_VERSION = 1.0.0d1;
 				GCC_USE_STANDARD_INCLUDE_SEARCHING = YES;
+				GENERATE_MASTER_OBJECT_FILE = NO;
 				HEADER_SEARCH_PATHS = "";
 				INFOPLIST_FILE = CMI8788/Info.plist;
-				LIBRARY_SEARCH_PATHS = (
-					"$(SDKROOT)/usr/lib/system/introspection",
-					"$(SDKROOT)/usr/lib/system",
-				);
-				MACOSX_DEPLOYMENT_TARGET = 10.10;
+				LIBRARY_SEARCH_PATHS = "";
+				LINK_WITH_STANDARD_LIBRARIES = NO;
+				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				MODULE_NAME = PCIAudioDriver;
 				MODULE_VERSION = 1.0.0d1;
-				ONLY_ACTIVE_ARCH = NO;
-				OTHER_LDFLAGS = (
-					"-L/usr/lib",
-					"-lpthread",
-				);
+				ONLY_ACTIVE_ARCH = YES;
+				OTHER_CFLAGS = "";
+				OTHER_CPLUSPLUSFLAGS = "-pthread";
+				OTHER_LDFLAGS = "";
 				PRECOMPS_INCLUDE_HEADERS_FROM_BUILT_PRODUCTS_DIR = NO;
 				PRODUCT_NAME = PCIAudioDriver;
 				PROVISIONING_PROFILE = "";
+				SCAN_ALL_SOURCE_FILES_FOR_INCLUDES = NO;
 				SDKROOT = macosx10.11;
 				USER_HEADER_SEARCH_PATHS = "";
 				WRAPPER_EXTENSION = kext;

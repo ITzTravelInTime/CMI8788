@@ -25,7 +25,7 @@
 			<key>IOClass</key>
 			<string>com_CMedia_CMI8788_PCIAudioDevice</string>
 			<key>IOPCIMatch</key>
-			<string>0x121113F6</string>
+			<string>0x878813F6</string>
 			<key>IOProviderClass</key>
 			<string>IOPCIDevice</string>
 		</dict>
@@ -38,9 +38,11 @@
 		<string>203.3</string>
 		<key>com.apple.iokit.IOPCIFamily</key>
 		<string>2.9</string>
-		<key>com.apple.kpi.iokit</key>
+		<key>com.apple.kernel.iokit</key>
 		<string>14.5</string>
-		<key>com.apple.kpi.libkern</key>
+		<key>com.apple.kernel.libkern</key>
+		<string>14.5</string>
+		<key>com.apple.kpi</key>
 		<string>14.5</string>
 	</dict>
 </dict>
