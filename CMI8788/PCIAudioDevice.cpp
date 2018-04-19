@@ -428,7 +428,7 @@ IOReturn PCIAudioDevice::volumeChanged(IOAudioControl *volumeControl, XonarAudio
     
     
     // Add hardware volume code change
-    struct oxygen *chip = (struct oxygen*)engine->chipData;
+    struct oxygen *chip = engine->chipData;
     unsigned int i;
     int changed;
     
