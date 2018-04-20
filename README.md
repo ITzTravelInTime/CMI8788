@@ -3,9 +3,6 @@ CMI8788 ALSA driver port to APPUL (Apple) Macintosh (MAC) OSX
 
 still a work in progress (need to add gpio/spdif queues to IOWorkLoop and add mixer/pcm stuff)
 
-
-*looks/squints through semi-spock handsign (rotated clockwise 90degrees [palms inward])*
-
 all code belongs to Clemens Ladisch (clemens@ladisch.de).
 
 i'm pretty sure Clemens Ladisch is JUHMAHN for "fucking masher" ;)
