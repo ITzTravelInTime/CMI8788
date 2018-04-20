@@ -51,8 +51,6 @@
 #include <IOKit/IOWorkLoop.h>
 #include <IOKit/IOLocks.h>
 #include <sys/types.h>
-//#include <mach/semaphore.h>
-//#include <mach/task.h>
 #include <architecture/i386/pio.h>
 #include <sys/errno.h>
 #include <machine/limits.h>
