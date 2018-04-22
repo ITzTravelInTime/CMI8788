@@ -731,7 +731,6 @@ bool XonarAudioEngine::init(struct oxygen *chip, int model)
     //if i can get a single model to work, i'll add others....
     if(model == HDAV_MODEL) {
         //code from get_xonar_pcm179x_model portions (case 0x8314)
-        
         /*these are the relevant attributes from the xonar_model_hdav struct.
          *some of the function pointers in the xonar_model struct may not be needed
          *as OSX has its own way of instantiating volume controls/mixers. however,
@@ -784,6 +783,7 @@ bool XonarAudioEngine::init(struct oxygen *chip, int model)
         chip->model.adc_mclks = OXYGEN_MCLKS(256, 128, 128);
         chip->model.dac_i2s_format = OXYGEN_I2S_FORMAT_I2S;
         chip->model.adc_i2s_format = OXYGEN_I2S_FORMAT_LJUST;
+        //TODO: add cases 0x835c (STX) 0x835d (ST[+h6]) 0x85f4 (STX II[+H6])
         
     }
     else if (model == D2_MODEL || model == D2X_MODEL || model == XENSE_MODEL) {
@@ -806,6 +806,7 @@ bool XonarAudioEngine::init(struct oxygen *chip, int model)
         chip->model.adc_mclks = OXYGEN_MCLKS(256, 128, 128);
         chip->model.dac_i2s_format = OXYGEN_I2S_FORMAT_I2S;
         chip->model.adc_i2s_format = OXYGEN_I2S_FORMAT_LJUST;
+        //TODO: add cases 0x8269 (D2), 0x82b7 (D2X) and 0x8428 (Xense)
     }
     
     pthread_mutex_init(&chip->mutex,NULL);
