@@ -767,7 +767,8 @@ bool XonarAudioEngine::init(struct oxygen *chip, int model)
         }
         
     }
-    else if (model == ST_MODEL || model == STX_MODEL || model == STX2_MODEL) {
+    else if (model == ST_MODEL || model == STX_MODEL || model == STX2_MODEL
+             || model == XENSE_MODEL) {
         chip->model.model_data_size = sizeof(struct xonar_pcm179x);
         chip->model.device_config = PLAYBACK_0_TO_I2S |
         PLAYBACK_1_TO_SPDIF |
@@ -838,8 +839,19 @@ bool XonarAudioEngine::init(struct oxygen *chip, int model)
         }
         //end 0x85f4
         
+        //0x8428
+        else if(model == XENSE_MODEL) {
+            chip->model.shortname = "Xonar Xense";
+            //not sure if we'll need the three lines below yet
+            /*chip->model.chip = "AV100";
+            chip->model.init = xonar_xense_init;
+            chip->model.mixer_init = xonar_xense_mixer_init; */
+
+        }
+        //end 0x8428
+        
     }
-    else if (model == D2_MODEL || model == D2X_MODEL || model == XENSE_MODEL) {
+    else if (model == D2_MODEL || model == D2X_MODEL) {
         chip->model.model_data_size = sizeof(struct xonar_pcm179x);
         chip->model.device_config = PLAYBACK_0_TO_I2S |
         PLAYBACK_1_TO_SPDIF |
@@ -861,18 +873,15 @@ bool XonarAudioEngine::init(struct oxygen *chip, int model)
         chip->model.adc_i2s_format = OXYGEN_I2S_FORMAT_LJUST;
         
         //0x8269
-        //end 0x8269
         if(model == D2_MODEL)
             chip->model.shortname = "Xonar D2";
+        //end 0x8269
+
+        //0x82b7
         else if (model == D2X_MODEL)
             chip->model.shortname = "Xonar D2X";
-        else if (model == XENSE_MODEL) {
-        }
-        //0x82b7
         //end 0x82b7
-        
-        //0x8428
-        //end 0x8428
+
     }
     
     pthread_mutex_init(&chip->mutex,NULL);
