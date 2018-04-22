@@ -210,21 +210,20 @@ bool XonarD2XAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip, ui
     }
     
     if(submodel == D2_MODEL)
-        xonar_d2_init(chip, engineInstance);
+        xonar_d2_init(chip, engine);
     if(submodel == D2X_MODEL) {
         data->generic.ext_power_reg = OXYGEN_GPIO_DATA;
         data->generic.ext_power_int_reg = OXYGEN_GPIO_INTERRUPT_MASK;
         data->generic.ext_power_bit = GPIO_D2X_EXT_POWER;
         oxygen_clear_bits16(chip, OXYGEN_GPIO_CONTROL, GPIO_D2X_EXT_POWER);
-        engineInstance->xonar_init_ext_power(chip);
-        xonar_d2_init(chip, engineInstance);
+        engine->xonar_init_ext_power(chip);
+        xonar_d2_init(chip, engine);
     }
     if(submodel == XENSE_MODEL) {
         data->generic.ext_power_reg = OXYGEN_GPI_DATA;
         data->generic.ext_power_int_reg = OXYGEN_GPI_INTERRUPT_MASK;
         data->generic.ext_power_bit = GPI_EXT_POWER;
-        this->engineInstance = engineInstance;
-        this->engineInstance->xonar_init_ext_power(chip);
+        engine->xonar_init_ext_power(chip);
         
         data->generic.anti_pop_delay = 100;
         data->has_cs2000 = 1;
@@ -238,14 +237,14 @@ bool XonarD2XAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip, ui
                        OXYGEN_I2S_MASTER |
                        OXYGEN_I2S_BCLK_64);
         
-        this->STengineInstance->xonar_st_init_i2c(chip,engineInstance);
-        this->engineInstance->cs2000_registers_init(chip);
+        this->STengineInstance->xonar_st_init_i2c(chip,engine);
+        engine->cs2000_registers_init(chip);
         
         data->generic.output_enable_bit = GPIO_XENSE_OUTPUT_ENABLE;
         data->dacs = 1;
         data->hp_gain_offset = 2*-18;
         
-        this->engineInstance->pcm1796_init(chip);
+        engine->pcm1796_init(chip);
         
         oxygen_set_bits16(chip, OXYGEN_GPIO_CONTROL,
                           GPIO_INPUT_ROUTE | GPIO_ST_HP_REAR |
@@ -254,8 +253,8 @@ bool XonarD2XAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip, ui
                             GPIO_INPUT_ROUTE | GPIO_ST_HP_REAR |
                             GPIO_XENSE_SPEAKERS);
         
-        this->engineInstance->xonar_init_cs53x1(chip);
-        this->engineInstance->xonar_enable_output(chip);
+        engine->xonar_init_cs53x1(chip);
+        engine->xonar_enable_output(chip);
         
         //   snd_component_add(chip->card, "PCM1796");
         //   snd_component_add(chip->card, "CS5381");

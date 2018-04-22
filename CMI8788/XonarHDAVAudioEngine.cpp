@@ -215,7 +215,6 @@ bool XonarHDAVAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip)
     
     chip->model_data = IOMalloc(chip->model.model_data_size);
     deviceRegisters = (struct xonar_hdav*)chip->model_data;
-    this->engineInstance = engine;
 
     /* begin ALSA oxygen_init code */
     oxygen_write16(chip, OXYGEN_2WIRE_BUS_STATUS,
@@ -233,16 +232,17 @@ bool XonarHDAVAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip)
     //assign fn ptr uart_input to xonar_hdmi_uart_input
     chip->model.uart_input = xonar_hdmi_uart_input;
     
-    this->engineInstance->pcm1796_init(chip);
+    engine->pcm1796_init(chip);
     
     oxygen_set_bits16(chip, OXYGEN_GPIO_CONTROL,
                       GPIO_HDAV_MAGIC | GPIO_INPUT_ROUTE);
     oxygen_clear_bits16(chip, OXYGEN_GPIO_DATA, GPIO_INPUT_ROUTE);
     
-    this->engineInstance->xonar_init_cs53x1(chip);
-    this->engineInstance->xonar_init_ext_power(chip);
+    engine->xonar_init_cs53x1(chip);
+    engine->xonar_init_ext_power(chip);
     xonar_hdmi_init(chip, &deviceRegisters->hdmi);
-    this->engineInstance->xonar_enable_output(chip);
+    engine->xonar_enable_output(chip);
+    this->engineInstance = engine;
     result = true;
     /* end alsa oxygen_init, begin last bit of SamplePCIAudioEngine.cpp's init
     */
