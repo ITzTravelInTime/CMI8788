@@ -766,10 +766,7 @@ bool XonarAudioEngine::init(struct oxygen *chip, int model)
                 chip->model.dac_mclks = OXYGEN_MCLKS(256, 128, 128);
                 break;
         }
-        
-        pthread_mutex_init(&chip->mutex,NULL);
-        pthread_mutex_init(&chip->ac97_mutex,NULL);
-        pthread_cond_init(&chip->ac97_condition,NULL);
+
     }
     else if (model == ST_MODEL || model == STX_MODEL) {
         chip->model.model_data_size = sizeof(struct xonar_pcm179x);
@@ -810,6 +807,10 @@ bool XonarAudioEngine::init(struct oxygen *chip, int model)
         chip->model.dac_i2s_format = OXYGEN_I2S_FORMAT_I2S;
         chip->model.adc_i2s_format = OXYGEN_I2S_FORMAT_LJUST;
     }
+    
+    pthread_mutex_init(&chip->mutex,NULL);
+    pthread_mutex_init(&chip->ac97_mutex,NULL);
+    pthread_cond_init(&chip->ac97_condition,NULL);
     
     //begin oxygen_init
     unsigned int i;

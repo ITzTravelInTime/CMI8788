@@ -345,9 +345,6 @@ bool XonarSTAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip, uin
     //  wm8785_init(chip);
     deviceRegisters = (struct xonar_pcm179x*)chip->model_data;
     
-    // the below aren't correct. have to bridge the workqueue calls to IOWorkLoop
-    //queue_init(&chip->ac97_waitqueue);
-    pthread_mutex_init(&chip->mutex,NULL);
     //set the pointer to XonarAudioEngine.
     this->engineInstance = engine;
     

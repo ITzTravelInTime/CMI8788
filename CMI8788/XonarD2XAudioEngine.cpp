@@ -200,8 +200,6 @@ bool XonarD2XAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip, ui
     bool result = false;
     struct xonar_pcm179x *data = (struct xonar_pcm179x*)chip->model_data;
     IOLog("XonarD2XAudioEngine[%p]::init(%p)\n", this, chip);
-    //set the pointer to XonarAudioEngine.
-    this->engineInstance = engine;
     
     if (!chip) {
         goto Done;
@@ -268,6 +266,8 @@ bool XonarD2XAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip, ui
     //  wm8785_init(chip);
     deviceRegisters = (struct xonar_pcm179x*)chip->model_data;
     
+    //set the pointer to XonarAudioEngine.
+    this->engineInstance = engine;
     
     result = true;
     
