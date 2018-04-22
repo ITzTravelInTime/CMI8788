@@ -99,8 +99,6 @@ public:
     virtual void filterInterrupt(int index);
     
     static void xonar_d2_init(struct oxygen *chip, XonarAudioEngine *engineInstance);
-    static void xonar_d2x_init(struct oxygen *chip, XonarAudioEngine *engineInstance);
-    virtual void xonar_xense_init(struct oxygen *chip, XonarAudioEngine *engineInstance);
     static int xonar_d2_mixer_init(struct oxygen *chip, XonarAudioEngine *engineInstance);
     
     static void xonar_d2_cleanup(struct oxygen *chip, XonarAudioEngine *engineInstance);

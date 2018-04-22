@@ -160,6 +160,7 @@ void XonarD2XAudioEngine::xonar_d2_resume(struct oxygen *chip, XonarAudioEngine 
  }
  */
 
+
 int XonarD2XAudioEngine::xonar_d2_mixer_init(struct oxygen *chip, XonarAudioEngine *engineInstance)
 {
     int err;
@@ -171,6 +172,27 @@ int XonarD2XAudioEngine::xonar_d2_mixer_init(struct oxygen *chip, XonarAudioEngi
     if (err < 0)
         return err;
     return 0;
+}
+
+void XonarD2XAudioEngine::xonar_d2_init(struct oxygen *chip, XonarAudioEngine *engineInstance) {
+    
+    struct xonar_pcm179x *data = (struct xonar_pcm179x*)chip->model_data;
+    data->generic.anti_pop_delay = 300;
+    data->generic.output_enable_bit = GPIO_D2_OUTPUT_ENABLE;
+    data->dacs = 4;
+    
+    engineInstance->pcm1796_init(chip);
+    
+    oxygen_set_bits16(chip, OXYGEN_GPIO_CONTROL, GPIO_D2_ALT);
+    oxygen_clear_bits16(chip, OXYGEN_GPIO_DATA, GPIO_D2_ALT);
+    
+    //oxygen_ac97_set_bits(chip, 0, CM9780_JACK, CM9780_FMIC2MIC);
+    
+    engineInstance->xonar_init_cs53x1(chip);
+    engineInstance->xonar_enable_output(chip);
+    
+    //  snd_component_add(chip->card, "PCM1796");
+    // snd_component_add(chip->card, "CS5381");
 }
 
 bool XonarD2XAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip, uint8_t submodel)
@@ -188,22 +210,7 @@ bool XonarD2XAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip, ui
     }
     
     if(submodel == D2_MODEL) {
-        data->generic.anti_pop_delay = 300;
-        data->generic.output_enable_bit = GPIO_D2_OUTPUT_ENABLE;
-        data->dacs = 4;
         
-        engineInstance->pcm1796_init(chip);
-        
-        oxygen_set_bits16(chip, OXYGEN_GPIO_CONTROL, GPIO_D2_ALT);
-        oxygen_clear_bits16(chip, OXYGEN_GPIO_DATA, GPIO_D2_ALT);
-        
-        //oxygen_ac97_set_bits(chip, 0, CM9780_JACK, CM9780_FMIC2MIC);
-        
-        engineInstance->xonar_init_cs53x1(chip);
-        engineInstance->xonar_enable_output(chip);
-        
-        //  snd_component_add(chip->card, "PCM1796");
-        // snd_component_add(chip->card, "CS5381");
 
     }
     if(submodel == D2X_MODEL) {
