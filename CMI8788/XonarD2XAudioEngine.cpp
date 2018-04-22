@@ -200,6 +200,8 @@ bool XonarD2XAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip, ui
     bool result = false;
     struct xonar_pcm179x *data = (struct xonar_pcm179x*)chip->model_data;
     IOLog("XonarD2XAudioEngine[%p]::init(%p)\n", this, chip);
+    //set the pointer to XonarAudioEngine.
+    this->engineInstance = engine;
     
     if (!chip) {
         goto Done;
@@ -209,10 +211,8 @@ bool XonarD2XAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip, ui
         goto Done;
     }
     
-    if(submodel == D2_MODEL) {
-        
-
-    }
+    if(submodel == D2_MODEL)
+        xonar_d2_init(chip, engineInstance);
     if(submodel == D2X_MODEL) {
         data->generic.ext_power_reg = OXYGEN_GPIO_DATA;
         data->generic.ext_power_int_reg = OXYGEN_GPIO_INTERRUPT_MASK;
@@ -266,11 +266,8 @@ bool XonarD2XAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip, ui
     
     //  ak4396_init(chip);
     //  wm8785_init(chip);
-    deviceRegisters = (struct xonar_hdav*)chip->model_data;
+    deviceRegisters = (struct xonar_pcm179x*)chip->model_data;
     
-    // the below aren't correct. have to bridge the workqueue calls to IOWorkLoop
-    //set the pointer to XonarAudioEngine.
-    this->engineInstance = engine;
     
     result = true;
     

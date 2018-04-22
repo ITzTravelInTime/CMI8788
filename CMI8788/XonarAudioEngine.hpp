@@ -120,6 +120,7 @@ struct xonar_hdav {
 #define D2_MODEL    3
 #define D2X_MODEL   4
 #define XENSE_MODEL 5
+#define XONAR_GENERIC 6
 
 //objective C does not use the bitwise operator
 // so i am simply declaring SNDRV_PCM_FORMAT as-is

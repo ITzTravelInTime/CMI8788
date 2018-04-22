@@ -61,7 +61,7 @@ class XonarSTAudioEngine : public IOAudioEngine
 {
     friend class XonarD2XAudioEngine;
     OSDeclareDefaultStructors(XonarSTAudioEngine)
-    struct xonar_hdav                   *deviceRegisters;
+    struct xonar_pcm179x                   *deviceRegisters;
     //right now i've created 4 since there are 4 I2S input buffers
     // however, i am not sure how to incorporate them yet,
     // as i have to (probably) create an ioaudiostream for each
