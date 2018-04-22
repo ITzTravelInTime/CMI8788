@@ -87,70 +87,6 @@ void XonarD2XAudioEngine::xonar_d2_resume(struct oxygen *chip, XonarAudioEngine 
 }
 
 /*
- static int xense_output_switch_get(struct snd_kcontrol *ctl,
- struct snd_ctl_elem_value *value)
- {
- struct oxygen *chip = ctl->private_data;
- UInt16 gpio;
- 
- gpio = oxygen_read16(chip, OXYGEN_GPIO_DATA);
- if (gpio & GPIO_XENSE_SPEAKERS)
- value->value.enumerated.item[0] = 0;
- else if (!(gpio & GPIO_XENSE_SPEAKERS) && (gpio & GPIO_ST_HP_REAR))
- value->value.enumerated.item[0] = 1;
- else
- value->value.enumerated.item[0] = 2;
- return 0;
- }
- 
- static int xense_output_switch_put(struct snd_kcontrol *ctl,
- struct snd_ctl_elem_value *value)
- {
- struct oxygen *chip = ctl->private_data;
- struct xonar_pcm179x *data = chip->model_data;
- UInt16 gpio_old, gpio;
- 
- mutex_lock(&chip->mutex);
- gpio_old = oxygen_read16(chip, OXYGEN_GPIO_DATA);
- gpio = gpio_old;
- switch (value->value.enumerated.item[0]) {
- case 0:
- gpio |= GPIO_XENSE_SPEAKERS | GPIO_ST_HP_REAR;
- break;
- case 1:
- gpio = (gpio | GPIO_ST_HP_REAR) & ~GPIO_XENSE_SPEAKERS;
- break;
- case 2:
- gpio &= ~(GPIO_XENSE_SPEAKERS | GPIO_ST_HP_REAR);
- break;
- }
- oxygen_write16(chip, OXYGEN_GPIO_DATA, gpio);
- data->hp_active = !(gpio & GPIO_XENSE_SPEAKERS);
- update_pcm1796_volume(chip);
- mutex_unlock(&chip->mutex);
- return gpio != gpio_old;
- }
- 
- static const struct snd_kcontrol_new xense_controls[] = {
- {
- .iface = SNDRV_CTL_ELEM_IFACE_MIXER,
- .name = "Analog Output",
- .info = st_output_switch_info,
- .get = xense_output_switch_get,
- .put = xense_output_switch_put,
- },
- {
- .iface = SNDRV_CTL_ELEM_IFACE_MIXER,
- .name = "Headphones Impedance Playback Enum",
- .info = st_hp_volume_offset_info,
- .get = st_hp_volume_offset_get,
- .put = st_hp_volume_offset_put,
- },
- };
- 
- 
- 
- 
  static int xonar_d2_control_filter(struct snd_kcontrol_new *template)
  {
  if (!strncmp(template->name, "CD Capture ", 11))
@@ -218,47 +154,6 @@ bool XonarD2XAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip, ui
         oxygen_clear_bits16(chip, OXYGEN_GPIO_CONTROL, GPIO_D2X_EXT_POWER);
         engine->xonar_init_ext_power(chip);
         xonar_d2_init(chip, engine);
-    }
-    if(submodel == XENSE_MODEL) {
-        data->generic.ext_power_reg = OXYGEN_GPI_DATA;
-        data->generic.ext_power_int_reg = OXYGEN_GPI_INTERRUPT_MASK;
-        data->generic.ext_power_bit = GPI_EXT_POWER;
-        engine->xonar_init_ext_power(chip);
-        
-        data->generic.anti_pop_delay = 100;
-        data->has_cs2000 = 1;
-        data->cs2000_regs[CS2000_FUN_CFG_1] = CS2000_REF_CLK_DIV_1;
-        
-        oxygen_write16(chip, OXYGEN_I2S_A_FORMAT,
-                       OXYGEN_RATE_48000 |
-                       OXYGEN_I2S_FORMAT_I2S |
-                       OXYGEN_I2S_MCLK(MCLK_512) |
-                       OXYGEN_I2S_BITS_16 |
-                       OXYGEN_I2S_MASTER |
-                       OXYGEN_I2S_BCLK_64);
-        
-        this->STengineInstance->xonar_st_init_i2c(chip,engine);
-        engine->cs2000_registers_init(chip);
-        
-        data->generic.output_enable_bit = GPIO_XENSE_OUTPUT_ENABLE;
-        data->dacs = 1;
-        data->hp_gain_offset = 2*-18;
-        
-        engine->pcm1796_init(chip);
-        
-        oxygen_set_bits16(chip, OXYGEN_GPIO_CONTROL,
-                          GPIO_INPUT_ROUTE | GPIO_ST_HP_REAR |
-                          GPIO_ST_MAGIC | GPIO_XENSE_SPEAKERS);
-        oxygen_clear_bits16(chip, OXYGEN_GPIO_DATA,
-                            GPIO_INPUT_ROUTE | GPIO_ST_HP_REAR |
-                            GPIO_XENSE_SPEAKERS);
-        
-        engine->xonar_init_cs53x1(chip);
-        engine->xonar_enable_output(chip);
-        
-        //   snd_component_add(chip->card, "PCM1796");
-        //   snd_component_add(chip->card, "CS5381");
-        //  snd_component_add(chip->card, "CS2000");
     }
     
     //  ak4396_init(chip);

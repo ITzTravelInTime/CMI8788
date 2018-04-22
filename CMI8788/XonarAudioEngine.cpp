@@ -765,9 +765,9 @@ bool XonarAudioEngine::init(struct oxygen *chip, int model)
                 chip->model.dac_mclks = OXYGEN_MCLKS(256, 128, 128);
                 break;
         }
-
+        
     }
-    else if (model == ST_MODEL || model == STX_MODEL) {
+    else if (model == ST_MODEL || model == STX_MODEL || model == STX2_MODEL) {
         chip->model.model_data_size = sizeof(struct xonar_pcm179x);
         chip->model.device_config = PLAYBACK_0_TO_I2S |
         PLAYBACK_1_TO_SPDIF |
@@ -784,6 +784,59 @@ bool XonarAudioEngine::init(struct oxygen *chip, int model)
         chip->model.dac_i2s_format = OXYGEN_I2S_FORMAT_I2S;
         chip->model.adc_i2s_format = OXYGEN_I2S_FORMAT_LJUST;
         //TODO: add cases 0x835c (STX) 0x835d (ST[+h6]) 0x85f4 (STX II[+H6])
+        
+        //0x835d
+        if(model == ST_MODEL) {
+            oxygen_clear_bits16(chip, OXYGEN_GPIO_CONTROL, GPIO_DB_MASK);
+            switch (oxygen_read16(chip, OXYGEN_GPIO_DATA) & GPIO_DB_MASK) {
+                default:
+                    chip->model.shortname = "Xonar ST";
+                    break;
+                case GPIO_DB_H6:
+                    chip->model.shortname = "Xonar ST+H6";
+                    //still have to figure out all the controls; commenting this
+                    //out for now.
+                    //chip->model.control_filter = xonar_st_h6_control_filter;
+                    chip->model.dac_channels_pcm = 8;
+                    chip->model.dac_channels_mixer = 8;
+                    chip->model.dac_volume_min = 255;
+                    chip->model.dac_mclks = OXYGEN_MCLKS(256, 128, 128);
+                    break;
+            }
+        }
+        //end 0x835d
+        
+        //0x835c
+        else if(model == STX_MODEL) {
+            chip->model.shortname = "Xonar STX";
+            // not sure if we'll need the three lines below */
+            /*chip->model.init = xonar_stx_init;
+             chip->model.resume = xonar_stx_resume;
+             chip->model.set_dac_params = set_pcm1796_params;*/
+        }
+        //end 0x835c
+        
+        //0x85f4
+        else if(model == STX2_MODEL) {
+            oxygen_clear_bits16(chip, OXYGEN_GPIO_CONTROL, GPIO_DB_MASK);
+            switch (oxygen_read16(chip, OXYGEN_GPIO_DATA) & GPIO_DB_MASK) {
+                default:
+                    chip->model.shortname = "Xonar STX II";
+                    break;
+                case GPIO_DB_H6:
+                    chip->model.shortname = "Xonar STX II+H6";
+                    chip->model.dac_channels_pcm = 8;
+                    chip->model.dac_channels_mixer = 8;
+                    chip->model.dac_mclks = OXYGEN_MCLKS(256, 128, 128);
+                    break;
+            }
+            //similar to what i stated in 0x835c: not sure if we'll need these
+            //yet
+            /*chip->model.init = xonar_stx_init;
+             chip->model.resume = xonar_stx_resume;
+             chip->model.set_dac_params = set_pcm1796_params;*/
+        }
+        //end 0x85f4
         
     }
     else if (model == D2_MODEL || model == D2X_MODEL || model == XENSE_MODEL) {
@@ -806,7 +859,20 @@ bool XonarAudioEngine::init(struct oxygen *chip, int model)
         chip->model.adc_mclks = OXYGEN_MCLKS(256, 128, 128);
         chip->model.dac_i2s_format = OXYGEN_I2S_FORMAT_I2S;
         chip->model.adc_i2s_format = OXYGEN_I2S_FORMAT_LJUST;
-        //TODO: add cases 0x8269 (D2), 0x82b7 (D2X) and 0x8428 (Xense)
+        
+        //0x8269
+        //end 0x8269
+        if(model == D2_MODEL)
+            chip->model.shortname = "Xonar D2";
+        else if (model == D2X_MODEL)
+            chip->model.shortname = "Xonar D2X";
+        else if (model == XENSE_MODEL) {
+        }
+        //0x82b7
+        //end 0x82b7
+        
+        //0x8428
+        //end 0x8428
     }
     
     pthread_mutex_init(&chip->mutex,NULL);
