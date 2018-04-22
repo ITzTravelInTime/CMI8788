@@ -114,8 +114,13 @@ struct xonar_hdav {
 
 #define PCM1796_REG_BASE	16
 
-#define HDAV_MODEL 0
-#define ST_MODEL 1
+#define HDAV_MODEL  0
+#define ST_MODEL    1
+#define STX_MODEL   2
+#define D2_MODEL    3
+#define D2X_MODEL   4
+#define XENSE_MODEL 5
+
 //objective C does not use the bitwise operator
 // so i am simply declaring SNDRV_PCM_FORMAT as-is
 //Linux Def below for reference:

@@ -76,7 +76,7 @@ public:
     
     
     
-    virtual bool init(XonarAudioEngine *engine, struct oxygen *regs);
+    virtual bool init(XonarAudioEngine *engine, struct oxygen *regs, uint8_t model);
     virtual void free();
     
     virtual bool initHardware(IOService *provider);

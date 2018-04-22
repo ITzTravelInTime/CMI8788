@@ -52,6 +52,8 @@
 #include <IOKit/pci/IOPCIDevice.h>
 #include "PCIAudioDevice.hpp"
 #include "XonarHDAVAudioEngine.hpp"
+#include "XonarD2XAudioEngine.hpp"
+#include "XonarSTAudioEngine.hpp"
 #include "cm9780.h"
 #include "ac97.h"
 
@@ -175,6 +177,7 @@ bool PCIAudioDevice::initHardware(IOService *provider)
     bool result = false;
     XonarAudioEngine *audioEngineInstance = NULL;
     audioEngineInstance = new XonarAudioEngine;
+    int8_t model; // easier to instantiate various submodel classes this way.
     IOLog("SamplePCIAudioDevice[%p]::initHardware(%p)\n", this, provider);
     
     if (!super::initHardware(provider)) {
@@ -205,22 +208,27 @@ bool PCIAudioDevice::initHardware(IOService *provider)
     pciDevice->setMemoryEnable(true);
     
     // add the hardware init code here
+    if(model == HDAV_MODEL)
+        setDeviceName("ASUS Xonar HDAV1.3 Deluxe");
+    else if (model == ST_MODEL)
+        setDeviceName("ASUS Xonar STx models");
+    else if (model == DX_MODEL)
+        setDeviceName("ASUS Xonar D*X/Xense models");
     
-    setDeviceName("ASUS Xonar HDAV1.3 Deluxe");
     setDeviceShortName("CMI8788");
     setManufacturerName("CMedia");
     
     oxygen_restore_eeprom(pciDevice,deviceRegisters);
     //Before:AUdioEngine's init didn't do much. now it instantiates everything like oxygen_init.
     //so, by creating the engine, we instantiate the registers as well.
-    if (!audioEngineInstance->init(deviceRegisters,HDAV_MODEL))
+    if (!audioEngineInstance->init(deviceRegisters,model))
         goto Done;
     //#error Put your own hardware initialization code here...and in other routines!!
     this->accessibleEngineInstance = audioEngineInstance;
     
     //see comments in createAudioEngine to follow rest of oxygen_pci_probe
     //(chip->model.init() and onwards)
-    if (!createAudioEngine(audioEngineInstance)) {
+    if (!createAudioEngine(audioEngineInstance, model)) {
         goto Done;
     }
     
@@ -250,30 +258,48 @@ void PCIAudioDevice::free()
     super::free();
 }
 
-bool PCIAudioDevice::createAudioEngine(XonarAudioEngine *audioEngineInstance)
+bool PCIAudioDevice::createAudioEngine(XonarAudioEngine *audioEngineInstance, uint8_t submodel)
 {
-    
+    IOAudioControl *control;
     //At this point, we should be at the chip->model.init() part of the oxygen_pci_probe function.
     //chip->model.init() is handled by the init() method of the submodel's class that we wish to instantiate.
     //that is: XonarHDAVAudioEngine::init() contains the code for xonar_hdav_init, etc.
-    
-    bool result = false;
-    XonarHDAVAudioEngine *audioEngine = NULL;
-    IOAudioControl *control;
-    
     IOLog("SamplePCIAudioDevice[%p]::createAudioEngine()\n", this);
-    audioEngine = new XonarHDAVAudioEngine;
-    if (!audioEngine) {
-        goto Done;
+    bool result = false;
+    IOAudioEngine *audioEngine = NULL;
+    
+    if(submodel == HDAV_MODEL) {
+        //XonarHDAVAudioEngine *audioEngine = NULL;
+        audioEngine = new XonarHDAVAudioEngine;
     }
+    else if (submodel == ST_MODEL) {
+        //XonarSTAudioEngine *audioEngine = NULL;
+        audioEngine = new XonarSTAudioEngine;
+    }
+    else if (submodel == DX_MODEL) {
+        // XonarD2XAudioEngine *audioEngine = NULL;
+        audioEngine = new XonarD2XAudioEngine;
+    }
+    if (!audioEngine)
+        goto Done;
+    
+    
     //calling chip->model.init()-equivalent directly below
-    
-    
     // Init the new audio engine with the device registers so it can access them if necessary
     // The audio engine subclass could be defined to take any number of parameters for its
     // initialization - use it like a constructor
-    if (!audioEngine->init(audioEngineInstance,deviceRegisters)) {
-        goto Done;
+    if(submodel == HDAV_MODEL) {
+        if (!((XonarHDAVAudioEngine*)audioEngine)->init(audioEngineInstance,deviceRegisters))
+            goto Done;
+    }
+    else if (submodel == ST_MODEL) {
+        if (!((XonarSTAudioEngine*)audioEngine)->init(audioEngineInstance,deviceRegisters,model))
+            goto Done;
+    }
+    else if (submodel == DX_MODEL) {
+        if (!((XonarD2XAudioEngine*)audioEngine)->init(audioEngineInstance,deviceRegisters,model))
+            goto Done;
+        
     }
     
     /* The remaining portions of oxygen_pci_probe focus on initialising PCM and the mixer.
@@ -472,20 +498,20 @@ IOReturn PCIAudioDevice::outputMuteChanged(IOAudioControl *muteControl, XonarAud
     IOLog("SamplePCIAudioDevice[%p]::outputMuteChanged(%p, %ld, %ld)\n", this, muteControl, oldValue, newValue);
     
     // Add output mute code here
-        struct oxygen *chip = engine->chipData;
-        int changed;
-        
-        pthread_mutex_lock(&chip->mutex);
-        changed = (!newValue) != chip->dac_mute;
-        if (changed) {
-            chip->dac_mute = !newValue;
-            chip->model.update_dac_mute(chip);
-        }
-        pthread_mutex_unlock(&chip->mutex);
-        return changed;
+    struct oxygen *chip = engine->chipData;
+    int changed;
     
-
-
+    pthread_mutex_lock(&chip->mutex);
+    changed = (!newValue) != chip->dac_mute;
+    if (changed) {
+        chip->dac_mute = !newValue;
+        chip->model.update_dac_mute(chip);
+    }
+    pthread_mutex_unlock(&chip->mutex);
+    return changed;
+    
+    
+    
     
     return kIOReturnSuccess;
 }

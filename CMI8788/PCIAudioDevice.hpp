@@ -43,8 +43,8 @@
 
 #ifndef _SAMPLEPCIAUDIODEVICE_H
 #define _SAMPLEPCIAUDIODEVICE_H
-#include </usr/include/libkern/OSAtomic.h>
 #define _POSIX_C_SOURCE
+#include </usr/include/libkern/OSAtomic.h>
 #include <pthread.h>
 // to remove conflict with mach_port_t (happens when you use pthreads)
 #include <IOKit/audio/IOAudioDevice.h>
@@ -344,7 +344,7 @@ class PCIAudioDevice : public IOAudioDevice
     struct oxygen               *deviceRegisters;
     
     virtual bool initHardware(IOService *provider);
-    virtual bool createAudioEngine(XonarAudioEngine *instance);
+    virtual bool createAudioEngine(XonarAudioEngine *instance, uint8_t model);
     virtual void free();
     
     static IOReturn volumeChangeHandler(IOService *target, IOAudioControl *volumeControl, SInt32 oldValue, SInt32 newValue);
@@ -388,8 +388,7 @@ class PCIAudioDevice : public IOAudioDevice
     UInt16 oxygen_read_eeprom(struct oxygen *chip, unsigned int index);
     void oxygen_write_eeprom(struct oxygen *chip, unsigned int index, UInt16 value);
     void oxygen_restore_eeprom(IOPCIDevice *device, struct oxygen *chip);
-    void oxygen_init(struct oxygen *chip);
-    // const struct * oxygen_search_pci_id(struct oxygen *chip, const struct pci_device_id ids[]);
+
     
     
 };

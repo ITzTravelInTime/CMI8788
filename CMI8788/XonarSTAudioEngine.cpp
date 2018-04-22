@@ -103,44 +103,6 @@ void XonarSTAudioEngine::xonar_st_init_common(struct oxygen *chip, XonarAudioEng
     //  snd_component_add(chip->card, "CS5381");
 }
 
-void XonarSTAudioEngine::xonar_st_init(struct oxygen *chip, XonarAudioEngine *engineInstance)
-{
-    struct xonar_pcm179x *data = (struct xonar_pcm179x*)chip->model_data;
-    
-    data->generic.anti_pop_delay = 100;
-    data->h6 = chip->model.dac_channels_mixer > 2;
-    data->has_cs2000 = 1;
-    data->cs2000_regs[CS2000_FUN_CFG_1] = CS2000_REF_CLK_DIV_1;
-    data->broken_i2c = true;
-    
-    oxygen_write16(chip, OXYGEN_I2S_A_FORMAT,
-                   OXYGEN_RATE_48000 |
-                   OXYGEN_I2S_FORMAT_I2S |
-                   OXYGEN_I2S_MCLK(data->h6 ? MCLK_256 : MCLK_512) |
-                   OXYGEN_I2S_BITS_16 |
-                   OXYGEN_I2S_MASTER |
-                   OXYGEN_I2S_BCLK_64);
-    
-    xonar_st_init_i2c(chip,engineInstance);
-    engineInstance->cs2000_registers_init(chip);
-    xonar_st_init_common(chip,engineInstance);
-    
-    //  snd_component_add(chip->card, "CS2000");
-}
-
-void XonarSTAudioEngine::xonar_stx_init(struct oxygen *chip, XonarAudioEngine *engineInstance)
-{
-    struct xonar_pcm179x *data = (struct xonar_pcm179x*)chip->model_data;
-    
-    xonar_st_init_i2c(chip,engineInstance);
-    data->generic.anti_pop_delay = 800;
-    data->generic.ext_power_reg = OXYGEN_GPI_DATA;
-    data->generic.ext_power_int_reg = OXYGEN_GPI_INTERRUPT_MASK;
-    data->generic.ext_power_bit = GPI_EXT_POWER;
-    engineInstance->xonar_init_ext_power(chip);
-    xonar_st_init_common(chip,engineInstance);
-}
-
 void XonarSTAudioEngine::xonar_st_cleanup(struct oxygen *chip, XonarAudioEngine *engineInstance)
 {
     engineInstance->xonar_disable_output(chip);
@@ -332,10 +294,11 @@ void XonarSTAudioEngine::set_st_params(struct oxygen *chip,
 //}
 
 
-bool XonarSTAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip)
+bool XonarSTAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip, uint8_t model)
 {
+    /* sample driver init code (from SamplePCIAudioEngine.cpp's ::init) */
     bool result = false;
-    
+    struct xonar_pcm179x *data = (struct xonar_pcm179x*)chip->model_data;
     IOLog("XonarSTAudioEngine[%p]::init(%p)\n", this, chip);
     
     if (!chip) {
@@ -344,6 +307,39 @@ bool XonarSTAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip)
     
     if (!super::init(NULL)) {
         goto Done;
+    }
+    /* sample driver init code (from SamplePCIAudioEngine.cpp's ::init) */
+    
+    if(model == ST_MODEL) {
+        data->generic.anti_pop_delay = 100;
+        data->h6 = chip->model.dac_channels_mixer > 2;
+        data->has_cs2000 = 1;
+        data->cs2000_regs[CS2000_FUN_CFG_1] = CS2000_REF_CLK_DIV_1;
+        data->broken_i2c = true;
+        
+        oxygen_write16(chip, OXYGEN_I2S_A_FORMAT,
+                       OXYGEN_RATE_48000 |
+                       OXYGEN_I2S_FORMAT_I2S |
+                       OXYGEN_I2S_MCLK(data->h6 ? MCLK_256 : MCLK_512) |
+                       OXYGEN_I2S_BITS_16 |
+                       OXYGEN_I2S_MASTER |
+                       OXYGEN_I2S_BCLK_64);
+        
+        xonar_st_init_i2c(chip,engineInstance);
+        engineInstance->cs2000_registers_init(chip);
+        xonar_st_init_common(chip,engineInstance);
+        
+        //  snd_component_add(chip->card, "CS2000");
+        
+    }
+    if(model == STX_MODEL) {
+        xonar_st_init_i2c(chip,engineInstance);
+        data->generic.anti_pop_delay = 800;
+        data->generic.ext_power_reg = OXYGEN_GPI_DATA;
+        data->generic.ext_power_int_reg = OXYGEN_GPI_INTERRUPT_MASK;
+        data->generic.ext_power_bit = GPI_EXT_POWER;
+        engineInstance->xonar_init_ext_power(chip);
+        xonar_st_init_common(chip,engineInstance);
     }
     //  ak4396_init(chip);
     //  wm8785_init(chip);

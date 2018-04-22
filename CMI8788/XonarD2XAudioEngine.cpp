@@ -69,90 +69,6 @@
 OSDefineMetaClassAndStructors(XonarD2XAudioEngine, IOAudioEngine)
 
 
-
-
-
-void XonarD2XAudioEngine::xonar_d2_init(struct oxygen *chip, XonarAudioEngine *engineInstance)
-{
-    struct xonar_pcm179x *data = (struct xonar_pcm179x*) chip->model_data;
-    
-    data->generic.anti_pop_delay = 300;
-    data->generic.output_enable_bit = GPIO_D2_OUTPUT_ENABLE;
-    data->dacs = 4;
-    
-    engineInstance->pcm1796_init(chip);
-    
-    oxygen_set_bits16(chip, OXYGEN_GPIO_CONTROL, GPIO_D2_ALT);
-    oxygen_clear_bits16(chip, OXYGEN_GPIO_DATA, GPIO_D2_ALT);
-    
-    //oxygen_ac97_set_bits(chip, 0, CM9780_JACK, CM9780_FMIC2MIC);
-    
-    engineInstance->xonar_init_cs53x1(chip);
-    engineInstance->xonar_enable_output(chip);
-    
-    //  snd_component_add(chip->card, "PCM1796");
-    // snd_component_add(chip->card, "CS5381");
-}
-
-void XonarD2XAudioEngine::xonar_d2x_init(struct oxygen *chip, XonarAudioEngine *engineInstance)
-{
-    struct xonar_pcm179x *data = (struct xonar_pcm179x*) chip->model_data;
-    
-    data->generic.ext_power_reg = OXYGEN_GPIO_DATA;
-    data->generic.ext_power_int_reg = OXYGEN_GPIO_INTERRUPT_MASK;
-    data->generic.ext_power_bit = GPIO_D2X_EXT_POWER;
-    oxygen_clear_bits16(chip, OXYGEN_GPIO_CONTROL, GPIO_D2X_EXT_POWER);
-    engineInstance->xonar_init_ext_power(chip);
-    xonar_d2_init(chip, engineInstance);
-}
-
-
-void XonarD2XAudioEngine::xonar_xense_init(struct oxygen *chip, XonarAudioEngine *engineInstance)
-{
-    struct xonar_pcm179x *data = (struct xonar_pcm179x*)chip->model_data;
-    
-    data->generic.ext_power_reg = OXYGEN_GPI_DATA;
-    data->generic.ext_power_int_reg = OXYGEN_GPI_INTERRUPT_MASK;
-    data->generic.ext_power_bit = GPI_EXT_POWER;
-    this->engineInstance = engineInstance;
-    this->engineInstance->xonar_init_ext_power(chip);
-    
-    data->generic.anti_pop_delay = 100;
-    data->has_cs2000 = 1;
-    data->cs2000_regs[CS2000_FUN_CFG_1] = CS2000_REF_CLK_DIV_1;
-    
-    oxygen_write16(chip, OXYGEN_I2S_A_FORMAT,
-                   OXYGEN_RATE_48000 |
-                   OXYGEN_I2S_FORMAT_I2S |
-                   OXYGEN_I2S_MCLK(MCLK_512) |
-                   OXYGEN_I2S_BITS_16 |
-                   OXYGEN_I2S_MASTER |
-                   OXYGEN_I2S_BCLK_64);
-    
-    this->STengineInstance->xonar_st_init_i2c(chip,engineInstance);
-    this->engineInstance->cs2000_registers_init(chip);
-    
-    data->generic.output_enable_bit = GPIO_XENSE_OUTPUT_ENABLE;
-    data->dacs = 1;
-    data->hp_gain_offset = 2*-18;
-    
-    this->engineInstance->pcm1796_init(chip);
-    
-    oxygen_set_bits16(chip, OXYGEN_GPIO_CONTROL,
-                      GPIO_INPUT_ROUTE | GPIO_ST_HP_REAR |
-                      GPIO_ST_MAGIC | GPIO_XENSE_SPEAKERS);
-    oxygen_clear_bits16(chip, OXYGEN_GPIO_DATA,
-                        GPIO_INPUT_ROUTE | GPIO_ST_HP_REAR |
-                        GPIO_XENSE_SPEAKERS);
-    
-    this->engineInstance->xonar_init_cs53x1(chip);
-    this->engineInstance->xonar_enable_output(chip);
-    
-    //   snd_component_add(chip->card, "PCM1796");
-    //   snd_component_add(chip->card, "CS5381");
-    //  snd_component_add(chip->card, "CS2000");
-}
-
 void XonarD2XAudioEngine::xonar_d2_cleanup(struct oxygen *chip, XonarAudioEngine *engineInstance)
 {
     engineInstance->xonar_disable_output(chip);
@@ -257,10 +173,10 @@ int XonarD2XAudioEngine::xonar_d2_mixer_init(struct oxygen *chip, XonarAudioEngi
     return 0;
 }
 
-bool XonarD2XAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip)
+bool XonarD2XAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip, uint8_t submodel)
 {
     bool result = false;
-    
+    struct xonar_pcm179x *data = (struct xonar_pcm179x*)chip->model_data;
     IOLog("XonarD2XAudioEngine[%p]::init(%p)\n", this, chip);
     
     if (!chip) {
@@ -270,6 +186,77 @@ bool XonarD2XAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip)
     if (!super::init(NULL)) {
         goto Done;
     }
+    
+    if(submodel == D2_MODEL) {
+        data->generic.anti_pop_delay = 300;
+        data->generic.output_enable_bit = GPIO_D2_OUTPUT_ENABLE;
+        data->dacs = 4;
+        
+        engineInstance->pcm1796_init(chip);
+        
+        oxygen_set_bits16(chip, OXYGEN_GPIO_CONTROL, GPIO_D2_ALT);
+        oxygen_clear_bits16(chip, OXYGEN_GPIO_DATA, GPIO_D2_ALT);
+        
+        //oxygen_ac97_set_bits(chip, 0, CM9780_JACK, CM9780_FMIC2MIC);
+        
+        engineInstance->xonar_init_cs53x1(chip);
+        engineInstance->xonar_enable_output(chip);
+        
+        //  snd_component_add(chip->card, "PCM1796");
+        // snd_component_add(chip->card, "CS5381");
+
+    }
+    if(submodel == D2X_MODEL) {
+        data->generic.ext_power_reg = OXYGEN_GPIO_DATA;
+        data->generic.ext_power_int_reg = OXYGEN_GPIO_INTERRUPT_MASK;
+        data->generic.ext_power_bit = GPIO_D2X_EXT_POWER;
+        oxygen_clear_bits16(chip, OXYGEN_GPIO_CONTROL, GPIO_D2X_EXT_POWER);
+        engineInstance->xonar_init_ext_power(chip);
+        xonar_d2_init(chip, engineInstance);
+    }
+    if(submodel == XENSE_MODEL) {
+        data->generic.ext_power_reg = OXYGEN_GPI_DATA;
+        data->generic.ext_power_int_reg = OXYGEN_GPI_INTERRUPT_MASK;
+        data->generic.ext_power_bit = GPI_EXT_POWER;
+        this->engineInstance = engineInstance;
+        this->engineInstance->xonar_init_ext_power(chip);
+        
+        data->generic.anti_pop_delay = 100;
+        data->has_cs2000 = 1;
+        data->cs2000_regs[CS2000_FUN_CFG_1] = CS2000_REF_CLK_DIV_1;
+        
+        oxygen_write16(chip, OXYGEN_I2S_A_FORMAT,
+                       OXYGEN_RATE_48000 |
+                       OXYGEN_I2S_FORMAT_I2S |
+                       OXYGEN_I2S_MCLK(MCLK_512) |
+                       OXYGEN_I2S_BITS_16 |
+                       OXYGEN_I2S_MASTER |
+                       OXYGEN_I2S_BCLK_64);
+        
+        this->STengineInstance->xonar_st_init_i2c(chip,engineInstance);
+        this->engineInstance->cs2000_registers_init(chip);
+        
+        data->generic.output_enable_bit = GPIO_XENSE_OUTPUT_ENABLE;
+        data->dacs = 1;
+        data->hp_gain_offset = 2*-18;
+        
+        this->engineInstance->pcm1796_init(chip);
+        
+        oxygen_set_bits16(chip, OXYGEN_GPIO_CONTROL,
+                          GPIO_INPUT_ROUTE | GPIO_ST_HP_REAR |
+                          GPIO_ST_MAGIC | GPIO_XENSE_SPEAKERS);
+        oxygen_clear_bits16(chip, OXYGEN_GPIO_DATA,
+                            GPIO_INPUT_ROUTE | GPIO_ST_HP_REAR |
+                            GPIO_XENSE_SPEAKERS);
+        
+        this->engineInstance->xonar_init_cs53x1(chip);
+        this->engineInstance->xonar_enable_output(chip);
+        
+        //   snd_component_add(chip->card, "PCM1796");
+        //   snd_component_add(chip->card, "CS5381");
+        //  snd_component_add(chip->card, "CS2000");
+    }
+    
     //  ak4396_init(chip);
     //  wm8785_init(chip);
     deviceRegisters = (struct xonar_hdav*)chip->model_data;

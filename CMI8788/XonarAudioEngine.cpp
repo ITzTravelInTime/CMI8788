@@ -703,14 +703,14 @@ bool XonarAudioEngine::init(struct oxygen *chip, int model)
     /*this function can be looked at as oxygen_pci_probe, with
      *the differences being:
      1. there are no model detection function pointers
-            -this means we have to "hard code" the model instantiation
-             code using a simple if statement.
+     -this means we have to "hard code" the model instantiation
+     code using a simple if statement.
      2. after the registers for the requested model are set,
-        the code directly after is the content of oxygen_init
+     the code directly after is the content of oxygen_init
      3. still figuring out how to add the gpio/spdifwork to the IOWorkLoopQueue
-        -theoretically, we may only need a single IOWorkLoop instance that
-         belongs to either the PCIAudioDevice/XonarAudioEngine class, and therefore
-         may only need to add {gpio,spdif_input_bits}_changed to this single workloop
+     -theoretically, we may only need a single IOWorkLoop instance that
+     belongs to either the PCIAudioDevice/XonarAudioEngine class, and therefore
+     may only need to add {gpio,spdif_input_bits}_changed to this single workloop
      */
     bool result = false;
     
@@ -724,8 +724,8 @@ bool XonarAudioEngine::init(struct oxygen *chip, int model)
         goto Done;
     }
     
-   // chip->spdif_input_bits_work.init();
-   // chip->gpio_work.init();
+    // chip->spdif_input_bits_work.init();
+    // chip->gpio_work.init();
     
     //hardcoding relevant portions from get_xonar_model for HDAV1.3 for the time being.
     //if i can get a single model to work, i'll add others....
@@ -738,6 +738,9 @@ bool XonarAudioEngine::init(struct oxygen *chip, int model)
          *the code comprising the functions which the struct is pointing to, may still be
          *very useful (and indeed:necessary)
          */
+        chip->model.update_dac_volume = this->update_pcm1796_volume;
+        chip->model.update_dac_mute = this->update_pcm1796_mute;
+        chip->model.model_data_size = sizeof(struct xonar_hdav);
         chip->model.device_config = PLAYBACK_0_TO_I2S |
         PLAYBACK_1_TO_SPDIF |
         CAPTURE_0_FROM_I2S_2 |
@@ -752,9 +755,6 @@ bool XonarAudioEngine::init(struct oxygen *chip, int model)
         chip->model.adc_mclks = OXYGEN_MCLKS(256, 128, 128);
         chip->model.dac_i2s_format = OXYGEN_I2S_FORMAT_I2S;
         chip->model.adc_i2s_format = OXYGEN_I2S_FORMAT_LJUST;
-        chip->model.model_data_size = sizeof(struct xonar_hdav);
-        chip->model.update_dac_volume = this->update_pcm1796_volume;
-        chip->model.update_dac_mute = this->update_pcm1796_mute;
         oxygen_clear_bits16(chip,OXYGEN_GPIO_CONTROL,GPIO_DB_MASK);
         switch (oxygen_read16(chip, OXYGEN_GPIO_DATA) & GPIO_DB_MASK) {
             default:
@@ -771,7 +771,45 @@ bool XonarAudioEngine::init(struct oxygen *chip, int model)
         pthread_mutex_init(&chip->ac97_mutex,NULL);
         pthread_cond_init(&chip->ac97_condition,NULL);
     }
-    
+    else if (model == ST_MODEL || model == STX_MODEL) {
+        chip->model.model_data_size = sizeof(struct xonar_pcm179x);
+        chip->model.device_config = PLAYBACK_0_TO_I2S |
+        PLAYBACK_1_TO_SPDIF |
+        CAPTURE_0_FROM_I2S_2 |
+        CAPTURE_1_FROM_SPDIF |
+        AC97_FMIC_SWITCH;
+        chip->model.dac_channels_pcm = 2;
+        chip->model.dac_channels_mixer = 2;
+        chip->model.dac_volume_min = 255 - 2*60;
+        chip->model.dac_volume_max = 255;
+        chip->model.function_flags = OXYGEN_FUNCTION_2WIRE;
+        chip->model.dac_mclks = OXYGEN_MCLKS(512, 128, 128);
+        chip->model.adc_mclks = OXYGEN_MCLKS(256, 128, 128);
+        chip->model.dac_i2s_format = OXYGEN_I2S_FORMAT_I2S;
+        chip->model.adc_i2s_format = OXYGEN_I2S_FORMAT_LJUST;
+        
+    }
+    else if (model == D2_MODEL || model == D2X_MODEL || model == XENSE_MODEL) {
+        chip->model.model_data_size = sizeof(struct xonar_pcm179x);
+        chip->model.device_config = PLAYBACK_0_TO_I2S |
+        PLAYBACK_1_TO_SPDIF |
+        CAPTURE_0_FROM_I2S_2 |
+        CAPTURE_1_FROM_SPDIF |
+        MIDI_OUTPUT |
+        MIDI_INPUT |
+        AC97_CD_INPUT;
+        chip->model.dac_channels_pcm = 8;
+        chip->model.dac_channels_mixer = 8;
+        chip->model.dac_volume_min = 255 - 2*60;
+        chip->model.dac_volume_max = 255;
+        chip->model.misc_flags = OXYGEN_MISC_MIDI;
+        chip->model.function_flags = OXYGEN_FUNCTION_SPI |
+        OXYGEN_FUNCTION_ENABLE_SPI_4_5;
+        chip->model.dac_mclks = OXYGEN_MCLKS(512, 128, 128);
+        chip->model.adc_mclks = OXYGEN_MCLKS(256, 128, 128);
+        chip->model.dac_i2s_format = OXYGEN_I2S_FORMAT_I2S;
+        chip->model.adc_i2s_format = OXYGEN_I2S_FORMAT_LJUST;
+    }
     
     //begin oxygen_init
     unsigned int i;
@@ -976,12 +1014,12 @@ bool XonarAudioEngine::init(struct oxygen *chip, int model)
         oxygen_ac97_set_bits(chip, 1, 0x6a, 0x0040);
     }
     // end oxygen_init
-
+    
     
     
     //  ak4396_init(chip);
     //  wm8785_init(chip);
-
+    
     this->dev_id = chip;
     //save ptr to oxygen struct from PCIDriver into private class var dev_id for interrupthandler
     chipData = (struct oxygen*) this->dev_id;
@@ -1029,8 +1067,8 @@ bool XonarAudioEngine::initHardware(IOService *provider)
     // can do the work in the filter routine and then return false to
     // indicate that we do not want our secondary handler called
     interruptEventSource_main = IOFilterInterruptEventSource::filterInterruptEventSource(this,
-                                                                                    XonarAudioEngine::interruptHandler,
-                                                                                    XonarAudioEngine::interruptFilter,                                                                                                                                                                       audioDevice->getProvider());
+                                                                                         XonarAudioEngine::interruptHandler,
+                                                                                         XonarAudioEngine::interruptFilter,                                                                                                                                                                       audioDevice->getProvider());
     workLoop->addEventSource(interruptEventSource_main);
     
     if (!interruptEventSource_main || !gpioEventSource || !spdifEventSource) {
@@ -1107,10 +1145,10 @@ void XonarAudioEngine::free()
 }
 
 IOReturn XonarAudioEngine::clipOutputSamples(const void *mixBuf,
-                                                 
-                                                 void *sampleBuf, UInt32 firstSampleFrame, UInt32 numSampleFrames,
-                                                 
-                                                 const IOAudioStreamFormat *streamFormat, IOAudioStream *audioStream)
+                                             
+                                             void *sampleBuf, UInt32 firstSampleFrame, UInt32 numSampleFrames,
+                                             
+                                             const IOAudioStreamFormat *streamFormat, IOAudioStream *audioStream)
 
 {
     
@@ -1152,9 +1190,9 @@ IOReturn XonarAudioEngine::clipOutputSamples(const void *mixBuf,
 }
 
 IOReturn XonarAudioEngine::convertInputSamples(const void *sampleBuf,
-                                                   void *destBuf, UInt32 firstSampleFrame, UInt32 numSampleFrames,
-                                                   const IOAudioStreamFormat *streamFormat, IOAudioStream
-                                                   *audioStream)
+                                               void *destBuf, UInt32 firstSampleFrame, UInt32 numSampleFrames,
+                                               const IOAudioStreamFormat *streamFormat, IOAudioStream
+                                               *audioStream)
 {
     UInt32 numSamplesLeft;
     float *floatDestBuf;
@@ -1286,8 +1324,8 @@ IOReturn XonarAudioEngine::performAudioEngineStart()
     /* ^^ this seems like where we'd need something like snd_pcm_period_elapsed.
      * providing first conditional from alsa main interrupt handler (oxygen_interrupt, oxygen_lib.c line 100-101):
      *
-    // for(i = 0; i < PCM_COUNT; ++i) <- /*we don't need the loop here as each
-    //                                      IOAudioStream instance should do this*/
+     // for(i = 0; i < PCM_COUNT; ++i) <- /*we don't need the loop here as each
+     //                                      IOAudioStream instance should do this*/
     //      if ((elapsed_streams & (1 << i)) && chip->streams[i])
     //          snd_pcm_period_elapsed(chip->streams[i]);
     //..
@@ -1299,7 +1337,7 @@ IOReturn XonarAudioEngine::performAudioEngineStart()
     
     // Add audio - I/O start code here
     
-//#error performAudioEngineStart() - driver will not work until audio engine start code is added
+    //#error performAudioEngineStart() - driver will not work until audio engine start code is added
     
     return kIOReturnSuccess;
 }
@@ -1314,7 +1352,7 @@ IOReturn XonarAudioEngine::performAudioEngineStop()
     
     // Add audio - I/O stop code here
     
-//#error performAudioEngineStop() - driver will not work until audio engine stop code is added
+    //#error performAudioEngineStop() - driver will not work until audio engine stop code is added
     
     return kIOReturnSuccess;
 }
@@ -1330,7 +1368,7 @@ UInt32 XonarAudioEngine::getCurrentSampleFrame()
     // frame returned by this function.  If it is too large a value, sound data that hasn't been played will be
     // erased.
     
-//#error getCurrentSampleFrame() - driver will not work until correct sample frame is returned
+    //#error getCurrentSampleFrame() - driver will not work until correct sample frame is returned
     
     // Change to return the real value
     return 0;
@@ -1480,59 +1518,59 @@ bool XonarAudioEngine::interruptFilter(OSObject *owner, IOFilterInterruptEventSo
     /* Not sure if we need this loop since OSX handles PCM very differently
      *from Linux/ALSA. commenting out for now since there is no equivalent of
      *snd_pcm_period_elapsed (updates the position and tells us if we've run over
-     *edit: seems like we'll need the elapsed_streams/snd_pcm_period collapsed to 
+     *edit: seems like we'll need the elapsed_streams/snd_pcm_period collapsed to
      * go in
      */
     for (i = 0; i < PCM_COUNT; ++i)
         //if ((elapsed_streams & (1 << i)) && chip->streams[i])
-            //         snd_pcm_period_elapsed(chip->streams[i]);
-            
-            if (status & OXYGEN_INT_SPDIF_IN_DETECT) {
-                OSSpinLockLock(&chip->reg_lock);
-                i = oxygen_read32(chip, OXYGEN_SPDIF_CONTROL);
-                if (i & (OXYGEN_SPDIF_SENSE_INT | OXYGEN_SPDIF_LOCK_INT |
-                         OXYGEN_SPDIF_RATE_INT)) {
-                    /* write the interrupt bit(s) to clear */
-                    oxygen_write32(chip, OXYGEN_SPDIF_CONTROL, i);
-                    //Linux Call below:
-                    //    schedule_work(&chip->spdif_input_bits_work);
-                    //Experimental OSX-equivalent call below...
-                    /* Conceptually i *think* this function is the IOWorkLoop context,
-                     * so by using the dynamic cast (thanks osxbook), i hope to recover
-                     * the calling (single) class, and then use its member functions to perform
-                     * the work. in this case, checking the spdif bits*/
-                    callingInstance->workLoop->runAction((Action)callingInstance->oxygen_spdif_input_bits_changed, callingInstance, callingInstance->dev_id);
-                }
-                OSSpinLockUnlock(&chip->reg_lock);
+        //         snd_pcm_period_elapsed(chip->streams[i]);
+        
+        if (status & OXYGEN_INT_SPDIF_IN_DETECT) {
+            OSSpinLockLock(&chip->reg_lock);
+            i = oxygen_read32(chip, OXYGEN_SPDIF_CONTROL);
+            if (i & (OXYGEN_SPDIF_SENSE_INT | OXYGEN_SPDIF_LOCK_INT |
+                     OXYGEN_SPDIF_RATE_INT)) {
+                /* write the interrupt bit(s) to clear */
+                oxygen_write32(chip, OXYGEN_SPDIF_CONTROL, i);
+                //Linux Call below:
+                //    schedule_work(&chip->spdif_input_bits_work);
+                //Experimental OSX-equivalent call below...
+                /* Conceptually i *think* this function is the IOWorkLoop context,
+                 * so by using the dynamic cast (thanks osxbook), i hope to recover
+                 * the calling (single) class, and then use its member functions to perform
+                 * the work. in this case, checking the spdif bits*/
+                callingInstance->workLoop->runAction((Action)callingInstance->oxygen_spdif_input_bits_changed, callingInstance, callingInstance->dev_id);
             }
+            OSSpinLockUnlock(&chip->reg_lock);
+        }
     
     if (status & OXYGEN_INT_GPIO)
         //Linux call below:
         //schedule_work(&chip->gpio_work);
         //Experimental OSX-equivalent (see note above):
         callingInstance->workLoop->runAction((Action)callingInstance->oxygen_gpio_changed, callingInstance, callingInstance->dev_id);
-        /* Commentary on substituting schedule_work with runAction:
-         * This *seems* to make sense, no? runAction runs in a single-threaded context w/in the handler.
-         * for OSX it seems we don't even need work_queues because:
-         * 1. each work_queue instance (gpio_work, spdif_input_bits_work) are used within their associated
-         *    functions (gpio_work,spdif_input_bits_changed) to cast the data back to (struct oxygen *)
-         *      -since this OSX driver is OOP, we have access to (struct oxygen*) via dev_id and so
-         *       we don't need pass such structures to the handling functions as we have access.
-         * 2. each of these workqueues seem to schedule work only within the handler, meaning
-         *    we should be able to get away with runAction, since there is no other point in the entire
-         *    driver where we schedule_work for either the gpio or spdif bits.
-         **** 
-         * i could be totally wrong, but i hope i'm not. runAction would be a superior abstraction if it
-         * can replace our need to instantiate "sub"workqueues whose work is added/handled inside the main
-         * interrupt handler....
-         * i hope it does what we need...
-         */
-        if (status & OXYGEN_INT_MIDI) {
-            // if (chip->midi)
-            //     _snd_mpu401_uart_interrupt(0, chip->midi->private_data);
-            // else
-            oxygen_read_uart(chip);
-        }
+    /* Commentary on substituting schedule_work with runAction:
+     * This *seems* to make sense, no? runAction runs in a single-threaded context w/in the handler.
+     * for OSX it seems we don't even need work_queues because:
+     * 1. each work_queue instance (gpio_work, spdif_input_bits_work) are used within their associated
+     *    functions (gpio_work,spdif_input_bits_changed) to cast the data back to (struct oxygen *)
+     *      -since this OSX driver is OOP, we have access to (struct oxygen*) via dev_id and so
+     *       we don't need pass such structures to the handling functions as we have access.
+     * 2. each of these workqueues seem to schedule work only within the handler, meaning
+     *    we should be able to get away with runAction, since there is no other point in the entire
+     *    driver where we schedule_work for either the gpio or spdif bits.
+     ****
+     * i could be totally wrong, but i hope i'm not. runAction would be a superior abstraction if it
+     * can replace our need to instantiate "sub"workqueues whose work is added/handled inside the main
+     * interrupt handler....
+     * i hope it does what we need...
+     */
+    if (status & OXYGEN_INT_MIDI) {
+        // if (chip->midi)
+        //     _snd_mpu401_uart_interrupt(0, chip->midi->private_data);
+        // else
+        oxygen_read_uart(chip);
+    }
     
     if (status & OXYGEN_INT_AC97) {
         pthread_mutex_lock(&chip->ac97_mutex);
