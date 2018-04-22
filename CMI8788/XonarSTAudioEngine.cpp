@@ -394,7 +394,7 @@ bool XonarSTAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip, uin
 //      snd_component_add(chip->card, "CS2000");
         
     }
-    else if(model == STX_MODEL) {
+    else if(model == STX_MODEL || model == STX2_MODEL) {
         xonar_st_init_i2c(chip,engine);
         data->generic.anti_pop_delay = 800;
         data->generic.ext_power_reg = OXYGEN_GPI_DATA;
@@ -403,22 +403,6 @@ bool XonarSTAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip, uin
         engine->xonar_init_ext_power(chip);
         xonar_st_init_common(chip,engine);
         chip->model.resume = this->xonar_stx_resume;
-        chip->model.set_dac_params = engine->set_pcm1796_params;
-    }
-    else if(model == STX2_MODEL) {
-        oxygen_clear_bits16(chip, OXYGEN_GPIO_CONTROL, GPIO_DB_MASK);
-        switch (oxygen_read16(chip, OXYGEN_GPIO_DATA) & GPIO_DB_MASK) {
-            default:
-                chip->model.shortname = "Xonar STX II";
-                break;
-            case GPIO_DB_H6:
-                chip->model.shortname = "Xonar STX II+H6";
-                chip->model.dac_channels_pcm = 8;
-                chip->model.dac_channels_mixer = 8;
-                chip->model.dac_mclks = OXYGEN_MCLKS(256, 128, 128);
-                break;
-        }
-        chip->model.resume = xonar_stx_resume;
         chip->model.set_dac_params = engine->set_pcm1796_params;
     }
     else if(model == XENSE_MODEL) {
