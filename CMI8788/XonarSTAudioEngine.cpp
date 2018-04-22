@@ -325,11 +325,9 @@ bool XonarSTAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip, uin
                        OXYGEN_I2S_MASTER |
                        OXYGEN_I2S_BCLK_64);
         
-        xonar_st_init_i2c(chip,engineInstance);
+        xonar_st_init_i2c(chip,engine);
         engine->cs2000_registers_init(chip);
-        xonar_st_init_common(chip,engineInstance);
-        
-        //  snd_component_add(chip->card, "CS2000");
+//      snd_component_add(chip->card, "CS2000");
         
     }
     if(model == STX_MODEL) {
@@ -339,8 +337,8 @@ bool XonarSTAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip, uin
         data->generic.ext_power_int_reg = OXYGEN_GPI_INTERRUPT_MASK;
         data->generic.ext_power_bit = GPI_EXT_POWER;
         engine->xonar_init_ext_power(chip);
-        xonar_st_init_common(chip,engine);
     }
+    xonar_st_init_common(chip,engine);
     //  ak4396_init(chip);
     //  wm8785_init(chip);
     deviceRegisters = (struct xonar_pcm179x*)chip->model_data;
