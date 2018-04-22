@@ -210,10 +210,10 @@ bool PCIAudioDevice::initHardware(IOService *provider)
     // add the hardware init code here
     if(model == HDAV_MODEL)
         setDeviceName("ASUS Xonar HDAV1.3 Deluxe");
-    else if (model == ST_MODEL)
-        setDeviceName("ASUS Xonar STx models");
-    else if (model == DX_MODEL)
-        setDeviceName("ASUS Xonar D*X/Xense models");
+    else if (model == ST_MODEL || model == STX_MODEL)
+        setDeviceName("ASUS Xonar ST(X) models");
+    else if (model == D2_MODEL || model == D2X_MODEL || model == XENSE_MODEL)
+        setDeviceName("ASUS Xonar D2(X)+Xense models");
     
     setDeviceShortName("CMI8788");
     setManufacturerName("CMedia");
@@ -272,11 +272,11 @@ bool PCIAudioDevice::createAudioEngine(XonarAudioEngine *audioEngineInstance, ui
         //XonarHDAVAudioEngine *audioEngine = NULL;
         audioEngine = new XonarHDAVAudioEngine;
     }
-    else if (submodel == ST_MODEL) {
+    else if (submodel == ST_MODEL || submodel == STX_MODEL) {
         //XonarSTAudioEngine *audioEngine = NULL;
         audioEngine = new XonarSTAudioEngine;
     }
-    else if (submodel == DX_MODEL) {
+    else if (submodel == D2_MODEL || submodel == D2X_MODEL || submodel == XENSE_MODEL) {
         // XonarD2XAudioEngine *audioEngine = NULL;
         audioEngine = new XonarD2XAudioEngine;
     }
@@ -292,12 +292,12 @@ bool PCIAudioDevice::createAudioEngine(XonarAudioEngine *audioEngineInstance, ui
         if (!((XonarHDAVAudioEngine*)audioEngine)->init(audioEngineInstance,deviceRegisters))
             goto Done;
     }
-    else if (submodel == ST_MODEL) {
-        if (!((XonarSTAudioEngine*)audioEngine)->init(audioEngineInstance,deviceRegisters,model))
+    else if (submodel == ST_MODEL || submodel == STX_MODEL) {
+        if (!((XonarSTAudioEngine*)audioEngine)->init(audioEngineInstance,deviceRegisters,submodel))
             goto Done;
     }
-    else if (submodel == DX_MODEL) {
-        if (!((XonarD2XAudioEngine*)audioEngine)->init(audioEngineInstance,deviceRegisters,model))
+    else if (submodel == D2_MODEL || submodel == D2X_MODEL || submodel == XENSE_MODEL) {
+        if (!((XonarD2XAudioEngine*)audioEngine)->init(audioEngineInstance,deviceRegisters,submodel))
             goto Done;
         
     }
