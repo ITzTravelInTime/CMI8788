@@ -125,13 +125,13 @@ void XonarAudioEngine::xonar_init_cs53x1(struct oxygen *chip)
                           GPIO_CS53x1_M_SINGLE, GPIO_CS53x1_M_MASK);
 }
 
-void XonarAudioEngine::xonar_set_cs53x1_params(struct oxygen *chip)
+void XonarAudioEngine::xonar_set_cs53x1_params(struct oxygen *chip, XonarAudioEngine *audioEngine)
 {
     unsigned int value;
     
-    if (this->getSampleRate()->whole <= 54000)
+    if (audioEngine->getSampleRate()->whole <= 54000)
         value = GPIO_CS53x1_M_SINGLE;
-    else if (this->getSampleRate()->whole <= 108000)
+    else if (audioEngine->getSampleRate()->whole <= 108000)
         value = GPIO_CS53x1_M_DOUBLE;
     else
         value = GPIO_CS53x1_M_QUAD;
@@ -784,7 +784,7 @@ bool XonarAudioEngine::init(struct oxygen *chip, int model)
         chip->model.adc_mclks = OXYGEN_MCLKS(256, 128, 128);
         chip->model.dac_i2s_format = OXYGEN_I2S_FORMAT_I2S;
         chip->model.adc_i2s_format = OXYGEN_I2S_FORMAT_LJUST;
-        //TODO: add cases 0x835c (STX) 0x835d (ST[+h6]) 0x85f4 (STX II[+H6])
+        
         
         //0x835d
         if(model == ST_MODEL) {
@@ -810,9 +810,8 @@ bool XonarAudioEngine::init(struct oxygen *chip, int model)
         //0x835c
         else if(model == STX_MODEL) {
             chip->model.shortname = "Xonar STX";
-            // not sure if we'll need the three lines below */
-            /*chip->model.init = xonar_stx_init;
-             chip->model.resume = xonar_stx_resume;
+            // not sure if we'll need the two lines below */
+            /*chip->model.resume = xonar_stx_resume;
              chip->model.set_dac_params = set_pcm1796_params;*/
         }
         //end 0x835c
@@ -832,9 +831,8 @@ bool XonarAudioEngine::init(struct oxygen *chip, int model)
                     break;
             }
             //similar to what i stated in 0x835c: not sure if we'll need these
-            //yet
-            /*chip->model.init = xonar_stx_init;
-             chip->model.resume = xonar_stx_resume;
+            //yet (if we do, they'll be set in the STAudioengineclass file, not here)
+            /*chip->model.resume = xonar_stx_resume;
              chip->model.set_dac_params = set_pcm1796_params;*/
         }
         //end 0x85f4
@@ -843,9 +841,7 @@ bool XonarAudioEngine::init(struct oxygen *chip, int model)
         else if(model == XENSE_MODEL) {
             chip->model.shortname = "Xonar Xense";
             //not sure if we'll need the three lines below yet
-            /*chip->model.chip = "AV100";
-            chip->model.init = xonar_xense_init;
-            chip->model.mixer_init = xonar_xense_mixer_init; */
+            //chip->model.mixer_init = xonar_xense_mixer_init;
 
         }
         //end 0x8428

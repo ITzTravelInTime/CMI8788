@@ -189,7 +189,7 @@ public:
     static void xonar_disable_output(struct oxygen *chip);
     static void xonar_init_ext_power(struct oxygen *chip);
     static void xonar_init_cs53x1(struct oxygen *chip);
-    void xonar_set_cs53x1_params(struct oxygen *chip);
+    void xonar_set_cs53x1_params(struct oxygen *chip, XonarAudioEngine *instance);
     
     static int  add_pcm1796_controls(struct oxygen *chip);
     static void pcm1796_init(struct oxygen *chip);
