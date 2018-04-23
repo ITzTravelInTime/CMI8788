@@ -224,7 +224,7 @@ bool PCIAudioDevice::initHardware(IOService *provider)
     setManufacturerName("CMedia");
     
     oxygen_restore_eeprom(pciDevice,deviceRegisters);
-    //Before:AUdioEngine's init didn't do much. now it instantiates everything like oxygen_init.
+    //Before:AudioEngine's init didn't do much. now it instantiates everything like oxygen_init.
     //so, by creating the engine, we instantiate the registers as well.
     if (!audioEngineInstance->init(deviceRegisters,subdev_id))
         goto Done;
