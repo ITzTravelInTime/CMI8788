@@ -216,9 +216,9 @@ bool PCIAudioDevice::initHardware(IOService *provider)
     if(subdev_id == HDAV_MODEL)
         setDeviceName("ASUS Xonar HDAV1.3 Deluxe");
     else if (subdev_id == ST_MODEL || subdev_id == STX_MODEL)
-        setDeviceName("ASUS Xonar ST(X) models");
+        setDeviceName("ASUS Xonar ST(X [II])+Xense models");
     else if (subdev_id == D2_MODEL || subdev_id == D2X_MODEL || subdev_id == XENSE_MODEL)
-        setDeviceName("ASUS Xonar D2(X)+Xense models");
+        setDeviceName("ASUS Xonar D2(X) models");
     
     setDeviceShortName("CMI8788");
     setManufacturerName("CMedia");
