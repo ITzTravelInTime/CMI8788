@@ -767,8 +767,8 @@ bool XonarAudioEngine::init(struct oxygen *chip, int model)
         }
         
     }
-    else if (model == ST_MODEL || model == STX_MODEL || model == STX2_MODEL
-             || model == XENSE_MODEL) {
+    else if (model == ST_MODEL || model == STX_MODEL ||
+             model == STX2_MODEL || model == XENSE_MODEL) {
         chip->model.model_data_size = sizeof(struct xonar_pcm179x);
         chip->model.device_config = PLAYBACK_0_TO_I2S |
         PLAYBACK_1_TO_SPDIF |
