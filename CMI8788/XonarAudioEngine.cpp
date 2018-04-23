@@ -724,11 +724,7 @@ bool XonarAudioEngine::init(struct oxygen *chip, int model)
         goto Done;
     }
     
-    // chip->spdif_input_bits_work.init();
-    // chip->gpio_work.init();
-    
-    //hardcoding relevant portions from get_xonar_model for HDAV1.3 for the time being.
-    //if i can get a single model to work, i'll add others....
+    //compare the subdevice id with known models'
     if(model == HDAV_MODEL) {
         //code from get_xonar_pcm179x_model portions (case 0x8314)
         /*these are the relevant attributes from the xonar_model_hdav struct.

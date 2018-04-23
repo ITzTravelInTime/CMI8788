@@ -43,7 +43,6 @@
 
 #ifndef _XONARAUDIOENGINE_H
 #define _XONARAUDIOENGINE_H
-
 #include <IOKit/audio/IOAudioEngine.h>
 
 #include "PCIAudioDevice.hpp"

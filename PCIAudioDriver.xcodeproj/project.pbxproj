@@ -39,7 +39,6 @@
 		CE442427207FF78500158F35 /* ak4396.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ak4396.h; sourceTree = "<group>"; };
 		CE442428207FF78500158F35 /* oxygen_regs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = oxygen_regs.h; sourceTree = "<group>"; };
 		CE44242A207FF78500158F35 /* wm8785.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = wm8785.h; sourceTree = "<group>"; };
-		CE56018D208AB451001A5D0D /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.10.sdk/System/Library/Frameworks/CoreFoundation.framework; sourceTree = DEVELOPER_DIR; };
 		CE56018F208AB4F2001A5D0D /* libcompiler_rt.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcompiler_rt.dylib; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.10.sdk/usr/lib/system/libcompiler_rt.dylib; sourceTree = DEVELOPER_DIR; };
 		CE560191208AB54C001A5D0D /* libsystem_platform.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libsystem_platform.dylib; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.10.sdk/usr/lib/system/libsystem_platform.dylib; sourceTree = DEVELOPER_DIR; };
 		CE560192208AB54C001A5D0D /* libsystem_pthread.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libsystem_pthread.dylib; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.10.sdk/usr/lib/system/libsystem_pthread.dylib; sourceTree = DEVELOPER_DIR; };
@@ -75,7 +74,6 @@
 				CE560191208AB54C001A5D0D /* libsystem_platform.dylib */,
 				CE560192208AB54C001A5D0D /* libsystem_pthread.dylib */,
 				CE56018F208AB4F2001A5D0D /* libcompiler_rt.dylib */,
-				CE56018D208AB451001A5D0D /* CoreFoundation.framework */,
 				CE235F9E207DBA0600AF3203 /* PCIAudioDriver */,
 				CE235F9D207DBA0600AF3203 /* Products */,
 			);
