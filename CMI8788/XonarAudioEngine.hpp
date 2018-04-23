@@ -114,13 +114,13 @@ struct xonar_hdav {
 
 #define PCM1796_REG_BASE	16
 
-#define HDAV_MODEL  0
-#define ST_MODEL    1
-#define STX_MODEL   2
-#define STX2_MODEL  3
-#define D2_MODEL    4
-#define D2X_MODEL   5
-#define XENSE_MODEL 6
+#define HDAV_MODEL  0x8314
+#define ST_MODEL    0x835d
+#define STX_MODEL   0x835c
+#define STX2_MODEL  0x85f4
+#define D2_MODEL    0x8269
+#define D2X_MODEL   0x82b7
+#define XENSE_MODEL 0x8428
 #define XONAR_GENERIC 7
 
 //objective C does not use the bitwise operator

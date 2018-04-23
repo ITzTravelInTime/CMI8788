@@ -356,7 +356,7 @@ void XonarSTAudioEngine::set_st_params(struct oxygen *chip,
  
 */
 
-bool XonarSTAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip, uint8_t model)
+bool XonarSTAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip, UInt16 model)
 {
     /* sample driver init code (from SamplePCIAudioEngine.cpp's ::init) */
     bool result = false;

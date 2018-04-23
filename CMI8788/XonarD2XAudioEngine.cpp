@@ -131,7 +131,7 @@ void XonarD2XAudioEngine::xonar_d2_init(struct oxygen *chip, XonarAudioEngine *e
     // snd_component_add(chip->card, "CS5381");
 }
 
-bool XonarD2XAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip, uint8_t submodel)
+bool XonarD2XAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip, UInt16 submodel)
 {
     bool result = false;
     struct xonar_pcm179x *data = (struct xonar_pcm179x*)chip->model_data;

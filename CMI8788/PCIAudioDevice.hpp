@@ -343,11 +343,11 @@ class PCIAudioDevice : public IOAudioDevice
     
     IOPCIDevice					*pciDevice;
     IOMemoryMap					*deviceMap;
-    
+    UInt16                      subdev_id;
     struct oxygen               *deviceRegisters;
     
     virtual bool initHardware(IOService *provider);
-    virtual bool createAudioEngine(XonarAudioEngine *instance, uint8_t model);
+    virtual bool createAudioEngine(XonarAudioEngine *instance, UInt16 model);
     virtual void free();
     
     static IOReturn volumeChangeHandler(IOService *target, IOAudioControl *volumeControl, SInt32 oldValue, SInt32 newValue);

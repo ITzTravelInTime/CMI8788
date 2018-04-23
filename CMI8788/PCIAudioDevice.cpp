@@ -174,10 +174,10 @@ void PCIAudioDevice::oxygen_restore_eeprom(IOPCIDevice *device, struct oxygen *c
 
 bool PCIAudioDevice::initHardware(IOService *provider)
 {
+
     bool result = false;
     XonarAudioEngine *audioEngineInstance = NULL;
     audioEngineInstance = new XonarAudioEngine;
-    int8_t model; // easier to instantiate various submodel classes this way.
     IOLog("SamplePCIAudioDevice[%p]::initHardware(%p)\n", this, provider);
     
     if (!super::initHardware(provider)) {
@@ -207,12 +207,17 @@ bool PCIAudioDevice::initHardware(IOService *provider)
     // mapped registers
     pciDevice->setMemoryEnable(true);
     
+    /*not sure if this will actually get our device ID (thanks to APPUL withholding
+    *pthreads). but i figure if we can pull the subdeviceID after matching, it'd be helpful
+    *when comparing this work to the (original) ALSA code.
+    */
+    subdev_id = pciDevice->configRead32(kIOPCIConfigSubSystemID);
     // add the hardware init code here
-    if(model == HDAV_MODEL)
+    if(subdev_id == HDAV_MODEL)
         setDeviceName("ASUS Xonar HDAV1.3 Deluxe");
-    else if (model == ST_MODEL || model == STX_MODEL)
+    else if (subdev_id == ST_MODEL || subdev_id == STX_MODEL)
         setDeviceName("ASUS Xonar ST(X) models");
-    else if (model == D2_MODEL || model == D2X_MODEL || model == XENSE_MODEL)
+    else if (subdev_id == D2_MODEL || subdev_id == D2X_MODEL || subdev_id == XENSE_MODEL)
         setDeviceName("ASUS Xonar D2(X)+Xense models");
     
     setDeviceShortName("CMI8788");
@@ -221,14 +226,14 @@ bool PCIAudioDevice::initHardware(IOService *provider)
     oxygen_restore_eeprom(pciDevice,deviceRegisters);
     //Before:AUdioEngine's init didn't do much. now it instantiates everything like oxygen_init.
     //so, by creating the engine, we instantiate the registers as well.
-    if (!audioEngineInstance->init(deviceRegisters,model))
+    if (!audioEngineInstance->init(deviceRegisters,subdev_id))
         goto Done;
     //#error Put your own hardware initialization code here...and in other routines!!
     this->accessibleEngineInstance = audioEngineInstance;
     
     //see comments in createAudioEngine to follow rest of oxygen_pci_probe
     //(chip->model.init() and onwards)
-    if (!createAudioEngine(audioEngineInstance, model)) {
+    if (!createAudioEngine(audioEngineInstance, subdev_id)) {
         goto Done;
     }
     
@@ -258,7 +263,7 @@ void PCIAudioDevice::free()
     super::free();
 }
 
-bool PCIAudioDevice::createAudioEngine(XonarAudioEngine *audioEngineInstance, uint8_t submodel)
+bool PCIAudioDevice::createAudioEngine(XonarAudioEngine *audioEngineInstance, UInt16 submodel)
 {
     IOAudioControl *control;
     //At this point, we should be at the chip->model.init() part of the oxygen_pci_probe function.
