@@ -277,11 +277,11 @@ bool PCIAudioDevice::createAudioEngine(XonarAudioEngine *audioEngineInstance, UI
         //XonarHDAVAudioEngine *audioEngine = NULL;
         audioEngine = new XonarHDAVAudioEngine;
     }
-    else if (submodel == ST_MODEL || submodel == STX_MODEL) {
+    else if (submodel == ST_MODEL || submodel == STX_MODEL || submodel == XENSE_MODEL) {
         //XonarSTAudioEngine *audioEngine = NULL;
         audioEngine = new XonarSTAudioEngine;
     }
-    else if (submodel == D2_MODEL || submodel == D2X_MODEL || submodel == XENSE_MODEL) {
+    else if (submodel == D2_MODEL || submodel == D2X_MODEL) {
         // XonarD2XAudioEngine *audioEngine = NULL;
         audioEngine = new XonarD2XAudioEngine;
     }
@@ -297,11 +297,11 @@ bool PCIAudioDevice::createAudioEngine(XonarAudioEngine *audioEngineInstance, UI
         if (!((XonarHDAVAudioEngine*)audioEngine)->init(audioEngineInstance,deviceRegisters))
             goto Done;
     }
-    else if (submodel == ST_MODEL || submodel == STX_MODEL) {
+    else if (submodel == ST_MODEL || submodel == STX_MODEL || submodel == XENSE_MODEL) {
         if (!((XonarSTAudioEngine*)audioEngine)->init(audioEngineInstance,deviceRegisters,submodel))
             goto Done;
     }
-    else if (submodel == D2_MODEL || submodel == D2X_MODEL || submodel == XENSE_MODEL) {
+    else if (submodel == D2_MODEL || submodel == D2X_MODEL) {
         if (!((XonarD2XAudioEngine*)audioEngine)->init(audioEngineInstance,deviceRegisters,submodel))
             goto Done;
         
