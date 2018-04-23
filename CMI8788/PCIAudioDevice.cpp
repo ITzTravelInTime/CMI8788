@@ -211,7 +211,7 @@ bool PCIAudioDevice::initHardware(IOService *provider)
     *pthreads). but i figure if we can pull the subdeviceID after matching, it'd be helpful
     *when comparing this work to the (original) ALSA code.
     */
-    subdev_id = pciDevice->configRead32(kIOPCIConfigSubSystemID);
+    subdev_id = pciDevice->configRead16(kIOPCIConfigSubSystemID);
     // add the hardware init code here
     if(subdev_id == HDAV_MODEL)
         setDeviceName("ASUS Xonar HDAV1.3 Deluxe");
