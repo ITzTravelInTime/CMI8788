@@ -140,14 +140,14 @@ void PCIAudioDevice::oxygen_write_eeprom(struct oxygen *chip, unsigned int index
 }
 
 
-void PCIAudioDevice::oxygen_restore_eeprom(IOPCIDevice *device, struct oxygen *chip)
+void PCIAudioDevice::oxygen_restore_eeprom(IOPCIDevice *device, struct oxygen *chip, UInt16 dev_id)
 // const struct pci_device_id *id)
 {
     UInt16 eeprom_id;
     
     eeprom_id = oxygen_read_eeprom(chip, 0);
     if (eeprom_id != OXYGEN_EEPROM_ID &&
-        (eeprom_id != 0xffff)) { //|| device-> != 0x8788)) {
+        (eeprom_id != 0xffff || dev_id != 0x8788)) {
         /*
          * This function gets called only when a known card model has
          * been detected, i.e., we know there is a valid subsystem
@@ -211,6 +211,7 @@ bool PCIAudioDevice::initHardware(IOService *provider)
     *pthreads). but i figure if we can pull the subdeviceID after matching, it'd be helpful
     *when comparing this work to the (original) ALSA code.
     */
+    dev_id = pciDevice->configRead16(kIOPCIConfigDeviceID);
     subdev_id = pciDevice->configRead16(kIOPCIConfigSubSystemID);
     // add the hardware init code here
     if(subdev_id == HDAV_MODEL)
@@ -223,7 +224,7 @@ bool PCIAudioDevice::initHardware(IOService *provider)
     setDeviceShortName("CMI8788");
     setManufacturerName("CMedia");
     
-    oxygen_restore_eeprom(pciDevice,deviceRegisters);
+    oxygen_restore_eeprom(pciDevice,deviceRegisters,dev_id);
     //Before:AudioEngine's init didn't do much. now it instantiates everything like oxygen_init.
     //so, by creating the engine, we instantiate the registers as well.
     if (!audioEngineInstance->init(deviceRegisters,subdev_id))

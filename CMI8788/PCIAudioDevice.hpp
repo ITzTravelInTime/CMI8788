@@ -343,6 +343,7 @@ class PCIAudioDevice : public IOAudioDevice
     
     IOPCIDevice					*pciDevice;
     IOMemoryMap					*deviceMap;
+    UInt16                      dev_id;
     UInt16                      subdev_id;
     struct oxygen               *deviceRegisters;
     
@@ -390,7 +391,7 @@ class PCIAudioDevice : public IOAudioDevice
     
     UInt16 oxygen_read_eeprom(struct oxygen *chip, unsigned int index);
     void oxygen_write_eeprom(struct oxygen *chip, unsigned int index, UInt16 value);
-    void oxygen_restore_eeprom(IOPCIDevice *device, struct oxygen *chip);
+    void oxygen_restore_eeprom(IOPCIDevice *device, struct oxygen *chip, UInt16 deviceId);
 
     
     

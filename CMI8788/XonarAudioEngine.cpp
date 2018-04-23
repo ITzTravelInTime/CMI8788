@@ -840,7 +840,7 @@ bool XonarAudioEngine::init(struct oxygen *chip, int model)
         //0x8428
         else if(model == XENSE_MODEL) {
             chip->model.shortname = "Xonar Xense";
-            //not sure if we'll need the three lines below yet
+            //not sure if we'll need the line below yet
             //chip->model.mixer_init = xonar_xense_mixer_init;
 
         }
