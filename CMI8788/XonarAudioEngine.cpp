@@ -787,19 +787,7 @@ void XonarAudioEngine::xonar_hdmi_resume(struct oxygen *chip, struct xonar_hdmi 
 {
     xonar_hdmi_init_commands(chip, hdmi);
 }
-/*
- void xonar_hdmi_pcm_hardware_filter(unsigned int channel,
- struct snd_pcm_hardware *hardware)
- {
- if (channel == PCM_MULTICH) {
- hardware->rates = SNDRV_PCM_RATE_44100 |
- SNDRV_PCM_RATE_48000 |
- SNDRV_PCM_RATE_96000 |
- SNDRV_PCM_RATE_192000;
- hardware->rate_min = 44100;
- }
- }
- */
+
 void XonarAudioEngine::xonar_set_hdmi_params(struct oxygen *chip, struct xonar_hdmi *hdmi)
 {
     hdmi->params[0] = 0; // 1 = non-audio

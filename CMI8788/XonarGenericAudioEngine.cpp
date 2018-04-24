@@ -228,7 +228,7 @@ void XonarGenericAudioEngine::stereo_output_init(struct oxygen *chip, XonarAudio
     ak4396_init(chip, engineInstance);
 }
 
-void XonarGenericAudioEngine::generic_cleanup(struct oxygen *chip)
+void XonarGenericAudioEngine::generic_cleanup(struct oxygen *chip, XonarAudioEngine *engineInstance)
 {
 }
 
@@ -377,7 +377,6 @@ bool XonarGenericAudioEngine::init(XonarAudioEngine *audioEngine, struct oxygen 
      * XonarAudioEngine.cpp
      */
     chip->model.shortname = "C-Media CMI8788";
-    //chip->model.init = generic_init;
     //chip->model.mixer_init = generic_wm8785_mixer_init,
     chip->model.cleanup = generic_cleanup;
     chip->model.resume = generic_resume;

@@ -354,7 +354,7 @@ void XonarSTAudioEngine::set_st_params(struct oxygen *chip,
  },
  };
  
-*/
+ */
 
 bool XonarSTAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip, UInt16 model)
 {
@@ -371,6 +371,7 @@ bool XonarSTAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip, UIn
         goto Done;
     }
     /* sample driver init code (from SamplePCIAudioEngine.cpp's ::init) */
+    
     
     if(model == ST_MODEL) {
         data->generic.anti_pop_delay = 100;
@@ -390,8 +391,7 @@ bool XonarSTAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip, UIn
         xonar_st_init_i2c(chip,engine);
         engine->cs2000_registers_init(chip);
         xonar_st_init_common(chip,engine);
-        chip->model.resume = this->xonar_st_resume;
-//      snd_component_add(chip->card, "CS2000");
+        //      snd_component_add(chip->card, "CS2000");
         
     }
     else if(model == STX_MODEL || model == STX2_MODEL) {
@@ -402,7 +402,6 @@ bool XonarSTAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip, UIn
         data->generic.ext_power_bit = GPI_EXT_POWER;
         engine->xonar_init_ext_power(chip);
         xonar_st_init_common(chip,engine);
-        chip->model.resume = this->xonar_stx_resume;
         chip->model.set_dac_params = engine->set_pcm1796_params;
     }
     else if(model == XENSE_MODEL) {
@@ -447,8 +446,10 @@ bool XonarSTAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip, UIn
         //   snd_component_add(chip->card, "CS5381");
         //  snd_component_add(chip->card, "CS2000");
     }
-
-
+    chip->model.cleanup = this->xonar_st_cleanup;
+    chip->model.suspend = this->xonar_st_suspend;
+    chip->model.resume = this->xonar_st_resume;
+    
     deviceRegisters = (struct xonar_pcm179x*)chip->model_data;
     
     //set the pointer to XonarAudioEngine.
@@ -661,7 +662,7 @@ IOReturn XonarSTAudioEngine::performAudioEngineStart()
     
     // Add audio - I/O start code here
     
-//#error performAudioEngineStart() - driver will not work until audio engine start code is added
+    //#error performAudioEngineStart() - driver will not work until audio engine start code is added
     
     return kIOReturnSuccess;
 }
@@ -676,7 +677,7 @@ IOReturn XonarSTAudioEngine::performAudioEngineStop()
     
     // Add audio - I/O stop code here
     
-//#error performAudioEngineStop() - driver will not work until audio engine stop code is added
+    //#error performAudioEngineStop() - driver will not work until audio engine stop code is added
     
     return kIOReturnSuccess;
 }
@@ -692,7 +693,7 @@ UInt32 XonarSTAudioEngine::getCurrentSampleFrame()
     // frame returned by this function.  If it is too large a value, sound data that hasn't been played will be
     // erased.
     
-//#error getCurrentSampleFrame() - driver will not work until correct sample frame is returned
+    //#error getCurrentSampleFrame() - driver will not work until correct sample frame is returned
     
     // Change to return the real value
     return 0;

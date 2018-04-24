@@ -161,8 +161,8 @@ struct oxygen_model {
     unsigned int device_config;
     void (*update_dac_mute)(struct oxygen *chip);
     void (*resume)(struct oxygen *chip, XonarAudioEngine *audioEngineInstance);
-    void (*cleanup)(struct oxygen *chip);
-    void (*suspend)(struct oxygen *chip);
+    void (*cleanup)(struct oxygen *chip, XonarAudioEngine *audioEngineInstance);
+    void (*suspend)(struct oxygen *chip, XonarAudioEngine *audioEngineInstance);
     UInt8 dac_channels_pcm;
     UInt8 dac_channels_mixer;
     UInt8 dac_volume_min;

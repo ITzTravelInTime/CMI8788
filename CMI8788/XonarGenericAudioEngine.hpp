@@ -103,7 +103,7 @@ public:
     static void claro_halo_init(struct oxygen *chip, XonarAudioEngine *engineInstance);
     static void fantasia_init(struct oxygen *chip, XonarAudioEngine *engineInstance);
     static void stereo_output_init(struct oxygen *chip, XonarAudioEngine *engineInstance);
-    static void generic_cleanup(struct oxygen *chip);
+    static void generic_cleanup(struct oxygen *chip, XonarAudioEngine *engineInstance);
     static void claro_disable_hp(struct oxygen *chip);
     static void claro_cleanup(struct oxygen *chip);
     static void claro_suspend(struct oxygen *chip);

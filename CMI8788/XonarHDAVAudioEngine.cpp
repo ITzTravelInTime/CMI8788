@@ -126,16 +126,12 @@ bool XonarHDAVAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip)
         goto Done;
     }
     /* end sample driver template */
-    
-    // as far as i can see, these chips are slightly farther off (not used by
-    // the hdav1.3 deluxe [from what i could discern]).
-    //  ak4396_init(chip);
-    //  wm8785_init(chip);
+
     
     chip->model_data = IOMalloc(chip->model.model_data_size);
     deviceRegisters = (struct xonar_hdav*)chip->model_data;
 
-    /* begin ALSA oxygen_init code */
+    /* begin ALSA xonar_hdav_init */
     oxygen_write16(chip, OXYGEN_2WIRE_BUS_STATUS,
                    OXYGEN_2WIRE_LENGTH_8 |
                    OXYGEN_2WIRE_INTERRUPT_MASK |
@@ -150,7 +146,7 @@ bool XonarHDAVAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip)
     deviceRegisters->pcm179x.h6 = chip->model.dac_channels_mixer > 2;
     //assign fn ptr uart_input to xonar_hdmi_uart_input
     chip->model.resume = xonar_hdav_resume;
-    
+    chip->model.cleanup = xonar_hdav_cleanup;
     
     engine->pcm1796_init(chip);
     
@@ -162,11 +158,11 @@ bool XonarHDAVAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip)
     engine->xonar_init_ext_power(chip);
     engine->xonar_hdmi_init(chip, &deviceRegisters->hdmi);
     engine->xonar_enable_output(chip);
-    
+    /* end hdav_init, begin last bit of SamplePCIAudioEngine.cpp's init
+     */
     this->engineInstance = engine;
     result = true;
-    /* end alsa oxygen_init, begin last bit of SamplePCIAudioEngine.cpp's init
-    */
+    
     goto Done;
     /* last bits of alsa's oxygen_init */
     // snd_component_add(chip->card, "PCM1796");
@@ -178,38 +174,6 @@ Done:
     
     
 }
-
-
-
-
-//bool XonarHDAVAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip)
-//{
-//    bool result = false;
-//
-//    IOLog("XonarHDAVAudioEngine[%p]::init(%p)\n", this, chip);
-//
-//    if (!chip) {
-//        goto Done;
-//    }
-//
-//    if (!super::init(NULL)) {
-//        goto Done;
-//    }
-//  //  ak4396_init(chip);
-//  //  wm8785_init(chip);
-//    deviceRegisters = (struct xonar_hdav*)chip->model_data;
-//
-//    // the below aren't correct. have to bridge the workqueue calls to IOWorkLoop
-//    queue_init(&chip->ac97_waitqueue);
-//    chip->mutex = OS_SPINLOCK_INIT;
-//    this->engineInstance = engine;
-//    xonar_hdav_init(chip);
-//    result = true;
-//
-//Done:
-//
-//    return result;
-//}
 
 bool XonarHDAVAudioEngine::initHardware(IOService *provider)
 {
