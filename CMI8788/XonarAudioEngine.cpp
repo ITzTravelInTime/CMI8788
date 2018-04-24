@@ -262,7 +262,7 @@ int XonarAudioEngine::oxygen_write_spi(struct oxygen *chip, UInt8 control, unsig
 
 
 inline void XonarAudioEngine::pcm1796_write_spi(struct oxygen *chip, unsigned int codec,
-                                     UInt8 reg, UInt8 value)
+                                                UInt8 reg, UInt8 value)
 {
     /* maps ALSA channel pair number to SPI output */
     static const UInt8 codec_map[4] = {
@@ -292,13 +292,13 @@ void XonarAudioEngine::oxygen_write_i2c(struct oxygen *chip, UInt8 device, UInt8
 //EXPORT_SYMBOL(oxygen_write_i2c);
 
 inline void XonarAudioEngine::pcm1796_write_i2c(struct oxygen *chip, unsigned int codec,
-                                     UInt8 reg, UInt8 value)
+                                                UInt8 reg, UInt8 value)
 {
     oxygen_write_i2c(chip, I2C_DEVICE_PCM1796(codec), reg, value);
 }
 
 void XonarAudioEngine::pcm1796_write(struct oxygen *chip, unsigned int codec,
-                          UInt8 reg, UInt8 value)
+                                     UInt8 reg, UInt8 value)
 {
     struct xonar_pcm179x *data = (struct xonar_pcm179x*)chip->model_data;
     
@@ -313,7 +313,7 @@ void XonarAudioEngine::pcm1796_write(struct oxygen *chip, unsigned int codec,
 }
 
 void XonarAudioEngine::pcm1796_write_cached(struct oxygen *chip, unsigned int codec,
-                                 UInt8 reg, UInt8 value)
+                                            UInt8 reg, UInt8 value)
 {
     struct xonar_pcm179x *data = (struct xonar_pcm179x*)chip->model_data;
     
@@ -707,18 +707,18 @@ void XonarAudioEngine::wm8785_write(struct oxygen *chip, UInt8 reg, unsigned int
     struct generic_data *data = (struct generic_data*) chip->model_data;
     
     oxygen_write_spi(chip, OXYGEN_SPI_TRIGGER |
-                                         OXYGEN_SPI_DATA_LENGTH_2 |
-                                         OXYGEN_SPI_CLOCK_160 |
-                                         (3 << OXYGEN_SPI_CODEC_SHIFT) |
-                                         OXYGEN_SPI_CEN_LATCH_CLOCK_LO,
-                                         (reg << 9) | value);
+                     OXYGEN_SPI_DATA_LENGTH_2 |
+                     OXYGEN_SPI_CLOCK_160 |
+                     (3 << OXYGEN_SPI_CODEC_SHIFT) |
+                     OXYGEN_SPI_CEN_LATCH_CLOCK_LO,
+                     (reg << 9) | value);
     if (reg < ARRAY_SIZE(data->wm8785_regs))
         data->wm8785_regs[reg] = value;
 }
 
 
 void XonarAudioEngine::ak4396_write(struct oxygen *chip, unsigned int codec,
-                                           UInt8 reg, UInt8 value)
+                                    UInt8 reg, UInt8 value)
 {
     /* maps ALSA channel pair number to SPI output */
     static const UInt8 codec_spi_map[4] = {
@@ -727,17 +727,17 @@ void XonarAudioEngine::ak4396_write(struct oxygen *chip, unsigned int codec,
     struct generic_data *data = (struct generic_data*) chip->model_data;
     
     oxygen_write_spi(chip, OXYGEN_SPI_TRIGGER |
-                                     OXYGEN_SPI_DATA_LENGTH_2 |
-                                     OXYGEN_SPI_CLOCK_160 |
-                                     (codec_spi_map[codec] << OXYGEN_SPI_CODEC_SHIFT) |
-                                     OXYGEN_SPI_CEN_LATCH_CLOCK_HI,
-                                     AK4396_WRITE | (reg << 8) | value);
+                     OXYGEN_SPI_DATA_LENGTH_2 |
+                     OXYGEN_SPI_CLOCK_160 |
+                     (codec_spi_map[codec] << OXYGEN_SPI_CODEC_SHIFT) |
+                     OXYGEN_SPI_CEN_LATCH_CLOCK_HI,
+                     AK4396_WRITE | (reg << 8) | value);
     data->ak4396_regs[codec][reg] = value;
 }
 
 
 void XonarAudioEngine::hdmi_write_command(struct oxygen *chip, UInt8 command,
-                                              unsigned int count, const UInt8 *params)
+                                          unsigned int count, const UInt8 *params)
 {
     unsigned int i;
     UInt8 checksum;
@@ -755,7 +755,7 @@ void XonarAudioEngine::hdmi_write_command(struct oxygen *chip, UInt8 command,
 }
 
 void XonarAudioEngine::xonar_hdmi_init_commands(struct oxygen *chip,
-                                                    struct xonar_hdmi *hdmi)
+                                                struct xonar_hdmi *hdmi)
 {
     UInt8 param;
     
@@ -901,7 +901,7 @@ bool XonarAudioEngine::init(struct oxygen *chip, int model)
                 break;
         }
         chip->model.uart_input = xonar_hdmi_uart_input;
-
+        
         
     }
     else if (model == ST_MODEL || model == STX_MODEL ||
@@ -979,7 +979,7 @@ bool XonarAudioEngine::init(struct oxygen *chip, int model)
             chip->model.shortname = "Xonar Xense";
             //not sure if we'll need the line below yet
             //chip->model.mixer_init = xonar_xense_mixer_init;
-
+            
         }
         //end 0x8428
         
@@ -1009,12 +1009,12 @@ bool XonarAudioEngine::init(struct oxygen *chip, int model)
         if(model == D2_MODEL)
             chip->model.shortname = "Xonar D2";
         //end 0x8269
-
+        
         //0x82b7
         else if (model == D2X_MODEL)
             chip->model.shortname = "Xonar D2X";
         //end 0x82b7
-
+        
     }
     else if (model == XONAR_GENERIC){ // generic
         chip->model.model_data_size = sizeof(struct generic_data);
@@ -1035,19 +1035,16 @@ bool XonarAudioEngine::init(struct oxygen *chip, int model)
         chip->model.adc_mclks = OXYGEN_MCLKS(256, 256, 128);
         chip->model.dac_i2s_format = OXYGEN_I2S_FORMAT_LJUST;
         chip->model.adc_i2s_format = OXYGEN_I2S_FORMAT_LJUST;
-
+        
     }
     else {
         
-//            .init = xonar_d1_init,
-//            .mixer_init = xonar_d1_mixer_init,
-          
-
+        
         chip->model.model_data_size = sizeof(struct xonar_cs43xx);
-            chip->model.device_config = PLAYBACK_0_TO_I2S |
-            PLAYBACK_1_TO_SPDIF |
-            CAPTURE_0_FROM_I2S_2 |
-            CAPTURE_1_FROM_SPDIF |
+        chip->model.device_config = PLAYBACK_0_TO_I2S |
+        PLAYBACK_1_TO_SPDIF |
+        CAPTURE_0_FROM_I2S_2 |
+        CAPTURE_1_FROM_SPDIF |
         AC97_FMIC_SWITCH;
         chip->model.dac_channels_pcm = 8;
         chip->model.dac_channels_mixer = 8;
