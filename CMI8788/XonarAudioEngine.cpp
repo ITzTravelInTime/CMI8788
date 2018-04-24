@@ -55,6 +55,8 @@
 #include "pcm1796.h"
 #include "cm9780.h"
 #include "cs2000.h"
+#include "cs4398.h"
+#include "cs4362a.h"
 #include "ac97.h"
 #define INITIAL_SAMPLE_RATE	44100
 #define NUM_SAMPLE_FRAMES	16384
@@ -71,7 +73,6 @@ static inline unsigned long msecs_to_jiffies(const unsigned int m)
 {
     return (m + (MSEC_PER_SEC / HZ) - 1) / (MSEC_PER_SEC / HZ);
 }
-
 
 
 void XonarAudioEngine::xonar_enable_output(struct oxygen *chip)
@@ -278,7 +279,7 @@ static inline void pcm1796_write_spi(struct oxygen *chip, unsigned int codec,
 
 
 
-void oxygen_write_i2c(struct oxygen *chip, UInt8 device, UInt8 map, UInt8 data)
+void XonarAudioEngine::oxygen_write_i2c(struct oxygen *chip, UInt8 device, UInt8 map, UInt8 data)
 {
     /* should not need more than about 300 us */
     IODelay(1000);
@@ -290,13 +291,13 @@ void oxygen_write_i2c(struct oxygen *chip, UInt8 device, UInt8 map, UInt8 data)
 }
 //EXPORT_SYMBOL(oxygen_write_i2c);
 
-static inline void pcm1796_write_i2c(struct oxygen *chip, unsigned int codec,
+inline void XonarAudioEngine::pcm1796_write_i2c(struct oxygen *chip, unsigned int codec,
                                      UInt8 reg, UInt8 value)
 {
     oxygen_write_i2c(chip, I2C_DEVICE_PCM1796(codec), reg, value);
 }
 
-static void pcm1796_write(struct oxygen *chip, unsigned int codec,
+void XonarAudioEngine::pcm1796_write(struct oxygen *chip, unsigned int codec,
                           UInt8 reg, UInt8 value)
 {
     struct xonar_pcm179x *data = (struct xonar_pcm179x*)chip->model_data;
@@ -311,29 +312,13 @@ static void pcm1796_write(struct oxygen *chip, unsigned int codec,
         data->pcm1796_regs[codec][reg - PCM1796_REG_BASE] = value;
 }
 
-static void pcm1796_write_cached(struct oxygen *chip, unsigned int codec,
+void XonarAudioEngine::pcm1796_write_cached(struct oxygen *chip, unsigned int codec,
                                  UInt8 reg, UInt8 value)
 {
     struct xonar_pcm179x *data = (struct xonar_pcm179x*)chip->model_data;
     
     if (value != data->pcm1796_regs[codec][reg - PCM1796_REG_BASE])
         pcm1796_write(chip, codec, reg, value);
-}
-
-static void cs2000_write(struct oxygen *chip, UInt8 reg, UInt8 value)
-{
-    struct xonar_pcm179x *data = (struct xonar_pcm179x*)chip->model_data;
-    
-    oxygen_write_i2c(chip, I2C_DEVICE_CS2000, reg, value);
-    data->cs2000_regs[reg] = value;
-}
-
-static void cs2000_write_cached(struct oxygen *chip, UInt8 reg, UInt8 value)
-{
-    struct xonar_pcm179x *data = (struct xonar_pcm179x*)chip->model_data;
-    
-    if (value != data->cs2000_regs[reg])
-        cs2000_write(chip, reg, value);
 }
 
 void XonarAudioEngine::pcm1796_registers_init(struct oxygen *chip)
@@ -375,6 +360,22 @@ void XonarAudioEngine::pcm1796_init(struct oxygen *chip)
     data->h6 ? PCM1796_OS_64 : PCM1796_OS_128;
     pcm1796_registers_init(chip);
     data->current_rate->whole = 48000;
+}
+
+void XonarAudioEngine::cs2000_write(struct oxygen *chip, UInt8 reg, UInt8 value)
+{
+    struct xonar_pcm179x *data = (struct xonar_pcm179x*)chip->model_data;
+    
+    oxygen_write_i2c(chip, I2C_DEVICE_CS2000, reg, value);
+    data->cs2000_regs[reg] = value;
+}
+
+void XonarAudioEngine::cs2000_write_cached(struct oxygen *chip, UInt8 reg, UInt8 value)
+{
+    struct xonar_pcm179x *data = (struct xonar_pcm179x*)chip->model_data;
+    
+    if (value != data->cs2000_regs[reg])
+        cs2000_write(chip, reg, value);
 }
 
 void XonarAudioEngine::cs2000_registers_init(struct oxygen *chip)
@@ -644,7 +645,6 @@ UInt16 oxygen_read_ac97(struct oxygen *chip, unsigned int codec,
     dev_err(chip->card->dev, "AC'97 read timeout on codec %u\n", codec);
     return 0;
 }
-//EXPORT_SYMBOL(oxygen_read_ac97);
 
 void oxygen_write_ac97_masked(struct oxygen *chip, unsigned int codec,
                               unsigned int index, UInt16 data, UInt16 mask)
@@ -654,7 +654,6 @@ void oxygen_write_ac97_masked(struct oxygen *chip, unsigned int codec,
     value |= data & mask;
     oxygen_write_ac97(chip, codec, index, value);
 }
-//EXPORT_SYMBOL(oxygen_write_ac97_masked);
 
 
 
@@ -824,6 +823,74 @@ void XonarAudioEngine::xonar_set_hdmi_params(struct oxygen *chip, struct xonar_h
     hdmi_write_command(chip, 0x54, 5, hdmi->params);
 }
 
+
+
+
+void XonarAudioEngine::cs4398_write(struct oxygen *chip, UInt8 reg, UInt8 value)
+{
+    struct xonar_cs43xx *data = (struct xonar_cs43xx *)chip->model_data;
+    
+    oxygen_write_i2c(chip, I2C_DEVICE_CS4398, reg, value);
+    if (reg < ARRAY_SIZE(data->cs4398_regs))
+        data->cs4398_regs[reg] = value;
+}
+
+void XonarAudioEngine::cs4398_write_cached(struct oxygen *chip, UInt8 reg, UInt8 value)
+{
+    struct xonar_cs43xx *data = (struct xonar_cs43xx *)chip->model_data;
+    
+    if (value != data->cs4398_regs[reg])
+        cs4398_write(chip, reg, value);
+}
+
+void XonarAudioEngine::cs4362a_write(struct oxygen *chip, UInt8 reg, UInt8 value)
+{
+    struct xonar_cs43xx *data = (struct xonar_cs43xx *)chip->model_data;
+    
+    oxygen_write_i2c(chip, I2C_DEVICE_CS4362A, reg, value);
+    if (reg < ARRAY_SIZE(data->cs4362a_regs))
+        data->cs4362a_regs[reg] = value;
+}
+
+void XonarAudioEngine::cs4362a_write_cached(struct oxygen *chip, UInt8 reg, UInt8 value)
+{
+    struct xonar_cs43xx *data = (struct xonar_cs43xx *)chip->model_data;
+    
+    if (value != data->cs4362a_regs[reg])
+        cs4362a_write(chip, reg, value);
+}
+
+
+void XonarAudioEngine::update_cs4362a_volumes(struct oxygen *chip)
+{
+    unsigned int i;
+    UInt8 mute;
+    
+    mute = chip->dac_mute ? CS4362A_MUTE : 0;
+    for (i = 0; i < 6; ++i)
+        cs4362a_write_cached(chip, 7 + i + i / 2,
+                             (127 - chip->dac_volume[2 + i]) | mute);
+}
+
+void XonarAudioEngine::update_cs43xx_volume(struct oxygen *chip)
+{
+    cs4398_write_cached(chip, 5, (127 - chip->dac_volume[0]) * 2);
+    cs4398_write_cached(chip, 6, (127 - chip->dac_volume[1]) * 2);
+    update_cs4362a_volumes(chip);
+}
+
+void XonarAudioEngine::update_cs43xx_mute(struct oxygen *chip)
+{
+    UInt8 reg;
+    
+    reg = CS4398_MUTEP_LOW | CS4398_PAMUTE;
+    if (chip->dac_mute)
+        reg |= CS4398_MUTE_B | CS4398_MUTE_A;
+    cs4398_write_cached(chip, 4, reg);
+    update_cs4362a_volumes(chip);
+}
+
+
 static void xonar_hdmi_uart_input(struct oxygen *chip)
 {
     if (chip->uart_input_count >= 2 &&
@@ -835,7 +902,6 @@ static void xonar_hdmi_uart_input(struct oxygen *chip)
         chip->uart_input_count = 0;
     }
 }
-
 
 
 bool XonarAudioEngine::init(struct oxygen *chip, int model)
@@ -1017,7 +1083,7 @@ bool XonarAudioEngine::init(struct oxygen *chip, int model)
         //end 0x82b7
 
     }
-    else { // generic
+    else if (model == XONAR_GENERIC){ // generic
         chip->model.model_data_size = sizeof(struct generic_data);
         chip->model.device_config = PLAYBACK_0_TO_I2S |
         PLAYBACK_1_TO_SPDIF |
@@ -1038,7 +1104,29 @@ bool XonarAudioEngine::init(struct oxygen *chip, int model)
         chip->model.adc_i2s_format = OXYGEN_I2S_FORMAT_LJUST;
 
     }
-    
+    else {
+        
+//            .init = xonar_d1_init,
+//            .mixer_init = xonar_d1_mixer_init,
+          
+
+        chip->model.model_data_size = sizeof(struct xonar_cs43xx);
+            chip->model.device_config = PLAYBACK_0_TO_I2S |
+            PLAYBACK_1_TO_SPDIF |
+            CAPTURE_0_FROM_I2S_2 |
+            CAPTURE_1_FROM_SPDIF |
+        AC97_FMIC_SWITCH;
+        chip->model.dac_channels_pcm = 8;
+        chip->model.dac_channels_mixer = 8;
+        chip->model.dac_volume_min = 127 - 60;
+        chip->model.dac_volume_max = 127;
+        chip->model.function_flags = OXYGEN_FUNCTION_2WIRE;
+        chip->model.dac_mclks = OXYGEN_MCLKS(256, 128, 128);
+        chip->model.adc_mclks = OXYGEN_MCLKS(256, 128, 128);
+        chip->model.dac_i2s_format = OXYGEN_I2S_FORMAT_LJUST;
+        chip->model.adc_i2s_format = OXYGEN_I2S_FORMAT_LJUST;
+        
+    }
     pthread_mutex_init(&chip->mutex,NULL);
     pthread_mutex_init(&chip->ac97_mutex,NULL);
     pthread_cond_init(&chip->ac97_condition,NULL);

@@ -82,6 +82,15 @@ struct xonar_hdav {
 };
 
 
+struct xonar_cs43xx {
+    struct xonar_generic generic;
+    UInt8 cs4398_regs[8];
+    UInt8 cs4362a_regs[15];
+};
+
+
+
+
 #define GPIO_CS53x1_M_MASK      0x000c
 #define GPIO_CS53x1_M_SINGLE    0x0000
 #define GPIO_CS53x1_M_DOUBLE    0x0004
@@ -110,6 +119,11 @@ struct xonar_hdav {
 
 #define I2C_DEVICE_PCM1796(i)	(0x98 + ((i) << 1))	/* 10011, ii, /W=0 */
 #define I2C_DEVICE_CS2000	0x9c			/* 100111, 0, /W=0 */
+
+#define I2C_DEVICE_CS4398	0x9e	/* 10011, AD1=1, AD0=1, /W=0 */
+#define I2C_DEVICE_CS4362A	0x30	/* 001100, AD0=0, /W=0 */
+
+
 
 #define PCM1796_REG_BASE	16
 
@@ -187,7 +201,7 @@ public:
     static void xonar_disable_output(struct oxygen *chip);
     static void xonar_init_ext_power(struct oxygen *chip);
     static void xonar_init_cs53x1(struct oxygen *chip);
-    void xonar_set_cs53x1_params(struct oxygen *chip, XonarAudioEngine *instance);
+    static void xonar_set_cs53x1_params(struct oxygen *chip, XonarAudioEngine *instance);
     
     static int  add_pcm1796_controls(struct oxygen *chip);
     static void pcm1796_init(struct oxygen *chip);
@@ -213,7 +227,13 @@ public:
     static void oxygen_gpio_changed(struct oxygen* chip);
     static void ak4396_write(struct oxygen *chip, unsigned int codec,
                              UInt8 reg, UInt8 value);
-    
+    static void oxygen_write_i2c(struct oxygen *chip, UInt8 device, UInt8 map, UInt8 data);
+    static void pcm1796_write(struct oxygen *chip, unsigned int codec,
+                                   UInt8 reg, UInt8 value);
+    static void pcm1796_write_cached(struct oxygen *chip, unsigned int codec,
+                                     UInt8 reg, UInt8 value);
+    static inline void pcm1796_write_i2c(struct oxygen *chip, unsigned int codec,
+                                         UInt8 reg, UInt8 value);
     static void wm8785_write(struct oxygen *chip, UInt8 reg, unsigned int value);
     /* model-specific card drivers
     
@@ -225,6 +245,8 @@ public:
                                const struct pci_device_id *id);*/
     static void cs2000_registers_init(struct oxygen *chip);
     static void update_cs2000_rate(struct oxygen *chip, unsigned int rate);
+    static void cs2000_write(struct oxygen *chip, UInt8 reg, UInt8 value);
+    static void cs2000_write_cached(struct oxygen *chip, UInt8 reg, UInt8 value);
     
     static void xonar_hdav_cleanup(struct oxygen *chip);
     /* HDMI helper functions */
@@ -248,7 +270,18 @@ public:
     
     static void oxygen_spdif_input_bits_changed(struct oxygen *chip);
 
-
+    //d1
+    static void cs4398_write(struct oxygen *chip, UInt8 reg, UInt8 value);
+    
+    static void cs4398_write_cached(struct oxygen *chip, UInt8 reg, UInt8 value);
+    static void cs4362a_write(struct oxygen *chip, UInt8 reg, UInt8 value);
+    static void cs4362a_write_cached(struct oxygen *chip, UInt8 reg, UInt8 value);
+    
+    static void update_cs4362a_volumes(struct oxygen *chip);
+    
+    static void update_cs43xx_volume(struct oxygen *chip);
+    
+    static void update_cs43xx_mute(struct oxygen *chip);
     
 };
 
