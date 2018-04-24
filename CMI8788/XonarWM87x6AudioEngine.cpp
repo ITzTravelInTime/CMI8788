@@ -1,7 +1,6 @@
 #include <libkern/OSByteOrder.h>
 #include <sys/errno.h>
 #include <i386/limits.h>
-#include </usr/include/libkern/OSAtomic.h>
 #include <IOKit/IOLib.h>
 #include <IOKit/IOFilterInterruptEventSource.h>
 #include "XonarWM87x6AudioEngine.hpp"
@@ -82,16 +81,6 @@ OSDefineMetaClassAndStructors(XonarWM87x6AudioEngine, IOAudioEngine)
  *   input 2 <- aux
  */
 
-#include <linux/pci.h>
-#include <linux/delay.h>
-#include <sound/control.h>
-#include <sound/core.h>
-#include <sound/info.h>
-#include <sound/jack.h>
-#include <sound/pcm.h>
-#include <sound/pcm_params.h>
-#include <sound/tlv.h>
-#include "xonar.h"
 #include "wm8776.h"
 #include "wm8766.h"
 
@@ -110,21 +99,11 @@ OSDefineMetaClassAndStructors(XonarWM87x6AudioEngine, IOAudioEngine)
 #define LC_CONTROL_LIMITER	0x40000000
 #define LC_CONTROL_ALC		0x20000000
 
-struct xonar_wm87x6 {
-    struct xonar_generic generic;
-    u16 wm8776_regs[0x17];
-    u16 wm8766_regs[0x10];
-    struct snd_kcontrol *line_adcmux_control;
-    struct snd_kcontrol *mic_adcmux_control;
-    struct snd_kcontrol *lc_controls[13];
-    struct snd_jack *hp_jack;
-    struct xonar_hdmi hdmi;
-};
 
-static void wm8776_write_spi(struct oxygen *chip,
-                             unsigned int reg, unsigned int value)
+void XonarWM87x6AudioEngine::wm8776_write_spi(struct oxygen *chip,
+                             unsigned int reg, unsigned int value, XonarAudioEngine *audioEngine)
 {
-    oxygen_write_spi(chip, OXYGEN_SPI_TRIGGER |
+    audioEngine->oxygen_write_spi(chip, OXYGEN_SPI_TRIGGER |
                      OXYGEN_SPI_DATA_LENGTH_2 |
                      OXYGEN_SPI_CLOCK_160 |
                      (1 << OXYGEN_SPI_CODEC_SHIFT) |
@@ -132,23 +111,23 @@ static void wm8776_write_spi(struct oxygen *chip,
                      (reg << 9) | value);
 }
 
-static void wm8776_write_i2c(struct oxygen *chip,
-                             unsigned int reg, unsigned int value)
+void XonarWM87x6AudioEngine::wm8776_write_i2c(struct oxygen *chip,
+                             unsigned int reg, unsigned int value, XonarAudioEngine *audioEngine)
 {
-    oxygen_write_i2c(chip, I2C_DEVICE_WM8776,
+    audioEngine->oxygen_write_i2c(chip, I2C_DEVICE_WM8776,
                      (reg << 1) | (value >> 8), value);
 }
 
-static void wm8776_write(struct oxygen *chip,
-                         unsigned int reg, unsigned int value)
+void XonarWM87x6AudioEngine::wm8776_write(struct oxygen *chip,
+                         unsigned int reg, unsigned int value, XonarAudioEngine *audioEngine)
 {
-    struct xonar_wm87x6 *data = chip->model_data;
+    struct xonar_wm87x6 *data = (struct xonar_wm87x6*) chip->model_data;
     
     if ((chip->model.function_flags & OXYGEN_FUNCTION_2WIRE_SPI_MASK) ==
         OXYGEN_FUNCTION_SPI)
-        wm8776_write_spi(chip, reg, value);
+        wm8776_write_spi(chip, reg, value,audioEngine);
     else
-        wm8776_write_i2c(chip, reg, value);
+        wm8776_write_i2c(chip, reg, value,audioEngine);
     if (reg < ARRAY_SIZE(data->wm8776_regs)) {
         if (reg >= WM8776_HPLVOL && reg <= WM8776_DACMASTER)
             value &= ~WM8776_UPDATE;
@@ -156,22 +135,22 @@ static void wm8776_write(struct oxygen *chip,
     }
 }
 
-static void wm8776_write_cached(struct oxygen *chip,
-                                unsigned int reg, unsigned int value)
+void XonarWM87x6AudioEngine::wm8776_write_cached(struct oxygen *chip,
+                                unsigned int reg, unsigned int value, XonarAudioEngine *audioEngine)
 {
-    struct xonar_wm87x6 *data = chip->model_data;
+    struct xonar_wm87x6 *data = (struct xonar_wm87x6*) chip->model_data;
     
     if (reg >= ARRAY_SIZE(data->wm8776_regs) ||
         value != data->wm8776_regs[reg])
-        wm8776_write(chip, reg, value);
+        wm8776_write(chip, reg, value,audioEngine);
 }
 
-static void wm8766_write(struct oxygen *chip,
-                         unsigned int reg, unsigned int value)
+void XonarWM87x6AudioEngine::wm8766_write(struct oxygen *chip,
+                         unsigned int reg, unsigned int value, XonarAudioEngine *audioEngine)
 {
-    struct xonar_wm87x6 *data = chip->model_data;
+    struct xonar_wm87x6 *data = (struct xonar_wm87x6*) chip->model_data;
     
-    oxygen_write_spi(chip, OXYGEN_SPI_TRIGGER |
+    audioEngine->oxygen_write_spi(chip, OXYGEN_SPI_TRIGGER |
                      OXYGEN_SPI_DATA_LENGTH_2 |
                      OXYGEN_SPI_CLOCK_160 |
                      (0 << OXYGEN_SPI_CODEC_SHIFT) |
@@ -185,61 +164,61 @@ static void wm8766_write(struct oxygen *chip,
     }
 }
 
-static void wm8766_write_cached(struct oxygen *chip,
-                                unsigned int reg, unsigned int value)
+void XonarWM87x6AudioEngine::wm8766_write_cached(struct oxygen *chip,
+                                unsigned int reg, unsigned int value, XonarAudioEngine *audioEngine)
 {
-    struct xonar_wm87x6 *data = chip->model_data;
+    struct xonar_wm87x6 *data = (struct xonar_wm87x6*) chip->model_data;
     
     if (reg >= ARRAY_SIZE(data->wm8766_regs) ||
         value != data->wm8766_regs[reg])
-        wm8766_write(chip, reg, value);
+        wm8766_write(chip, reg, value, audioEngine);
 }
 
-static void wm8776_registers_init(struct oxygen *chip)
+void XonarWM87x6AudioEngine::wm8776_registers_init(struct oxygen *chip,XonarAudioEngine *audioEngine)
 {
-    struct xonar_wm87x6 *data = chip->model_data;
+    struct xonar_wm87x6 *data = (struct xonar_wm87x6*) chip->model_data;
     
-    wm8776_write(chip, WM8776_RESET, 0);
-    wm8776_write(chip, WM8776_PHASESWAP, WM8776_PH_MASK);
+    wm8776_write(chip, WM8776_RESET, 0,audioEngine);
+    wm8776_write(chip, WM8776_PHASESWAP, WM8776_PH_MASK,audioEngine);
     wm8776_write(chip, WM8776_DACCTRL1, WM8776_DZCEN |
-                 WM8776_PL_LEFT_LEFT | WM8776_PL_RIGHT_RIGHT);
-    wm8776_write(chip, WM8776_DACMUTE, chip->dac_mute ? WM8776_DMUTE : 0);
+                 WM8776_PL_LEFT_LEFT | WM8776_PL_RIGHT_RIGHT, audioEngine);
+    wm8776_write(chip, WM8776_DACMUTE, chip->dac_mute ? WM8776_DMUTE : 0, audioEngine);
     wm8776_write(chip, WM8776_DACIFCTRL,
-                 WM8776_DACFMT_LJUST | WM8776_DACWL_24);
+                 WM8776_DACFMT_LJUST | WM8776_DACWL_24, audioEngine);
     wm8776_write(chip, WM8776_ADCIFCTRL,
-                 data->wm8776_regs[WM8776_ADCIFCTRL]);
-    wm8776_write(chip, WM8776_MSTRCTRL, data->wm8776_regs[WM8776_MSTRCTRL]);
-    wm8776_write(chip, WM8776_PWRDOWN, data->wm8776_regs[WM8776_PWRDOWN]);
-    wm8776_write(chip, WM8776_HPLVOL, data->wm8776_regs[WM8776_HPLVOL]);
+                 data->wm8776_regs[WM8776_ADCIFCTRL], audioEngine);
+    wm8776_write(chip, WM8776_MSTRCTRL, data->wm8776_regs[WM8776_MSTRCTRL], audioEngine);
+    wm8776_write(chip, WM8776_PWRDOWN, data->wm8776_regs[WM8776_PWRDOWN],audioEngine);
+    wm8776_write(chip, WM8776_HPLVOL, data->wm8776_regs[WM8776_HPLVOL], audioEngine);
     wm8776_write(chip, WM8776_HPRVOL, data->wm8776_regs[WM8776_HPRVOL] |
-                 WM8776_UPDATE);
-    wm8776_write(chip, WM8776_ADCLVOL, data->wm8776_regs[WM8776_ADCLVOL]);
-    wm8776_write(chip, WM8776_ADCRVOL, data->wm8776_regs[WM8776_ADCRVOL]);
-    wm8776_write(chip, WM8776_ADCMUX, data->wm8776_regs[WM8776_ADCMUX]);
-    wm8776_write(chip, WM8776_DACLVOL, chip->dac_volume[0]);
-    wm8776_write(chip, WM8776_DACRVOL, chip->dac_volume[1] | WM8776_UPDATE);
+                 WM8776_UPDATE, audioEngine);
+    wm8776_write(chip, WM8776_ADCLVOL, data->wm8776_regs[WM8776_ADCLVOL], audioEngine);
+    wm8776_write(chip, WM8776_ADCRVOL, data->wm8776_regs[WM8776_ADCRVOL], audioEngine);
+    wm8776_write(chip, WM8776_ADCMUX, data->wm8776_regs[WM8776_ADCMUX], audioEngine);
+    wm8776_write(chip, WM8776_DACLVOL, chip->dac_volume[0],audioEngine);
+    wm8776_write(chip, WM8776_DACRVOL, chip->dac_volume[1] | WM8776_UPDATE, audioEngine);
 }
 
-static void wm8766_registers_init(struct oxygen *chip)
+void XonarWM87x6AudioEngine::wm8766_registers_init(struct oxygen *chip, XonarAudioEngine *audioEngine)
 {
-    struct xonar_wm87x6 *data = chip->model_data;
+    struct xonar_wm87x6 *data = (struct xonar_wm87x6*) chip->model_data;
     
-    wm8766_write(chip, WM8766_RESET, 0);
-    wm8766_write(chip, WM8766_DAC_CTRL, data->wm8766_regs[WM8766_DAC_CTRL]);
-    wm8766_write(chip, WM8766_INT_CTRL, WM8766_FMT_LJUST | WM8766_IWL_24);
+    wm8766_write(chip, WM8766_RESET, 0, audioEngine);
+    wm8766_write(chip, WM8766_DAC_CTRL, data->wm8766_regs[WM8766_DAC_CTRL], audioEngine);
+    wm8766_write(chip, WM8766_INT_CTRL, WM8766_FMT_LJUST | WM8766_IWL_24, audioEngine);
     wm8766_write(chip, WM8766_DAC_CTRL2,
-                 WM8766_ZCD | (chip->dac_mute ? WM8766_DMUTE_MASK : 0));
-    wm8766_write(chip, WM8766_LDA1, chip->dac_volume[2]);
-    wm8766_write(chip, WM8766_RDA1, chip->dac_volume[3]);
-    wm8766_write(chip, WM8766_LDA2, chip->dac_volume[4]);
-    wm8766_write(chip, WM8766_RDA2, chip->dac_volume[5]);
-    wm8766_write(chip, WM8766_LDA3, chip->dac_volume[6]);
-    wm8766_write(chip, WM8766_RDA3, chip->dac_volume[7] | WM8766_UPDATE);
+                 WM8766_ZCD | (chip->dac_mute ? WM8766_DMUTE_MASK : 0), audioEngine);
+    wm8766_write(chip, WM8766_LDA1, chip->dac_volume[2], audioEngine);
+    wm8766_write(chip, WM8766_RDA1, chip->dac_volume[3], audioEngine);
+    wm8766_write(chip, WM8766_LDA2, chip->dac_volume[4], audioEngine);
+    wm8766_write(chip, WM8766_RDA2, chip->dac_volume[5], audioEngine);
+    wm8766_write(chip, WM8766_LDA3, chip->dac_volume[6], audioEngine);
+    wm8766_write(chip, WM8766_RDA3, chip->dac_volume[7] | WM8766_UPDATE, audioEngine);
 }
 
-static void wm8776_init(struct oxygen *chip)
+void XonarWM87x6AudioEngine::wm8776_init(struct oxygen *chip, XonarAudioEngine *audioEngine)
 {
-    struct xonar_wm87x6 *data = chip->model_data;
+    struct xonar_wm87x6 *data = (struct xonar_wm87x6*) chip->model_data;
     
     data->wm8776_regs[WM8776_HPLVOL] = (0x79 - 60) | WM8776_HPZCEN;
     data->wm8776_regs[WM8776_HPRVOL] = (0x79 - 60) | WM8776_HPZCEN;
@@ -251,25 +230,25 @@ static void wm8776_init(struct oxygen *chip)
     data->wm8776_regs[WM8776_ADCLVOL] = 0xa5 | WM8776_ZCA;
     data->wm8776_regs[WM8776_ADCRVOL] = 0xa5 | WM8776_ZCA;
     data->wm8776_regs[WM8776_ADCMUX] = 0x001;
-    wm8776_registers_init(chip);
+    wm8776_registers_init(chip, audioEngine);
 }
 
-static void wm8766_init(struct oxygen *chip)
+void XonarWM87x6AudioEngine::wm8766_init(struct oxygen *chip, XonarAudioEngine *audioEngine)
 {
-    struct xonar_wm87x6 *data = chip->model_data;
+    struct xonar_wm87x6 *data = (struct xonar_wm87x6*) chip->model_data;
     
     data->wm8766_regs[WM8766_DAC_CTRL] =
     WM8766_PL_LEFT_LEFT | WM8766_PL_RIGHT_RIGHT;
-    wm8766_registers_init(chip);
+    wm8766_registers_init(chip,audioEngine);
 }
 
-static void xonar_ds_handle_hp_jack(struct oxygen *chip)
+void XonarWM87x6AudioEngine::xonar_ds_handle_hp_jack(struct oxygen *chip, XonarAudioEngine *audioEngine)
 {
-    struct xonar_wm87x6 *data = chip->model_data;
+    struct xonar_wm87x6 *data = (struct xonar_wm87x6*) chip->model_data;
     bool hp_plugged;
     unsigned int reg;
     
-    mutex_lock(&chip->mutex);
+    pthread_mutex_lock(&chip->mutex);
     
     hp_plugged = !(oxygen_read16(chip, OXYGEN_GPIO_DATA) &
                    GPIO_DS_HP_DETECT);
@@ -281,22 +260,22 @@ static void xonar_ds_handle_hp_jack(struct oxygen *chip)
     reg = data->wm8766_regs[WM8766_DAC_CTRL] & ~WM8766_MUTEALL;
     if (hp_plugged)
         reg |= WM8766_MUTEALL;
-    wm8766_write_cached(chip, WM8766_DAC_CTRL, reg);
+    wm8766_write_cached(chip, WM8766_DAC_CTRL, reg, audioEngine);
     
-    snd_jack_report(data->hp_jack, hp_plugged ? SND_JACK_HEADPHONE : 0);
+   // snd_jack_report(data->hp_jack, hp_plugged ? SND_JACK_HEADPHONE : 0);
     
-    mutex_unlock(&chip->mutex);
+    pthread_mutex_unlock(&chip->mutex);
 }
 
-static void xonar_ds_init(struct oxygen *chip)
+void XonarWM87x6AudioEngine::xonar_ds_init(struct oxygen *chip, XonarAudioEngine *audioEngine)
 {
-    struct xonar_wm87x6 *data = chip->model_data;
+    struct xonar_wm87x6 *data = (struct xonar_wm87x6*) chip->model_data;
     
     data->generic.anti_pop_delay = 300;
     data->generic.output_enable_bit = GPIO_DS_OUTPUT_ENABLE;
     
-    wm8776_init(chip);
-    wm8766_init(chip);
+    wm8776_init(chip, audioEngine);
+    wm8766_init(chip, audioEngine);
     
     oxygen_set_bits16(chip, OXYGEN_GPIO_CONTROL,
                       GPIO_DS_INPUT_ROUTE | GPIO_DS_OUTPUT_FRONTLR);
@@ -306,77 +285,77 @@ static void xonar_ds_init(struct oxygen *chip)
     oxygen_set_bits16(chip, OXYGEN_GPIO_INTERRUPT_MASK, GPIO_DS_HP_DETECT);
     chip->interrupt_mask |= OXYGEN_INT_GPIO;
     
-    xonar_enable_output(chip);
+    audioEngine->xonar_enable_output(chip);
     
-    snd_jack_new(chip->card, "Headphone",
-                 SND_JACK_HEADPHONE, &data->hp_jack, false, false);
-    xonar_ds_handle_hp_jack(chip);
+    //snd_jack_new(chip->card, "Headphone",
+     //            SND_JACK_HEADPHONE, &data->hp_jack, false, false);
+   // xonar_ds_handle_hp_jack(chip);
     
-    snd_component_add(chip->card, "WM8776");
-    snd_component_add(chip->card, "WM8766");
+   // snd_component_add(chip->card, "WM8776");
+   // snd_component_add(chip->card, "WM8766");
 }
 
-static void xonar_hdav_slim_init(struct oxygen *chip)
+void XonarWM87x6AudioEngine::xonar_hdav_slim_init(struct oxygen *chip, XonarAudioEngine *audioEngine)
 {
-    struct xonar_wm87x6 *data = chip->model_data;
+    struct xonar_wm87x6 *data = (struct xonar_wm87x6*)chip->model_data;
     
     data->generic.anti_pop_delay = 300;
     data->generic.output_enable_bit = GPIO_SLIM_OUTPUT_ENABLE;
     
-    wm8776_init(chip);
+    wm8776_init(chip, audioEngine);
     
     oxygen_set_bits16(chip, OXYGEN_GPIO_CONTROL,
                       GPIO_SLIM_HDMI_DISABLE |
                       GPIO_SLIM_FIRMWARE_CLK |
                       GPIO_SLIM_FIRMWARE_DATA);
     
-    xonar_hdmi_init(chip, &data->hdmi);
-    xonar_enable_output(chip);
+    audioEngine->xonar_hdmi_init(chip, &data->hdmi);
+    audioEngine->xonar_enable_output(chip);
     
-    snd_component_add(chip->card, "WM8776");
+    //snd_component_add(chip->card, "WM8776");
 }
 
-static void xonar_ds_cleanup(struct oxygen *chip)
+void XonarWM87x6AudioEngine::xonar_ds_cleanup(struct oxygen *chip, XonarAudioEngine *audioEngine)
 {
-    xonar_disable_output(chip);
-    wm8776_write(chip, WM8776_RESET, 0);
+    audioEngine->xonar_disable_output(chip);
+    wm8776_write(chip, WM8776_RESET, 0, audioEngine);
 }
 
-static void xonar_hdav_slim_cleanup(struct oxygen *chip)
+void XonarWM87x6AudioEngine::xonar_hdav_slim_cleanup(struct oxygen *chip, XonarAudioEngine *audioEngine)
 {
-    xonar_hdmi_cleanup(chip);
-    xonar_disable_output(chip);
-    wm8776_write(chip, WM8776_RESET, 0);
-    msleep(2);
+    audioEngine->xonar_hdmi_cleanup(chip);
+    audioEngine->xonar_disable_output(chip);
+    wm8776_write(chip, WM8776_RESET, 0, audioEngine);
+    IODelay(2);
 }
 
-static void xonar_ds_suspend(struct oxygen *chip)
+void XonarWM87x6AudioEngine::xonar_ds_suspend(struct oxygen *chip, XonarAudioEngine *audioEngine)
 {
-    xonar_ds_cleanup(chip);
+    xonar_ds_cleanup(chip, audioEngine);
 }
 
-static void xonar_hdav_slim_suspend(struct oxygen *chip)
+void XonarWM87x6AudioEngine::xonar_hdav_slim_suspend(struct oxygen *chip, XonarAudioEngine *audioEngine)
 {
-    xonar_hdav_slim_cleanup(chip);
+    xonar_hdav_slim_cleanup(chip, audioEngine);
 }
 
-static void xonar_ds_resume(struct oxygen *chip)
+void XonarWM87x6AudioEngine::xonar_ds_resume(struct oxygen *chip, XonarAudioEngine *audioEngine)
 {
-    wm8776_registers_init(chip);
-    wm8766_registers_init(chip);
-    xonar_enable_output(chip);
-    xonar_ds_handle_hp_jack(chip);
+    wm8776_registers_init(chip, audioEngine);
+    wm8766_registers_init(chip, audioEngine);
+    audioEngine->xonar_enable_output(chip);
+    //xonar_ds_handle_hp_jack(chip);
 }
 
-static void xonar_hdav_slim_resume(struct oxygen *chip)
+void XonarWM87x6AudioEngine::xonar_hdav_slim_resume(struct oxygen *chip, XonarAudioEngine *audioEngine)
 {
-    struct xonar_wm87x6 *data = chip->model_data;
+    struct xonar_wm87x6 *data = (struct xonar_wm87x6*)chip->model_data;
     
-    wm8776_registers_init(chip);
-    xonar_hdmi_resume(chip, &data->hdmi);
-    xonar_enable_output(chip);
+    wm8776_registers_init(chip, audioEngine);
+    audioEngine->xonar_hdmi_resume(chip, &data->hdmi);
+    audioEngine->xonar_enable_output(chip);
 }
-
+/*
 static void wm8776_adc_hardware_filter(unsigned int channel,
                                        struct snd_pcm_hardware *hardware)
 {
@@ -397,41 +376,42 @@ static void xonar_hdav_slim_hardware_filter(unsigned int channel,
     wm8776_adc_hardware_filter(channel, hardware);
     xonar_hdmi_pcm_hardware_filter(channel, hardware);
 }
+*/
 
-static void set_wm87x6_dac_params(struct oxygen *chip,
-                                  struct snd_pcm_hw_params *params)
+void XonarWM87x6AudioEngine::set_wm87x6_dac_params(struct oxygen *chip,
+                                  XonarAudioEngine *audioEngine)
 {
 }
 
-static void set_wm8776_adc_params(struct oxygen *chip,
-                                  struct snd_pcm_hw_params *params)
+void XonarWM87x6AudioEngine::set_wm8776_adc_params(struct oxygen *chip,
+                                  XonarAudioEngine *audioEngine)
 {
-    u16 reg;
+    UInt16 reg;
     
     reg = WM8776_ADCRATE_256 | WM8776_DACRATE_256;
-    if (params_rate(params) > 48000)
+    if (audioEngine->getSampleRate()->whole > 48000)
         reg |= WM8776_ADCOSR;
-    wm8776_write_cached(chip, WM8776_MSTRCTRL, reg);
+    wm8776_write_cached(chip, WM8776_MSTRCTRL, reg, audioEngine);
 }
 
-static void set_hdav_slim_dac_params(struct oxygen *chip,
-                                     struct snd_pcm_hw_params *params)
+void XonarWM87x6AudioEngine::set_hdav_slim_dac_params(struct oxygen *chip,
+                                     XonarAudioEngine *audioEngine)
 {
-    struct xonar_wm87x6 *data = chip->model_data;
+    struct xonar_wm87x6 *data = (struct xonar_wm87x6*) chip->model_data;
     
-    xonar_set_hdmi_params(chip, &data->hdmi, params);
+    audioEngine->xonar_set_hdmi_params(chip, &data->hdmi);
 }
 
-static void update_wm8776_volume(struct oxygen *chip)
+void XonarWM87x6AudioEngine::update_wm8776_volume(struct oxygen *chip, XonarAudioEngine *audioEngine)
 {
-    struct xonar_wm87x6 *data = chip->model_data;
-    u8 to_change;
+    struct xonar_wm87x6 *data = (struct xonar_wm87x6*) chip->model_data;
+    UInt8 to_change;
     
     if (chip->dac_volume[0] == chip->dac_volume[1]) {
         if (chip->dac_volume[0] != data->wm8776_regs[WM8776_DACLVOL] ||
             chip->dac_volume[1] != data->wm8776_regs[WM8776_DACRVOL]) {
             wm8776_write(chip, WM8776_DACMASTER,
-                         chip->dac_volume[0] | WM8776_UPDATE);
+                         chip->dac_volume[0] | WM8776_UPDATE,audioEngine);
             data->wm8776_regs[WM8776_DACLVOL] = chip->dac_volume[0];
             data->wm8776_regs[WM8776_DACRVOL] = chip->dac_volume[0];
         }
@@ -442,25 +422,25 @@ static void update_wm8776_volume(struct oxygen *chip)
                       data->wm8776_regs[WM8776_DACLVOL]) << 1;
         if (to_change & 1)
             wm8776_write(chip, WM8776_DACLVOL, chip->dac_volume[0] |
-                         ((to_change & 2) ? 0 : WM8776_UPDATE));
+                         ((to_change & 2) ? 0 : WM8776_UPDATE),audioEngine);
         if (to_change & 2)
             wm8776_write(chip, WM8776_DACRVOL,
-                         chip->dac_volume[1] | WM8776_UPDATE);
+                         chip->dac_volume[1] | WM8776_UPDATE,audioEngine);
     }
 }
 
-static void update_wm87x6_volume(struct oxygen *chip)
+void XonarWM87x6AudioEngine::update_wm87x6_volume(struct oxygen *chip, XonarAudioEngine *audioEngine)
 {
-    static const u8 wm8766_regs[6] = {
+    static const UInt8 wm8766_regs[6] = {
         WM8766_LDA1, WM8766_RDA1,
         WM8766_LDA2, WM8766_RDA2,
         WM8766_LDA3, WM8766_RDA3,
     };
-    struct xonar_wm87x6 *data = chip->model_data;
+    struct xonar_wm87x6 *data = (struct xonar_wm87x6*) chip->model_data;
     unsigned int i;
-    u8 to_change;
+    UInt8 to_change;
     
-    update_wm8776_volume(chip);
+    update_wm8776_volume(chip, audioEngine);
     if (chip->dac_volume[2] == chip->dac_volume[3] &&
         chip->dac_volume[2] == chip->dac_volume[4] &&
         chip->dac_volume[2] == chip->dac_volume[5] &&
@@ -473,7 +453,7 @@ static void update_wm87x6_volume(struct oxygen *chip)
                 to_change = 1;
         if (to_change) {
             wm8766_write(chip, WM8766_MASTDA,
-                         chip->dac_volume[2] | WM8766_UPDATE);
+                         chip->dac_volume[2] | WM8766_UPDATE, audioEngine);
             for (i = 0; i < 6; ++i)
                 data->wm8766_regs[wm8766_regs[i]] =
                 chip->dac_volume[2];
@@ -488,46 +468,46 @@ static void update_wm87x6_volume(struct oxygen *chip)
                 wm8766_write(chip, wm8766_regs[i],
                              chip->dac_volume[2 + i] |
                              ((to_change & (0x3e << i))
-                              ? 0 : WM8766_UPDATE));
+                              ? 0 : WM8766_UPDATE), audioEngine);
     }
 }
 
-static void update_wm8776_mute(struct oxygen *chip)
+void XonarWM87x6AudioEngine::update_wm8776_mute(struct oxygen *chip, XonarAudioEngine *audioEngine)
 {
     wm8776_write_cached(chip, WM8776_DACMUTE,
-                        chip->dac_mute ? WM8776_DMUTE : 0);
+                        chip->dac_mute ? WM8776_DMUTE : 0, audioEngine);
 }
 
-static void update_wm87x6_mute(struct oxygen *chip)
+void XonarWM87x6AudioEngine::update_wm87x6_mute(struct oxygen *chip, XonarAudioEngine *audioEngine)
 {
-    update_wm8776_mute(chip);
+    update_wm8776_mute(chip, audioEngine);
     wm8766_write_cached(chip, WM8766_DAC_CTRL2, WM8766_ZCD |
-                        (chip->dac_mute ? WM8766_DMUTE_MASK : 0));
+                        (chip->dac_mute ? WM8766_DMUTE_MASK : 0), audioEngine);
 }
 
-static void update_wm8766_center_lfe_mix(struct oxygen *chip, bool mixed)
+//static void update_wm8766_center_lfe_mix(struct oxygen *chip, bool mixed)
+//{
+//    struct xonar_wm87x6 *data = chip->model_data;
+//    unsigned int reg;
+//    
+//    /*
+//     * The WM8766 can mix left and right channels, but this setting
+//     * applies to all three stereo pairs.
+//     */
+//    reg = data->wm8766_regs[WM8766_DAC_CTRL] &
+//    ~(WM8766_PL_LEFT_MASK | WM8766_PL_RIGHT_MASK);
+//    if (mixed)
+//        reg |= WM8766_PL_LEFT_LRMIX | WM8766_PL_RIGHT_LRMIX;
+//    else
+//        reg |= WM8766_PL_LEFT_LEFT | WM8766_PL_RIGHT_RIGHT;
+//    wm8766_write_cached(chip, WM8766_DAC_CTRL, reg);
+//}
+
+void XonarWM87x6AudioEngine::xonar_ds_gpio_changed(struct oxygen *chip, XonarAudioEngine *audioEngine)
 {
-    struct xonar_wm87x6 *data = chip->model_data;
-    unsigned int reg;
-    
-    /*
-     * The WM8766 can mix left and right channels, but this setting
-     * applies to all three stereo pairs.
-     */
-    reg = data->wm8766_regs[WM8766_DAC_CTRL] &
-    ~(WM8766_PL_LEFT_MASK | WM8766_PL_RIGHT_MASK);
-    if (mixed)
-        reg |= WM8766_PL_LEFT_LRMIX | WM8766_PL_RIGHT_LRMIX;
-    else
-        reg |= WM8766_PL_LEFT_LEFT | WM8766_PL_RIGHT_RIGHT;
-    wm8766_write_cached(chip, WM8766_DAC_CTRL, reg);
+    xonar_ds_handle_hp_jack(chip, audioEngine);
 }
-
-static void xonar_ds_gpio_changed(struct oxygen *chip)
-{
-    xonar_ds_handle_hp_jack(chip);
-}
-
+/*
 static int wm8776_bit_switch_get(struct snd_kcontrol *ctl,
                                  struct snd_ctl_elem_value *value)
 {
@@ -806,7 +786,7 @@ static int wm8776_input_mux_put(struct snd_kcontrol *ctl,
     reg = data->wm8776_regs[WM8776_ADCMUX];
     if (value->value.integer.value[0]) {
         reg |= mux_bit;
-        /* line-in and mic-in are exclusive */
+        // line-in and mic-in are exclusive 
         mux_bit ^= 3;
         if (reg & mux_bit) {
             reg &= ~mux_bit;
@@ -1188,9 +1168,9 @@ static const struct snd_kcontrol_new lc_controls[] = {
 
 static int add_lc_controls(struct oxygen *chip)
 {
-    struct xonar_wm87x6 *data = chip->model_data;
+    struct xonar_wm87x6 *data = (struct xonar_wm87x6*) chip->model_data;
     unsigned int i;
-    struct snd_kcontrol *ctl;
+    //struct snd_kcontrol *ctl;
     int err;
     
     BUILD_BUG_ON(ARRAY_SIZE(lc_controls) != ARRAY_SIZE(data->lc_controls));
@@ -1277,14 +1257,7 @@ static void dump_wm87x6_registers(struct oxygen *chip,
     snd_iprintf(buffer, "\n");
 }
 
-
-int get_xonar_wm87x6_model(struct oxygen *chip,
-                           const struct pci_device_id *id)
-{
-    switch (id->subdevice) {
-            }
-    return 0;
-}
+*/
 
 
 
@@ -1306,73 +1279,66 @@ bool XonarWM87x6AudioEngine::init(XonarAudioEngine *audioEngine, struct oxygen *
     
     
     if(model == DS_MODEL || model == DSX_MODEL){
-        static const struct oxygen_model model_xonar_ds = {
-            .longname = "Asus Virtuoso 66",
-            .chip = "AV200",
-            .init = xonar_ds_init,
-            .mixer_init = xonar_ds_mixer_init,
-            .cleanup = xonar_ds_cleanup,
-            .suspend = xonar_ds_suspend,
-            .resume = xonar_ds_resume,
-            .pcm_hardware_filter = wm8776_adc_hardware_filter,
-            .set_dac_params = set_wm87x6_dac_params,
-            .set_adc_params = set_wm8776_adc_params,
-            .update_dac_volume = update_wm87x6_volume,
-            .update_dac_mute = update_wm87x6_mute,
-            .update_center_lfe_mix = update_wm8766_center_lfe_mix,
-            .gpio_changed = xonar_ds_gpio_changed,
-            .dump_registers = dump_wm87x6_registers,
-            .dac_tlv = wm87x6_dac_db_scale,
-            .model_data_size = sizeof(struct xonar_wm87x6),
-            .device_config = PLAYBACK_0_TO_I2S |
+        //    .init = xonar_ds_init,
+        //    .mixer_init = xonar_ds_mixer_init,
+        chip->model.cleanup = xonar_ds_cleanup;
+        chip->model.suspend = xonar_ds_suspend;
+        chip->model.resume = xonar_ds_resume;
+        //chip->model.pcm_hardware_filter = wm8776_adc_hardware_filter;
+        chip->model.set_dac_params = set_wm87x6_dac_params;
+        chip->model.set_adc_params = set_wm8776_adc_params;
+        chip->model.update_dac_volume = update_wm87x6_volume;
+        chip->model.update_dac_mute = update_wm87x6_mute;
+        //chip->model.update_center_lfe_mix = update_wm8766_center_lfe_mix;
+        //chip->model.gpio_changed = xonar_ds_gpio_changed;
+        //chip->model.dump_registers = dump_wm87x6_registers;
+        //chip->model.dac_tlv = wm87x6_dac_db_scale;
+        chip->model.model_data_size = sizeof(struct xonar_wm87x6);
+        chip->model.device_config = PLAYBACK_0_TO_I2S |
             PLAYBACK_1_TO_SPDIF |
             CAPTURE_0_FROM_I2S_1 |
-            CAPTURE_1_FROM_SPDIF,
-            .dac_channels_pcm = 8,
-            .dac_channels_mixer = 8,
-            .dac_volume_min = 255 - 2*60,
-            .dac_volume_max = 255,
-            .function_flags = OXYGEN_FUNCTION_SPI,
-            .dac_mclks = OXYGEN_MCLKS(256, 256, 128),
-            .adc_mclks = OXYGEN_MCLKS(256, 256, 128),
-            .dac_i2s_format = OXYGEN_I2S_FORMAT_LJUST,
-            .adc_i2s_format = OXYGEN_I2S_FORMAT_LJUST,
-        };
+        CAPTURE_1_FROM_SPDIF;
+        chip->model.dac_channels_pcm = 8;
+        chip->model.dac_channels_mixer = 8;
+        chip->model.dac_volume_min = 255 - 2*60;
+        chip->model.dac_volume_max = 255;
+        chip->model.function_flags = OXYGEN_FUNCTION_SPI;
+        chip->model.dac_mclks = OXYGEN_MCLKS(256, 256, 128);
+        chip->model.adc_mclks = OXYGEN_MCLKS(256, 256, 128);
+        chip->model.dac_i2s_format = OXYGEN_I2S_FORMAT_LJUST;
+        chip->model.adc_i2s_format = OXYGEN_I2S_FORMAT_LJUST;
 
     }
     else if (model == HDAV_SLIM) {
-        static const struct oxygen_model model_xonar_hdav_slim = {
-            .shortname = "Xonar HDAV1.3 Slim",
-            .longname = "Asus Virtuoso 200",
-            .chip = "AV200",
-            .init = xonar_hdav_slim_init,
-            .mixer_init = xonar_hdav_slim_mixer_init,
-            .cleanup = xonar_hdav_slim_cleanup,
-            .suspend = xonar_hdav_slim_suspend,
-            .resume = xonar_hdav_slim_resume,
-            .pcm_hardware_filter = xonar_hdav_slim_hardware_filter,
-            .set_dac_params = set_hdav_slim_dac_params,
-            .set_adc_params = set_wm8776_adc_params,
-            .update_dac_volume = update_wm8776_volume,
-            .update_dac_mute = update_wm8776_mute,
-            .uart_input = xonar_hdmi_uart_input,
-            .dump_registers = dump_wm8776_registers,
-            .dac_tlv = wm87x6_dac_db_scale,
-            .model_data_size = sizeof(struct xonar_wm87x6),
-            .device_config = PLAYBACK_0_TO_I2S |
+        
+            //.init = xonar_hdav_slim_init,
+        //chip->model.mixer_init = xonar_hdav_slim_mixer_init;
+        chip->model.cleanup = xonar_hdav_slim_cleanup;
+        chip->model.suspend = xonar_hdav_slim_suspend;
+        chip->model.resume = xonar_hdav_slim_resume;
+        //chip->model.pcm_hardware_filter = xonar_hdav_slim_hardware_filter;
+        chip->model.set_dac_params = set_hdav_slim_dac_params;
+        chip->model.set_adc_params = set_wm8776_adc_params;
+        chip->model.update_dac_volume = update_wm8776_volume;
+        chip->model.update_dac_mute = update_wm8776_mute;
+        chip->model.uart_input = audioEngine->xonar_hdmi_uart_input;
+       // chip->model.dump_registers = dump_wm8776_registers;
+        //chip->model.dac_tlv = wm87x6_dac_db_scale;
+        chip->model.model_data_size = sizeof(struct xonar_wm87x6);
+        chip->model.device_config = PLAYBACK_0_TO_I2S |
             PLAYBACK_1_TO_SPDIF |
             CAPTURE_0_FROM_I2S_1 |
-            CAPTURE_1_FROM_SPDIF,
-            .dac_channels_pcm = 8,
-            .dac_channels_mixer = 2,
-            .dac_volume_min = 255 - 2*60,
-            .dac_volume_max = 255,
-            .function_flags = OXYGEN_FUNCTION_2WIRE,
-            .dac_mclks = OXYGEN_MCLKS(256, 256, 128),
-            .adc_mclks = OXYGEN_MCLKS(256, 256, 128),
-            .dac_i2s_format = OXYGEN_I2S_FORMAT_LJUST,
-            .adc_i2s_format = OXYGEN_I2S_FORMAT_LJUST,
-        };
+        CAPTURE_1_FROM_SPDIF;
+        chip->model.dac_channels_pcm = 8;
+        chip->model.dac_channels_mixer = 2;
+        chip->model.dac_volume_min = 255 - 2*60;
+        chip->model.dac_volume_max = 255;
+        chip->model.function_flags = OXYGEN_FUNCTION_2WIRE;
+        chip->model.dac_mclks = OXYGEN_MCLKS(256, 256, 128);
+        chip->model.adc_mclks = OXYGEN_MCLKS(256, 256, 128);
+        chip->model.dac_i2s_format = OXYGEN_I2S_FORMAT_LJUST;
+        chip->model.adc_i2s_format = OXYGEN_I2S_FORMAT_LJUST;
+    
 
     }
     else
@@ -1383,7 +1349,7 @@ bool XonarWM87x6AudioEngine::init(XonarAudioEngine *audioEngine, struct oxygen *
     
     
     //set registers/engine and finish APPUL sampleaudioengine init
-    deviceRegisters = (struct xonar_cs43xx*) data;
+    deviceRegisters = (struct xonar_wm87x6*) data;
     this->engineInstance = audioEngine;
     result = true;
     

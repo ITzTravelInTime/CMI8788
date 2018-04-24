@@ -71,38 +71,105 @@ OSDefineMetaClassAndStructors(XonarCS43XXAudioEngine, IOAudioEngine)
 
 
 
+
+void XonarCS43XXAudioEngine::cs4398_write(struct oxygen *chip, UInt8 reg, UInt8 value, XonarAudioEngine *engineInstance)
+{
+    struct xonar_cs43xx *data = (struct xonar_cs43xx *)chip->model_data;
+    
+    engineInstance->oxygen_write_i2c(chip, I2C_DEVICE_CS4398, reg, value);
+    if (reg < ARRAY_SIZE(data->cs4398_regs))
+        data->cs4398_regs[reg] = value;
+}
+
+void XonarCS43XXAudioEngine::cs4398_write_cached(struct oxygen *chip, UInt8 reg, UInt8 value, XonarAudioEngine *engineInstance)
+{
+    struct xonar_cs43xx *data = (struct xonar_cs43xx *)chip->model_data;
+    
+    if (value != data->cs4398_regs[reg])
+        cs4398_write(chip, reg, value, engineInstance);
+}
+
+void XonarCS43XXAudioEngine::cs4362a_write(struct oxygen *chip, UInt8 reg, UInt8 value, XonarAudioEngine *engineInstance)
+{
+    struct xonar_cs43xx *data = (struct xonar_cs43xx *)chip->model_data;
+    
+    engineInstance->oxygen_write_i2c(chip, I2C_DEVICE_CS4362A, reg, value);
+    if (reg < ARRAY_SIZE(data->cs4362a_regs))
+        data->cs4362a_regs[reg] = value;
+}
+
+void XonarCS43XXAudioEngine::cs4362a_write_cached(struct oxygen *chip, UInt8 reg, UInt8 value, XonarAudioEngine *engineInstance)
+{
+    struct xonar_cs43xx *data = (struct xonar_cs43xx *)chip->model_data;
+    
+    if (value != data->cs4362a_regs[reg])
+        cs4362a_write(chip, reg, value,engineInstance);
+}
+
+
+void XonarCS43XXAudioEngine::update_cs4362a_volumes(struct oxygen *chip, XonarAudioEngine *engineInstance)
+{
+    unsigned int i;
+    UInt8 mute;
+    
+    mute = chip->dac_mute ? CS4362A_MUTE : 0;
+    for (i = 0; i < 6; ++i)
+        cs4362a_write_cached(chip, 7 + i + i / 2,
+                             (127 - chip->dac_volume[2 + i]) | mute,engineInstance);
+}
+
+void XonarCS43XXAudioEngine::update_cs43xx_volume(struct oxygen *chip, XonarAudioEngine *engineInstance)
+{
+    cs4398_write_cached(chip, 5, (127 - chip->dac_volume[0]) * 2,engineInstance);
+    cs4398_write_cached(chip, 6, (127 - chip->dac_volume[1]) * 2, engineInstance);
+    update_cs4362a_volumes(chip, engineInstance);
+}
+
+void XonarCS43XXAudioEngine::update_cs43xx_mute(struct oxygen *chip, XonarAudioEngine *engineInstance)
+{
+    UInt8 reg;
+    
+    reg = CS4398_MUTEP_LOW | CS4398_PAMUTE;
+    if (chip->dac_mute)
+        reg |= CS4398_MUTE_B | CS4398_MUTE_A;
+    cs4398_write_cached(chip, 4, reg, engineInstance);
+    update_cs4362a_volumes(chip, engineInstance);
+}
+
+
+
 void XonarCS43XXAudioEngine::cs43xx_registers_init(struct oxygen *chip, XonarAudioEngine *engineInstance)
 {
     struct xonar_cs43xx *data = (struct xonar_cs43xx *)chip->model_data;
     unsigned int i;
     
     /* set CPEN (control port mode) and power down */
-    engineInstance->cs4398_write(chip, 8, CS4398_CPEN | CS4398_PDN);
-    engineInstance->cs4362a_write(chip, 0x01, CS4362A_PDN | CS4362A_CPEN);
+    cs4398_write(chip, 8, CS4398_CPEN | CS4398_PDN, engineInstance);
+    cs4362a_write(chip, 0x01, CS4362A_PDN | CS4362A_CPEN, engineInstance);
     /* configure */
-    engineInstance->cs4398_write(chip, 2, data->cs4398_regs[2]);
-    engineInstance->cs4398_write(chip, 3, CS4398_ATAPI_B_R | CS4398_ATAPI_A_L);
-    engineInstance->cs4398_write(chip, 4, data->cs4398_regs[4]);
-    engineInstance->cs4398_write(chip, 5, data->cs4398_regs[5]);
-    engineInstance->cs4398_write(chip, 6, data->cs4398_regs[6]);
-    engineInstance->cs4398_write(chip, 7, data->cs4398_regs[7]);
-    engineInstance->cs4362a_write(chip, 0x02, CS4362A_DIF_LJUST);
-    engineInstance->cs4362a_write(chip, 0x03, CS4362A_MUTEC_6 | CS4362A_AMUTE |
-                                  CS4362A_RMP_UP | CS4362A_ZERO_CROSS | CS4362A_SOFT_RAMP);
-    engineInstance->cs4362a_write(chip, 0x04, data->cs4362a_regs[0x04]);
-    engineInstance->cs4362a_write(chip, 0x05, 0);
+    cs4398_write(chip, 2, data->cs4398_regs[2], engineInstance);
+    cs4398_write(chip, 3, CS4398_ATAPI_B_R | CS4398_ATAPI_A_L, engineInstance);
+    cs4398_write(chip, 4, data->cs4398_regs[4], engineInstance);
+    cs4398_write(chip, 5, data->cs4398_regs[5], engineInstance);
+    cs4398_write(chip, 6, data->cs4398_regs[6], engineInstance);
+    cs4398_write(chip, 7, data->cs4398_regs[7], engineInstance);
+    cs4362a_write(chip, 0x02, CS4362A_DIF_LJUST, engineInstance);
+    cs4362a_write(chip, 0x03, CS4362A_MUTEC_6 | CS4362A_AMUTE |
+                                  CS4362A_RMP_UP | CS4362A_ZERO_CROSS | CS4362A_SOFT_RAMP, engineInstance);
+    cs4362a_write(chip, 0x04, data->cs4362a_regs[0x04], engineInstance);
+    cs4362a_write(chip, 0x05, 0, engineInstance);
     for (i = 6; i <= 14; ++i)
-        engineInstance->cs4362a_write(chip, i, data->cs4362a_regs[i]);
+        cs4362a_write(chip, i, data->cs4362a_regs[i], engineInstance);
     /* clear power down */
-    engineInstance->cs4398_write(chip, 8, CS4398_CPEN);
-    engineInstance->cs4362a_write(chip, 0x01, CS4362A_CPEN);
+    cs4398_write(chip, 8, CS4398_CPEN, engineInstance);
+    cs4362a_write(chip, 0x01, CS4362A_CPEN, engineInstance);
 }
 
 
 void XonarCS43XXAudioEngine::xonar_d1_cleanup(struct oxygen *chip, XonarAudioEngine *engineInstance)
 {
     engineInstance->xonar_disable_output(chip);
-    engineInstance->cs4362a_write(chip, 0x01, CS4362A_PDN | CS4362A_CPEN);
+    cs4362a_write(chip, 0x01, CS4362A_PDN | CS4362A_CPEN, engineInstance);
     oxygen_clear_bits8(chip, OXYGEN_FUNCTION, OXYGEN_FUNCTION_RESET_CODEC);
 }
 
@@ -119,7 +186,7 @@ void XonarCS43XXAudioEngine::xonar_d1_resume(struct oxygen *chip, XonarAudioEngi
     engineInstance->xonar_enable_output(chip);
 }
 
-static void set_cs43xx_params(struct oxygen *chip,
+void XonarCS43XXAudioEngine::set_cs43xx_params(struct oxygen *chip,
                               XonarAudioEngine *engineInstance)
 {
     struct xonar_cs43xx *data = (struct xonar_cs43xx *)chip->model_data;
@@ -137,13 +204,13 @@ static void set_cs43xx_params(struct oxygen *chip,
         cs4362a_fm = CS4362A_FM_QUAD;
     }
     cs4398_fm |= CS4398_DEM_NONE | CS4398_DIF_LJUST;
-    engineInstance->cs4398_write_cached(chip, 2, cs4398_fm);
+    cs4398_write_cached(chip, 2, cs4398_fm, engineInstance);
     cs4362a_fm |= data->cs4362a_regs[6] & ~CS4362A_FM_MASK;
-    engineInstance->cs4362a_write_cached(chip, 6, cs4362a_fm);
-    engineInstance->cs4362a_write_cached(chip, 12, cs4362a_fm);
+    cs4362a_write_cached(chip, 6, cs4362a_fm, engineInstance);
+    cs4362a_write_cached(chip, 12, cs4362a_fm, engineInstance);
     cs4362a_fm &= CS4362A_FM_MASK;
     cs4362a_fm |= data->cs4362a_regs[9] & ~CS4362A_FM_MASK;
-    engineInstance->cs4362a_write_cached(chip, 9, cs4362a_fm);
+    cs4362a_write_cached(chip, 9, cs4362a_fm, engineInstance);
 }
 
 /*
@@ -325,8 +392,8 @@ bool XonarCS43XXAudioEngine::init(XonarAudioEngine *audioEngine, struct oxygen *
 
     chip->model.set_dac_params = set_cs43xx_params;
     chip->model.set_adc_params = audioEngine->xonar_set_cs53x1_params;
-    chip->model.update_dac_volume = audioEngine->update_cs43xx_volume;
-    chip->model.update_dac_mute = audioEngine->update_cs43xx_mute;
+    chip->model.update_dac_volume = update_cs43xx_volume;
+    chip->model.update_dac_mute = update_cs43xx_mute;
     // chip->model.update_center_lfe_mix = update_cs43xx_center_lfe_mix;
     // chip->model.ac97_switch = xonar_d1_line_mic_ac97_switch;
     // chip->model.dump_registers = dump_d1_registers;

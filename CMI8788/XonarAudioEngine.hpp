@@ -90,6 +90,17 @@ struct xonar_cs43xx {
 
 
 
+struct xonar_wm87x6 {
+    struct xonar_generic generic;
+    UInt16 wm8776_regs[0x17];
+    UInt16 wm8766_regs[0x10];
+    //struct snd_kcontrol *line_adcmux_control;
+    //struct snd_kcontrol *mic_adcmux_control;
+    //struct snd_kcontrol *lc_controls[13];
+    //struct snd_jack *hp_jack;
+    struct xonar_hdmi hdmi;
+};
+
 
 #define GPIO_CS53x1_M_MASK      0x000c
 #define GPIO_CS53x1_M_SINGLE    0x0000
@@ -210,10 +221,10 @@ public:
     static int  add_pcm1796_controls(struct oxygen *chip);
     static void pcm1796_init(struct oxygen *chip);
     static void pcm1796_registers_init(struct oxygen *chip);
-    static void update_pcm1796_mute(struct oxygen *chip);
+    static void update_pcm1796_mute(struct oxygen *chip, XonarAudioEngine *instance);
     static void update_pcm1796_oversampling(struct oxygen *chip);
     static void set_pcm1796_params(struct oxygen *chip, XonarAudioEngine *instance);
-    static void update_pcm1796_volume(struct oxygen *chip);
+    static void update_pcm1796_volume(struct oxygen *chip, XonarAudioEngine *instance);
     
     UInt16 oxygen_read_ac97(struct oxygen *chip, unsigned int codec,
                             unsigned int index);
@@ -239,6 +250,9 @@ public:
     static inline void pcm1796_write_i2c(struct oxygen *chip, unsigned int codec,
                                          UInt8 reg, UInt8 value);
     static void wm8785_write(struct oxygen *chip, UInt8 reg, unsigned int value);
+    static int oxygen_write_spi(struct oxygen *chip, UInt8 control, unsigned int data);
+    static inline void pcm1796_write_spi(struct oxygen *chip, unsigned int codec,
+                                         UInt8 reg, UInt8 value);
     /* model-specific card drivers
     
     int get_xonar_pcm179x_model(struct oxygen *chip,
@@ -258,7 +272,7 @@ public:
                                    unsigned int count, const UInt8 *params);
     static void xonar_hdmi_init_commands(struct oxygen *chip,
                                          struct xonar_hdmi *hdmi);
-    
+    static void xonar_hdmi_uart_input(struct oxygen *chip);
     void xonar_hdmi_init(struct oxygen *chip, struct xonar_hdmi *data);
     void xonar_hdmi_cleanup(struct oxygen *chip);
     void xonar_hdmi_resume(struct oxygen *chip, struct xonar_hdmi *hdmi);
@@ -274,18 +288,7 @@ public:
     
     static void oxygen_spdif_input_bits_changed(struct oxygen *chip);
 
-    //d1
-    static void cs4398_write(struct oxygen *chip, UInt8 reg, UInt8 value);
-    
-    static void cs4398_write_cached(struct oxygen *chip, UInt8 reg, UInt8 value);
-    static void cs4362a_write(struct oxygen *chip, UInt8 reg, UInt8 value);
-    static void cs4362a_write_cached(struct oxygen *chip, UInt8 reg, UInt8 value);
-    
-    static void update_cs4362a_volumes(struct oxygen *chip);
-    
-    static void update_cs43xx_volume(struct oxygen *chip);
-    
-    static void update_cs43xx_mute(struct oxygen *chip);
+
     
 };
 

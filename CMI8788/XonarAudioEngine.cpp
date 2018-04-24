@@ -244,7 +244,7 @@ void XonarAudioEngine::oxygen_read_uart(struct oxygen *chip)
         chip->model.uart_input(chip);
 }
 
-static int oxygen_write_spi(struct oxygen *chip, UInt8 control, unsigned int data)
+int XonarAudioEngine::oxygen_write_spi(struct oxygen *chip, UInt8 control, unsigned int data)
 {
     /*
      * We need to wait AFTER initiating the SPI transaction,
@@ -261,7 +261,7 @@ static int oxygen_write_spi(struct oxygen *chip, UInt8 control, unsigned int dat
 
 
 
-static inline void pcm1796_write_spi(struct oxygen *chip, unsigned int codec,
+inline void XonarAudioEngine::pcm1796_write_spi(struct oxygen *chip, unsigned int codec,
                                      UInt8 reg, UInt8 value)
 {
     /* maps ALSA channel pair number to SPI output */
@@ -430,7 +430,7 @@ void XonarAudioEngine::set_pcm1796_params(struct oxygen *chip, XonarAudioEngine 
     update_pcm1796_oversampling(chip);
 }
 
-void XonarAudioEngine::update_pcm1796_volume(struct oxygen *chip)
+void XonarAudioEngine::update_pcm1796_volume(struct oxygen *chip, XonarAudioEngine *audioEngine)
 {
     struct xonar_pcm179x *data = (struct xonar_pcm179x*) chip->model_data;
     unsigned int i;
@@ -446,7 +446,7 @@ void XonarAudioEngine::update_pcm1796_volume(struct oxygen *chip)
     }
 }
 
-void XonarAudioEngine::update_pcm1796_mute(struct oxygen *chip)
+void XonarAudioEngine::update_pcm1796_mute(struct oxygen *chip, XonarAudioEngine *audioEngine)
 {
     struct xonar_pcm179x *data = (struct xonar_pcm179x*) chip->model_data;
     unsigned int i;
@@ -824,74 +824,7 @@ void XonarAudioEngine::xonar_set_hdmi_params(struct oxygen *chip, struct xonar_h
 }
 
 
-
-
-void XonarAudioEngine::cs4398_write(struct oxygen *chip, UInt8 reg, UInt8 value)
-{
-    struct xonar_cs43xx *data = (struct xonar_cs43xx *)chip->model_data;
-    
-    oxygen_write_i2c(chip, I2C_DEVICE_CS4398, reg, value);
-    if (reg < ARRAY_SIZE(data->cs4398_regs))
-        data->cs4398_regs[reg] = value;
-}
-
-void XonarAudioEngine::cs4398_write_cached(struct oxygen *chip, UInt8 reg, UInt8 value)
-{
-    struct xonar_cs43xx *data = (struct xonar_cs43xx *)chip->model_data;
-    
-    if (value != data->cs4398_regs[reg])
-        cs4398_write(chip, reg, value);
-}
-
-void XonarAudioEngine::cs4362a_write(struct oxygen *chip, UInt8 reg, UInt8 value)
-{
-    struct xonar_cs43xx *data = (struct xonar_cs43xx *)chip->model_data;
-    
-    oxygen_write_i2c(chip, I2C_DEVICE_CS4362A, reg, value);
-    if (reg < ARRAY_SIZE(data->cs4362a_regs))
-        data->cs4362a_regs[reg] = value;
-}
-
-void XonarAudioEngine::cs4362a_write_cached(struct oxygen *chip, UInt8 reg, UInt8 value)
-{
-    struct xonar_cs43xx *data = (struct xonar_cs43xx *)chip->model_data;
-    
-    if (value != data->cs4362a_regs[reg])
-        cs4362a_write(chip, reg, value);
-}
-
-
-void XonarAudioEngine::update_cs4362a_volumes(struct oxygen *chip)
-{
-    unsigned int i;
-    UInt8 mute;
-    
-    mute = chip->dac_mute ? CS4362A_MUTE : 0;
-    for (i = 0; i < 6; ++i)
-        cs4362a_write_cached(chip, 7 + i + i / 2,
-                             (127 - chip->dac_volume[2 + i]) | mute);
-}
-
-void XonarAudioEngine::update_cs43xx_volume(struct oxygen *chip)
-{
-    cs4398_write_cached(chip, 5, (127 - chip->dac_volume[0]) * 2);
-    cs4398_write_cached(chip, 6, (127 - chip->dac_volume[1]) * 2);
-    update_cs4362a_volumes(chip);
-}
-
-void XonarAudioEngine::update_cs43xx_mute(struct oxygen *chip)
-{
-    UInt8 reg;
-    
-    reg = CS4398_MUTEP_LOW | CS4398_PAMUTE;
-    if (chip->dac_mute)
-        reg |= CS4398_MUTE_B | CS4398_MUTE_A;
-    cs4398_write_cached(chip, 4, reg);
-    update_cs4362a_volumes(chip);
-}
-
-
-static void xonar_hdmi_uart_input(struct oxygen *chip)
+void XonarAudioEngine::xonar_hdmi_uart_input(struct oxygen *chip)
 {
     if (chip->uart_input_count >= 2 &&
         chip->uart_input[chip->uart_input_count - 2] == 'O' &&

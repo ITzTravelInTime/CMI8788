@@ -159,7 +159,7 @@ struct oxygen_model {
     size_t model_data_size;
     const char *shortname; 
     unsigned int device_config;
-    void (*update_dac_mute)(struct oxygen *chip);
+    void (*update_dac_mute)(struct oxygen *chip, XonarAudioEngine *audioEngineInstance);
     void (*resume)(struct oxygen *chip, XonarAudioEngine *audioEngineInstance);
     void (*cleanup)(struct oxygen *chip, XonarAudioEngine *audioEngineInstance);
     void (*suspend)(struct oxygen *chip, XonarAudioEngine *audioEngineInstance);
@@ -175,7 +175,7 @@ struct oxygen_model {
     UInt16 dac_i2s_format;
     UInt16 adc_i2s_format;
     void (*gpio_changed)(struct oxygen *chip);
-    void (*update_dac_volume)(struct oxygen *chip);
+    void (*update_dac_volume)(struct oxygen *chip, XonarAudioEngine *audioEngineInstance);
     void (*set_dac_params)(struct oxygen *chip, XonarAudioEngine *audioEngineInstance);
     void (*set_adc_params)(struct oxygen *chip,
                            XonarAudioEngine *audioEngineInstance);

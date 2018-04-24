@@ -67,6 +67,8 @@
 		CEBCDDC2208FC83F0036FE29 /* cs4362a.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cs4362a.h; sourceTree = "<group>"; };
 		CEBCDDC3208FE0540036FE29 /* XonarWM87x6AudioEngine.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = XonarWM87x6AudioEngine.cpp; sourceTree = "<group>"; };
 		CEBCDDC5208FE0BD0036FE29 /* XonarWM87x6AudioEngine.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = XonarWM87x6AudioEngine.hpp; sourceTree = "<group>"; };
+		CEBCDDC7208FE3590036FE29 /* wm8776.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = wm8776.h; sourceTree = "<group>"; };
+		CEBCDDC8208FE3850036FE29 /* wm8766.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = wm8766.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -113,6 +115,8 @@
 				CEBCDDC1208FC7F70036FE29 /* cs4398.h */,
 				CE442428207FF78500158F35 /* oxygen_regs.h */,
 				CEACF3E62081216300D01190 /* pcm1796.h */,
+				CEBCDDC8208FE3850036FE29 /* wm8766.h */,
+				CEBCDDC7208FE3590036FE29 /* wm8776.h */,
 				CE44242A207FF78500158F35 /* wm8785.h */,
 				CE5601AA208EB7CA001A5D0D /* hexdumpfn.c */,
 				CEACF4062082F67D00D01190 /* XonarHDAVAudioEngine.cpp */,

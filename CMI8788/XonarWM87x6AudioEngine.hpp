@@ -60,9 +60,48 @@ public:
     static void interruptHandler(OSObject *owner, IOInterruptEventSource *source, int count);
     static bool interruptFilter(OSObject *owner, IOFilterInterruptEventSource *source);
     virtual void filterInterrupt(int index);
-
-
+    static void wm8776_write_spi(struct oxygen *chip,
+                                 unsigned int reg, unsigned int value, XonarAudioEngine *engineInstance);
     
+    static void wm8776_write_i2c(struct oxygen *chip,
+                                 unsigned int reg, unsigned int value, XonarAudioEngine *engineInstance);
+
+    static void wm8776_write(struct oxygen *chip,
+                             unsigned int reg, unsigned int value, XonarAudioEngine *engineInstance);
+    static void wm8776_write_cached(struct oxygen *chip,
+                                    unsigned int reg, unsigned int value, XonarAudioEngine *engineInstance);
+    
+    static void wm8766_write(struct oxygen *chip,
+                             unsigned int reg, unsigned int value, XonarAudioEngine *engineInstance);
+    
+    static void wm8766_write_cached(struct oxygen *chip,
+                                    unsigned int reg, unsigned int value, XonarAudioEngine *engineInstance);
+    
+    static void wm8776_registers_init(struct oxygen *chip, XonarAudioEngine *engineInstance);
+    
+    static void wm8766_registers_init(struct oxygen *chip, XonarAudioEngine *engineInstance);
+    static void wm8776_init(struct oxygen *chip, XonarAudioEngine *engineInstance);
+    static void wm8766_init(struct oxygen *chip, XonarAudioEngine *engineInstance);
+    static void xonar_ds_handle_hp_jack(struct oxygen *chip, XonarAudioEngine *engineInstance);
+    static void xonar_ds_init(struct oxygen *chip, XonarAudioEngine *engineInstance);
+    static void xonar_hdav_slim_init(struct oxygen *chip, XonarAudioEngine *engineInstance);
+    static void xonar_ds_cleanup(struct oxygen *chip, XonarAudioEngine *engineInstance);
+    static void xonar_hdav_slim_cleanup(struct oxygen *chip, XonarAudioEngine *engineInstance);
+    static void xonar_ds_suspend(struct oxygen *chip, XonarAudioEngine *engineInstance);
+    static void xonar_hdav_slim_suspend(struct oxygen *chip, XonarAudioEngine *engineInstance);
+    static void xonar_ds_resume(struct oxygen *chip, XonarAudioEngine *engineInstance);
+    static void xonar_hdav_slim_resume(struct oxygen *chip, XonarAudioEngine *engineInstance);
+    static void set_wm8776_adc_params(struct oxygen *chip,
+                          XonarAudioEngine *audioEngine);
+    static void set_wm87x6_dac_params(struct oxygen *chip,
+                                      XonarAudioEngine *audioEngine);
+    static void set_hdav_slim_dac_params(struct oxygen *chip,
+                                         XonarAudioEngine *audioEngine);
+    static void update_wm8776_volume(struct oxygen *chip, XonarAudioEngine *engineInstance);
+    static void update_wm87x6_volume(struct oxygen *chip, XonarAudioEngine *engineInstance);
+    static void update_wm8776_mute(struct oxygen *chip, XonarAudioEngine *engineInstance);
+    static void update_wm87x6_mute(struct oxygen *chip, XonarAudioEngine *engineInstance);
+    static void xonar_ds_gpio_changed(struct oxygen *chip, XonarAudioEngine *audioEngine);
 };
 
 #endif /* XonarWM87x6AudioEngine_hpp */

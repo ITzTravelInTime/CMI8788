@@ -478,7 +478,7 @@ IOReturn PCIAudioDevice::volumeChanged(IOAudioControl *volumeControl, XonarAudio
         }
     }
     if (changed)
-        chip->model.update_dac_volume(chip);
+        chip->model.update_dac_volume(chip,engine);
     pthread_mutex_unlock(&chip->mutex);
     return changed;
     
@@ -511,7 +511,7 @@ IOReturn PCIAudioDevice::outputMuteChanged(IOAudioControl *muteControl, XonarAud
     changed = (!newValue) != chip->dac_mute;
     if (changed) {
         chip->dac_mute = !newValue;
-        chip->model.update_dac_mute(chip);
+        chip->model.update_dac_mute(chip, engine);
     }
     pthread_mutex_unlock(&chip->mutex);
     return changed;
