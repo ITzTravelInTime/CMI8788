@@ -6,7 +6,24 @@
 //  Copyright © 2018 CMedia. All rights reserved.
 //
 
-#include "XonarGenericAudioEngine.hpp"
+#include "ak4396.h"
+#include "wm8785.h"
+ #include <libkern/OSByteOrder.h>
+ #include <sys/errno.h>
+ #include <i386/limits.h>
+ #include </usr/include/libkern/OSAtomic.h>
+#include <IOKit/IOLib.h>
+#include <IOKit/IOFilterInterruptEventSource.h>
+ #include "XonarGenericAudioEngine.hpp"
+
+#define INITIAL_SAMPLE_RATE	44100
+#define NUM_SAMPLE_FRAMES	16384
+#define NUM_CHANNELS		2
+#define BIT_DEPTH			16
+
+
+ //#include <architecture/i386/pio.h>
+
 /*
  * C-Media CMI8788 driver for C-Media's reference design and similar models
  *
@@ -59,22 +76,9 @@
 
 #define super IOAudioEngine
 
-OSDefineMetaClassAndStructors(XonarAudioEngine, IOAudioEngine)
+OSDefineMetaClassAndStructors(XonarGenericAudioEngine, IOAudioEngine)
 
 
-enum {
-    MODEL_CMEDIA_REF,
-    MODEL_MERIDIAN,
-    MODEL_MERIDIAN_2G,
-    MODEL_CLARO,
-    MODEL_CLARO_HALO,
-    MODEL_FANTASIA,
-    MODEL_SERENADE,
-    MODEL_2CH_OUTPUT,
-    MODEL_HG2PCI,
-    MODEL_XONAR_DG,
-    MODEL_XONAR_DGX,
-};
 
 //static const struct pci_device_id oxygen_ids[] = {
 //    /* C-Media's reference design */
@@ -110,21 +114,9 @@ enum {
 //    { }
 //};
 
-#define GPIO_AK5385_DFS_MASK	0x0003
-#define GPIO_AK5385_DFS_NORMAL	0x0000
-#define GPIO_AK5385_DFS_DOUBLE	0x0001
-#define GPIO_AK5385_DFS_QUAD	0x0002
-
-#define GPIO_MERIDIAN_DIG_MASK	0x0050
-#define GPIO_MERIDIAN_DIG_EXT	0x0010
-#define GPIO_MERIDIAN_DIG_BOARD	0x0040
-
-#define GPIO_CLARO_DIG_COAX	0x0040
-#define GPIO_CLARO_HP		0x0100
-
 
 static void ak4396_write(struct oxygen *chip, unsigned int codec,
-                         UInt8 reg, UInt8 value)
+                                           UInt8 reg, UInt8 value, XonarAudioEngine *engineInstance)
 {
     /* maps ALSA channel pair number to SPI output */
     static const UInt8 codec_spi_map[4] = {
@@ -132,189 +124,193 @@ static void ak4396_write(struct oxygen *chip, unsigned int codec,
     };
     struct generic_data *data = (struct generic_data*) chip->model_data;
     
-    oxygen_write_spi(chip, OXYGEN_SPI_TRIGGER |
-                     OXYGEN_SPI_DATA_LENGTH_2 |
-                     OXYGEN_SPI_CLOCK_160 |
-                     (codec_spi_map[codec] << OXYGEN_SPI_CODEC_SHIFT) |
-                     OXYGEN_SPI_CEN_LATCH_CLOCK_HI,
-                     AK4396_WRITE | (reg << 8) | value);
+    engineInstance->oxygen_write_spi(chip, OXYGEN_SPI_TRIGGER |
+                                     OXYGEN_SPI_DATA_LENGTH_2 |
+                                     OXYGEN_SPI_CLOCK_160 |
+                                     (codec_spi_map[codec] << OXYGEN_SPI_CODEC_SHIFT) |
+                                     OXYGEN_SPI_CEN_LATCH_CLOCK_HI,
+                                     AK4396_WRITE | (reg << 8) | value);
     data->ak4396_regs[codec][reg] = value;
 }
 
-static void ak4396_write_cached(struct oxygen *chip, unsigned int codec,
-                                UInt8 reg, UInt8 value)
+void XonarGenericAudioEngine::ak4396_write_cached(struct oxygen *chip, unsigned int codec,
+                                                  UInt8 reg, UInt8 value, XonarAudioEngine *engineInstance)
 {
     struct generic_data *data = (struct generic_data*) chip->model_data;
     
     if (value != data->ak4396_regs[codec][reg])
-        ak4396_write(chip, codec, reg, value);
+        ak4396_write(chip, codec, reg, value, engineInstance);
 }
 
-static void wm8785_write(struct oxygen *chip, UInt8 reg, unsigned int value)
+void XonarGenericAudioEngine::wm8785_write(struct oxygen *chip, UInt8 reg, unsigned int value,
+                                           XonarAudioEngine *engineInstance)
 {
+    
     struct generic_data *data = (struct generic_data*) chip->model_data;
     
-    oxygen_write_spi(chip, OXYGEN_SPI_TRIGGER |
-                     OXYGEN_SPI_DATA_LENGTH_2 |
-                     OXYGEN_SPI_CLOCK_160 |
-                     (3 << OXYGEN_SPI_CODEC_SHIFT) |
-                     OXYGEN_SPI_CEN_LATCH_CLOCK_LO,
-                     (reg << 9) | value);
+    engineInstance->oxygen_write_spi(chip, OXYGEN_SPI_TRIGGER |
+                                     OXYGEN_SPI_DATA_LENGTH_2 |
+                                     OXYGEN_SPI_CLOCK_160 |
+                                     (3 << OXYGEN_SPI_CODEC_SHIFT) |
+                                     OXYGEN_SPI_CEN_LATCH_CLOCK_LO,
+                                     (reg << 9) | value);
     if (reg < ARRAY_SIZE(data->wm8785_regs))
         data->wm8785_regs[reg] = value;
 }
 
-static void ak4396_registers_init(struct oxygen *chip)
+void XonarGenericAudioEngine::ak4396_registers_init(struct oxygen *chip, XonarAudioEngine *engineInstance)
 {
     struct generic_data *data = (struct generic_data*) chip->model_data;
     unsigned int i;
     
     for (i = 0; i < data->dacs; ++i) {
         ak4396_write(chip, i, AK4396_CONTROL_1,
-                     AK4396_DIF_24_MSB | AK4396_RSTN);
+                     AK4396_DIF_24_MSB | AK4396_RSTN, engineInstance);
         ak4396_write(chip, i, AK4396_CONTROL_2,
-                     data->ak4396_regs[0][AK4396_CONTROL_2]);
+                     data->ak4396_regs[0][AK4396_CONTROL_2], engineInstance
+                     );
         ak4396_write(chip, i, AK4396_CONTROL_3,
-                     AK4396_PCM);
+                     AK4396_PCM, engineInstance);
         ak4396_write(chip, i, AK4396_LCH_ATT,
-                     chip->dac_volume[i * 2]);
+                     chip->dac_volume[i * 2], engineInstance);
         ak4396_write(chip, i, AK4396_RCH_ATT,
-                     chip->dac_volume[i * 2 + 1]);
+                     chip->dac_volume[i * 2 + 1], engineInstance);
     }
 }
 
-static void ak4396_init(struct oxygen *chip)
+void XonarGenericAudioEngine::ak4396_init(struct oxygen *chip, XonarAudioEngine *engineInstance)
 {
     struct generic_data *data = (struct generic_data*) chip->model_data;
     
     data->dacs = chip->model.dac_channels_pcm / 2;
     data->ak4396_regs[0][AK4396_CONTROL_2] =
     AK4396_SMUTE | AK4396_DEM_OFF | AK4396_DFS_NORMAL;
-    ak4396_registers_init(chip);
-   // snd_component_add(chip->card, "AK4396");
+    ak4396_registers_init(chip, engineInstance);
+    // snd_component_add(chip->card, "AK4396");
 }
 
-static void ak5385_init(struct oxygen *chip)
+void XonarGenericAudioEngine::ak5385_init(struct oxygen *chip, XonarAudioEngine *engineInstance)
 {
     oxygen_set_bits16(chip, OXYGEN_GPIO_CONTROL, GPIO_AK5385_DFS_MASK);
     oxygen_clear_bits16(chip, OXYGEN_GPIO_DATA, GPIO_AK5385_DFS_MASK);
-  //  snd_component_add(chip->card, "AK5385");
+    //  snd_component_add(chip->card, "AK5385");
 }
 
-static void wm8785_registers_init(struct oxygen *chip)
+void XonarGenericAudioEngine::wm8785_registers_init(struct oxygen *chip, XonarAudioEngine* engineInstance)
 {
     struct generic_data *data = (struct generic_data*) chip->model_data;
     
-    wm8785_write(chip, WM8785_R7, 0);
-    wm8785_write(chip, WM8785_R0, data->wm8785_regs[0]);
-    wm8785_write(chip, WM8785_R2, data->wm8785_regs[2]);
+    wm8785_write(chip, WM8785_R7, 0, engineInstance);
+    wm8785_write(chip, WM8785_R0, data->wm8785_regs[0], engineInstance);
+    wm8785_write(chip, WM8785_R2, data->wm8785_regs[2], engineInstance);
 }
 
-static void wm8785_init(struct oxygen *chip)
+void XonarGenericAudioEngine::wm8785_init(struct oxygen *chip, XonarAudioEngine *engineInstance)
 {
     struct generic_data *data = (struct generic_data*) chip->model_data;
     
     data->wm8785_regs[0] =
     WM8785_MCR_SLAVE | WM8785_OSR_SINGLE | WM8785_FORMAT_LJUST;
     data->wm8785_regs[2] = WM8785_HPFR | WM8785_HPFL;
-    wm8785_registers_init(chip);
-   // snd_component_add(chip->card, "WM8785");
+    wm8785_registers_init(chip, engineInstance);
+    // snd_component_add(chip->card, "WM8785");
 }
 
-static void generic_init(struct oxygen *chip)
+
+void XonarGenericAudioEngine::generic_init(struct oxygen *chip, XonarAudioEngine *engineInstance)
 {
-    ak4396_init(chip);
-    wm8785_init(chip);
+    ak4396_init(chip, engineInstance);
+    wm8785_init(chip, engineInstance);
 }
 
-static void meridian_init(struct oxygen *chip)
+void XonarGenericAudioEngine::meridian_init(struct oxygen *chip, XonarAudioEngine *engineInstance)
 {
     oxygen_set_bits16(chip, OXYGEN_GPIO_CONTROL,
                       GPIO_MERIDIAN_DIG_MASK);
     oxygen_write16_masked(chip, OXYGEN_GPIO_DATA,
                           GPIO_MERIDIAN_DIG_BOARD, GPIO_MERIDIAN_DIG_MASK);
-    ak4396_init(chip);
-    ak5385_init(chip);
+    ak4396_init(chip, engineInstance);
+    ak5385_init(chip, engineInstance);
 }
 
-static void claro_enable_hp(struct oxygen *chip)
+void XonarGenericAudioEngine::claro_enable_hp(struct oxygen *chip)
 {
     IODelay(300);
     oxygen_set_bits16(chip, OXYGEN_GPIO_CONTROL, GPIO_CLARO_HP);
     oxygen_set_bits16(chip, OXYGEN_GPIO_DATA, GPIO_CLARO_HP);
 }
 
-static void claro_init(struct oxygen *chip)
+void XonarGenericAudioEngine::claro_init(struct oxygen *chip, XonarAudioEngine *engineInstance)
 {
     oxygen_set_bits16(chip, OXYGEN_GPIO_CONTROL, GPIO_CLARO_DIG_COAX);
     oxygen_clear_bits16(chip, OXYGEN_GPIO_DATA, GPIO_CLARO_DIG_COAX);
-    ak4396_init(chip);
-    wm8785_init(chip);
+    ak4396_init(chip, engineInstance);
+    wm8785_init(chip, engineInstance);
     claro_enable_hp(chip);
 }
 
-static void claro_halo_init(struct oxygen *chip)
+void XonarGenericAudioEngine::claro_halo_init(struct oxygen *chip, XonarAudioEngine *engineInstance)
 {
     oxygen_set_bits16(chip, OXYGEN_GPIO_CONTROL, GPIO_CLARO_DIG_COAX);
     oxygen_clear_bits16(chip, OXYGEN_GPIO_DATA, GPIO_CLARO_DIG_COAX);
-    ak4396_init(chip);
-    ak5385_init(chip);
+    ak4396_init(chip, engineInstance);
+    ak5385_init(chip, engineInstance);
     claro_enable_hp(chip);
 }
 
-static void fantasia_init(struct oxygen *chip)
+void XonarGenericAudioEngine::fantasia_init(struct oxygen *chip, XonarAudioEngine *engineInstance)
 {
-    ak4396_init(chip);
+    ak4396_init(chip, engineInstance);
     //snd_component_add(chip->card, "CS5340");
 }
 
-static void stereo_output_init(struct oxygen *chip)
+void XonarGenericAudioEngine::stereo_output_init(struct oxygen *chip, XonarAudioEngine *engineInstance)
 {
-    ak4396_init(chip);
+    ak4396_init(chip, engineInstance);
 }
 
-static void generic_cleanup(struct oxygen *chip)
+void XonarGenericAudioEngine::generic_cleanup(struct oxygen *chip)
 {
 }
 
-static void claro_disable_hp(struct oxygen *chip)
+void XonarGenericAudioEngine::claro_disable_hp(struct oxygen *chip)
 {
     oxygen_clear_bits16(chip, OXYGEN_GPIO_DATA, GPIO_CLARO_HP);
 }
 
-static void claro_cleanup(struct oxygen *chip)
+void XonarGenericAudioEngine::claro_cleanup(struct oxygen *chip)
 {
     claro_disable_hp(chip);
 }
 
-static void claro_suspend(struct oxygen *chip)
+void XonarGenericAudioEngine::claro_suspend(struct oxygen *chip)
 {
     claro_disable_hp(chip);
 }
 
-static void generic_resume(struct oxygen *chip)
+void XonarGenericAudioEngine::generic_resume(struct oxygen *chip, XonarAudioEngine *engineInstance)
 {
-    ak4396_registers_init(chip);
-    wm8785_registers_init(chip);
+    ak4396_registers_init(chip, engineInstance);
+    wm8785_registers_init(chip, engineInstance);
 }
 
-static void meridian_resume(struct oxygen *chip)
+void XonarGenericAudioEngine::meridian_resume(struct oxygen *chip, XonarAudioEngine *engineInstance)
 {
-    ak4396_registers_init(chip);
+    ak4396_registers_init(chip, engineInstance);
 }
 
-static void claro_resume(struct oxygen *chip)
+void XonarGenericAudioEngine::claro_resume(struct oxygen *chip, XonarAudioEngine *engineInstance)
 {
-    ak4396_registers_init(chip);
+    ak4396_registers_init(chip, engineInstance);
     claro_enable_hp(chip);
 }
 
-static void stereo_resume(struct oxygen *chip)
+void XonarGenericAudioEngine::stereo_resume(struct oxygen *chip, XonarAudioEngine *engineInstance)
 {
-    ak4396_registers_init(chip);
+    ak4396_registers_init(chip, engineInstance);
 }
 
-static void set_ak4396_params(struct oxygen *chip,
+void XonarGenericAudioEngine::set_ak4396_params(struct oxygen *chip,
                               XonarAudioEngine *engineInstance)
 {
     struct generic_data *data = (struct generic_data*) chip->model_data;
@@ -334,15 +330,15 @@ static void set_ak4396_params(struct oxygen *chip,
     if (value != data->ak4396_regs[0][AK4396_CONTROL_2]) {
         for (i = 0; i < data->dacs; ++i) {
             ak4396_write(chip, i, AK4396_CONTROL_1,
-                         AK4396_DIF_24_MSB);
-            ak4396_write(chip, i, AK4396_CONTROL_2, value);
+                         AK4396_DIF_24_MSB,engineInstance);
+            ak4396_write(chip, i, AK4396_CONTROL_2, value,engineInstance);
             ak4396_write(chip, i, AK4396_CONTROL_1,
-                         AK4396_DIF_24_MSB | AK4396_RSTN);
+                         AK4396_DIF_24_MSB | AK4396_RSTN,engineInstance);
         }
     }
 }
-
-static void update_ak4396_volume(struct oxygen *chip)
+/*
+void XonarGenericAudioEngine::update_ak4396_volume(struct oxygen *chip)
 {
     struct generic_data *data = (struct generic_data*) chip->model_data;
     unsigned int i;
@@ -355,7 +351,7 @@ static void update_ak4396_volume(struct oxygen *chip)
     }
 }
 
-static void update_ak4396_mute(struct oxygen *chip)
+void XonarGenericAudioEngine::update_ak4396_mute(struct oxygen *chip)
 {
     struct generic_data *data = (struct generic_data*) chip->model_data;
     unsigned int i;
@@ -367,8 +363,8 @@ static void update_ak4396_mute(struct oxygen *chip)
     for (i = 0; i < data->dacs; ++i)
         ak4396_write_cached(chip, i, AK4396_CONTROL_2, value);
 }
-
-static void set_wm8785_params(struct oxygen *chip, XonarAudioEngine *engineInstance)
+*/
+void XonarGenericAudioEngine::set_wm8785_params(struct oxygen *chip, XonarAudioEngine *engineInstance)
 {
     struct generic_data *data = (struct generic_data*) chip->model_data;
     unsigned int value;
@@ -381,14 +377,13 @@ static void set_wm8785_params(struct oxygen *chip, XonarAudioEngine *engineInsta
     else
         value |= WM8785_OSR_QUAD;
     if (value != data->wm8785_regs[0]) {
-        wm8785_write(chip, WM8785_R7, 0);
-        wm8785_write(chip, WM8785_R0, value);
-        wm8785_write(chip, WM8785_R2, data->wm8785_regs[2]);
+        wm8785_write(chip, WM8785_R7, 0, engineInstance);
+        wm8785_write(chip, WM8785_R0, value, engineInstance);
+        wm8785_write(chip, WM8785_R2, data->wm8785_regs[2], engineInstance);
     }
 }
 
-static void set_ak5385_params(struct oxygen *chip,
-                              XonarAudioEngine *engineInstance)
+void XonarGenericAudioEngine::set_ak5385_params(struct oxygen *chip)
 {
     unsigned int value;
     
@@ -423,11 +418,15 @@ bool XonarGenericAudioEngine::init(XonarAudioEngine *audioEngine, struct oxygen 
     //chip->model.mixer_init = generic_wm8785_mixer_init,
     //chip->model.cleanup = generic_cleanup,
     //.resume = generic_resume,
-    chip->model.set_dac_params = set_ak4396_params;
-    chip->model.set_adc_params = set_wm8785_params;
+    /* still not sure about these ALSA dac/adc_{params,volume,mute}
+     * fields. i am leaving them commented out as a reference when
+     * looking at how to incorporate the equivalent using IOAudiostream
     chip->model.update_dac_volume = update_ak4396_volume;
     chip->model.update_dac_mute = update_ak4396_mute;
-    chip->model.dump_registers = dump_oxygen_registers;
+    */
+    chip->model.set_dac_params = set_ak4396_params;
+    chip->model.set_adc_params = set_wm8785_params;
+    //chip->model.dump_registers = dump_oxygen_registers;
     //.dac_tlv = ak4396_db_scale,
     chip->model.model_data_size = sizeof(struct generic_data);
     chip->model.device_config = PLAYBACK_0_TO_I2S |
@@ -457,6 +456,306 @@ Done:
     
     return result;
 }
+
+
+bool XonarGenericAudioEngine::initHardware(IOService *provider)
+{
+    bool result = false;
+    IOAudioSampleRate initialSampleRate;
+    IOAudioStream *audioStream;
+    IOWorkLoop *workLoop;
+    
+    IOLog("XonarGenericAudioEngine[%p]::initHardware(%p)\n", this, provider);
+    
+    if (!super::initHardware(provider)) {
+        goto Done;
+    }
+    
+    // Setup the initial sample rate for the audio engine
+    initialSampleRate.whole = INITIAL_SAMPLE_RATE;
+    initialSampleRate.fraction = 0;
+    
+    setDescription("Sample PCI Audio Engine");
+    
+    setSampleRate(&initialSampleRate);
+    
+    // Set the number of sample frames in each buffer
+    setNumSampleFramesPerBuffer(NUM_SAMPLE_FRAMES);
+    
+    workLoop = getWorkLoop();
+    if (!workLoop) {
+        goto Done;
+    }
+    
+    // Create an interrupt event source through which to receive interrupt callbacks
+    // In this case, we only want to do work at primary interrupt time, so
+    // we create an IOFilterInterruptEventSource which makes a filtering call
+    // from the primary interrupt interrupt who's purpose is to determine if
+    // our secondary interrupt handler is to be called.  In our case, we
+    // can do the work in the filter routine and then return false to
+    // indicate that we do not want our secondary handler called
+    interruptEventSource = IOFilterInterruptEventSource::filterInterruptEventSource(this,
+                                                                                    XonarGenericAudioEngine::interruptHandler,
+                                                                                    XonarGenericAudioEngine::interruptFilter,
+                                                                                    audioDevice->getProvider());
+    if (!interruptEventSource) {
+        goto Done;
+    }
+    
+    // In order to allow the interrupts to be received, the interrupt event source must be
+    // added to the IOWorkLoop
+    // Additionally, interrupts will not be firing until the interrupt event source is
+    // enabled by calling interruptEventSource->enable() - this probably doesn't need to
+    // be done until performAudioEngineStart() is called, and can probably be disabled
+    // when performAudioEngineStop() is called and the audio engine is no longer running
+    // Although this really depends on the specific hardware
+    workLoop->addEventSource(interruptEventSource);
+    
+    // Allocate our input and output buffers - a real driver will likely need to allocate its buffers
+    // differently
+    outputBuffer = (SInt16 *)IOMalloc(DEFAULT_BUFFER_BYTES);
+    if (!outputBuffer) {
+        goto Done;
+    }
+    
+    inputBuffer = (SInt16 *)IOMalloc(DEFAULT_BUFFER_BYTES);
+    if (!inputBuffer) {
+        goto Done;
+    }
+    
+    // Create an IOAudioStream for each buffer and add it to this audio engine
+    audioStream = createNewAudioStream(kIOAudioStreamDirectionOutput, outputBuffer, DEFAULT_BUFFER_BYTES);
+    if (!audioStream) {
+        goto Done;
+    }
+    
+    addAudioStream(audioStream);
+    audioStream->release();
+    
+    audioStream = createNewAudioStream(kIOAudioStreamDirectionInput, inputBuffer, DEFAULT_BUFFER_BYTES);
+    if (!audioStream) {
+        goto Done;
+    }
+    
+    addAudioStream(audioStream);
+    audioStream->release();
+    
+    result = true;
+    
+Done:
+    
+    return result;
+}
+
+void XonarGenericAudioEngine::free()
+{
+    IOLog("XonarGenericAudioEngine[%p]::free()\n", this);
+    
+    // We need to free our resources when we're going away
+    
+    if (interruptEventSource) {
+        interruptEventSource->release();
+        interruptEventSource = NULL;
+    }
+    
+    if (outputBuffer) {
+        IOFree(outputBuffer, DEFAULT_BUFFER_BYTES);
+        outputBuffer = NULL;
+    }
+    
+    if (inputBuffer) {
+        IOFree(inputBuffer, DEFAULT_BUFFER_BYTES);
+        inputBuffer = NULL;
+    }
+    
+    super::free();
+}
+
+IOAudioStream *XonarGenericAudioEngine::createNewAudioStream(IOAudioStreamDirection direction, void *sampleBuffer, UInt32 sampleBufferSize)
+{
+    IOAudioStream *audioStream;
+    
+    // For this sample device, we are only creating a single format and allowing 44.1KHz and 48KHz
+    audioStream = new IOAudioStream;
+    if (audioStream) {
+        if (!audioStream->initWithAudioEngine(this, direction, 1)) {
+            audioStream->release();
+        } else {
+            IOAudioSampleRate rate;
+            IOAudioStreamFormat format = {
+                2,												// num channels
+                kIOAudioStreamSampleFormatLinearPCM,			// sample format
+                kIOAudioStreamNumericRepresentationSignedInt,	// numeric format
+                BIT_DEPTH,										// bit depth
+                BIT_DEPTH,										// bit width
+                kIOAudioStreamAlignmentHighByte,				// high byte aligned - unused because bit depth == bit width
+                kIOAudioStreamByteOrderBigEndian,				// big endian
+                true,											// format is mixable
+                0												// driver-defined tag - unused by this driver
+            };
+            
+            // As part of creating a new IOAudioStream, its sample buffer needs to be set
+            // It will automatically create a mix buffer should it be needed
+            audioStream->setSampleBuffer(sampleBuffer, sampleBufferSize);
+            
+            // This device only allows a single format and a choice of 2 different sample rates
+            rate.fraction = 0;
+            rate.whole = 44100;
+            audioStream->addAvailableFormat(&format, &rate, &rate);
+            rate.whole = 48000;
+            audioStream->addAvailableFormat(&format, &rate, &rate);
+            
+            // Finally, the IOAudioStream's current format needs to be indicated
+            audioStream->setFormat(&format);
+        }
+    }
+    
+    return audioStream;
+}
+
+void XonarGenericAudioEngine::stop(IOService *provider)
+{
+    IOLog("XonarGenericAudioEngine[%p]::stop(%p)\n", this, provider);
+    
+    // When our device is being stopped and torn down, we should go ahead and remove
+    // the interrupt event source from the IOWorkLoop
+    // Additionally, we'll go ahead and release the interrupt event source since it isn't
+    // needed any more
+    if (interruptEventSource) {
+        IOWorkLoop *wl;
+        
+        wl = getWorkLoop();
+        if (wl) {
+            wl->removeEventSource(interruptEventSource);
+        }
+        
+        interruptEventSource->release();
+        interruptEventSource = NULL;
+    }
+    
+    // Add code to shut down hardware (beyond what is needed to simply stop the audio engine)
+    // There may be nothing needed here
+    
+    super::stop(provider);
+}
+
+IOReturn XonarGenericAudioEngine::performAudioEngineStart()
+{
+    IOLog("XonarGenericAudioEngine[%p]::performAudioEngineStart()\n", this);
+    
+    // The interruptEventSource needs to be enabled to allow interrupts to start firing
+    assert(interruptEventSource);
+    interruptEventSource->enable();
+    
+    // When performAudioEngineStart() gets called, the audio engine should be started from the beginning
+    // of the sample buffer.  Because it is starting on the first sample, a new timestamp is needed
+    // to indicate when that sample is being read from/written to.  The function takeTimeStamp()
+    // is provided to do that automatically with the current time.
+    // By default takeTimeStamp() will increment the current loop count in addition to taking the current
+    // timestamp.  Since we are starting a new audio engine run, and not looping, we don't want the loop count
+    // to be incremented.  To accomplish that, false is passed to takeTimeStamp().
+    takeTimeStamp(false);
+    
+    // Add audio - I/O start code here
+    
+    //#error performAudioEngineStart() - driver will not work until audio engine start code is added
+    
+    return kIOReturnSuccess;
+}
+
+IOReturn XonarGenericAudioEngine::performAudioEngineStop()
+{
+    IOLog("XonarGenericAudioEngine[%p]::performAudioEngineStop()\n", this);
+    
+    // Assuming we don't need interrupts after stopping the audio engine, we can disable them here
+    assert(interruptEventSource);
+    interruptEventSource->disable();
+    
+    // Add audio - I/O stop code here
+    
+    //#error performAudioEngineStop() - driver will not work until audio engine stop code is added
+    
+    return kIOReturnSuccess;
+}
+
+UInt32 XonarGenericAudioEngine::getCurrentSampleFrame()
+{
+    IOLog("XonarGenericAudioEngine[%p]::getCurrentSampleFrame()\n", this);
+    
+    // In order for the erase process to run properly, this function must return the current location of
+    // the audio engine - basically a sample counter
+    // It doesn't need to be exact, but if it is inexact, it should err towards being before the current location
+    // rather than after the current location.  The erase head will erase up to, but not including the sample
+    // frame returned by this function.  If it is too large a value, sound data that hasn't been played will be
+    // erased.
+    
+    //#error getCurrentSampleFrame() - driver will not work until correct sample frame is returned
+    
+    // Change to return the real value
+    return 0;
+}
+
+IOReturn XonarGenericAudioEngine::performFormatChange(IOAudioStream *audioStream, const IOAudioStreamFormat *newFormat, const IOAudioSampleRate *newSampleRate)
+{
+    IOLog("XonarGenericAudioEngine[%p]::peformFormatChange(%p, %p, %p)\n", this, audioStream, newFormat, newSampleRate);
+    
+    // Since we only allow one format, we only need to be concerned with sample rate changes
+    // In this case, we only allow 2 sample rates - 44100 & 48000, so those are the only ones
+    // that we check for
+    if (newSampleRate) {
+        switch (newSampleRate->whole) {
+            case 44100:
+                IOLog("/t-> 44.1kHz selected\n");
+                
+                // Add code to switch hardware to 44.1khz
+                break;
+            case 48000:
+                IOLog("/t-> 48kHz selected\n");
+                
+                // Add code to switch hardware to 48kHz
+                break;
+            default:
+                // This should not be possible since we only specified 44100 and 48000 as valid sample rates
+                IOLog("/t Internal Error - unknown sample rate selected.\n");
+                break;
+        }
+    }
+    
+    return kIOReturnSuccess;
+}
+
+
+void XonarGenericAudioEngine::interruptHandler(OSObject *owner, IOInterruptEventSource *source, int count)
+{
+    // Since our interrupt filter always returns false, this function will never be called
+    // If the filter returned true, this function would be called on the IOWorkLoop
+    return;
+}
+
+bool XonarGenericAudioEngine::interruptFilter(OSObject *owner, IOFilterInterruptEventSource *source)
+{
+    XonarGenericAudioEngine *audioEngine = OSDynamicCast(XonarGenericAudioEngine, owner);
+    
+    // We've cast the audio engine from the owner which we passed in when we created the interrupt
+    // event source
+    if (audioEngine) {
+        // Then, filterInterrupt() is called on the specified audio engine
+        audioEngine->filterInterrupt(source->getIntIndex());
+    }
+    
+    return false;
+}
+
+void XonarGenericAudioEngine::filterInterrupt(int index)
+{
+    // In the case of our simple device, we only get interrupts when the audio engine loops to the
+    // beginning of the buffer.  When that happens, we need to take a timestamp and increment
+    // the loop count.  The function takeTimeStamp() does both of those for us.  Additionally,
+    // if a different timestamp is to be used (other than the current time), it can be passed
+    // in to takeTimeStamp()
+    takeTimeStamp();
+}
+
 
 
 /*
@@ -862,7 +1161,7 @@ static int generic_oxygen_probe(struct pci_dev *pci,
         ++dev;
     return err;
 }
-/*
+
 static struct pci_driver oxygen_driver = {
     .name = KBUILD_MODNAME,
     .id_table = oxygen_ids,

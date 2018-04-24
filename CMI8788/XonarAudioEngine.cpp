@@ -72,6 +72,8 @@ static inline unsigned long msecs_to_jiffies(const unsigned int m)
     return (m + (MSEC_PER_SEC / HZ) - 1) / (MSEC_PER_SEC / HZ);
 }
 
+
+
 void XonarAudioEngine::xonar_enable_output(struct oxygen *chip)
 {
     struct xonar_generic *data =(struct xonar_generic*)   chip->model_data;
