@@ -87,7 +87,8 @@ public:
     static void update_cs43xx_mute(struct oxygen *chip, XonarAudioEngine *engineInstance);
     
     static void update_cs43xx_center_lfe_mix(struct oxygen *chip, bool mixed);
-    
+    static void xonar_d1_line_mic_ac97_switch(struct oxygen *chip,
+                                  unsigned int reg, unsigned int mute);
 };
 
 #endif /* XonarCS43XXAudioEngine_hpp */

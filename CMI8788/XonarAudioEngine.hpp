@@ -146,7 +146,11 @@ struct xonar_wm87x6 {
 #define D2X_MODEL   0x82b7
 #define XENSE_MODEL 0x8428
 #define XONAR_GENERIC 7
-#define XONAR_DX    8 //placeholder
+
+#define D1_MODEL    0x834F
+#define CS4XX_MODEL 0x8275
+#define DX_MODEL    0x8327
+
 #define DS_MODEL    0x838e
 #define DSX_MODEL   0x8522
 #define HDAV_SLIM   0x835e
@@ -225,7 +229,9 @@ public:
     static void update_pcm1796_oversampling(struct oxygen *chip);
     static void set_pcm1796_params(struct oxygen *chip, XonarAudioEngine *instance);
     static void update_pcm1796_volume(struct oxygen *chip, XonarAudioEngine *instance);
-    
+    static inline void pcm1796_write_spi(struct oxygen *chip, unsigned int codec,
+                                         UInt8 reg, UInt8 value);
+
     UInt16 oxygen_read_ac97(struct oxygen *chip, unsigned int codec,
                             unsigned int index);
     //void oxygen_write_ac97(struct oxygen *chip, unsigned int codec,
@@ -251,8 +257,6 @@ public:
                                          UInt8 reg, UInt8 value);
     static void wm8785_write(struct oxygen *chip, UInt8 reg, unsigned int value);
     static int oxygen_write_spi(struct oxygen *chip, UInt8 control, unsigned int data);
-    static inline void pcm1796_write_spi(struct oxygen *chip, unsigned int codec,
-                                         UInt8 reg, UInt8 value);
     /* model-specific card drivers
     
     int get_xonar_pcm179x_model(struct oxygen *chip,
@@ -266,7 +270,6 @@ public:
     static void cs2000_write(struct oxygen *chip, UInt8 reg, UInt8 value);
     static void cs2000_write_cached(struct oxygen *chip, UInt8 reg, UInt8 value);
     
-    static void xonar_hdav_cleanup(struct oxygen *chip);
     /* HDMI helper functions */
     static void hdmi_write_command(struct oxygen *chip, UInt8 command,
                                    unsigned int count, const UInt8 *params);

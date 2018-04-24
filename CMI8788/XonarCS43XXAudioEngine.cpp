@@ -155,7 +155,7 @@ void XonarCS43XXAudioEngine::cs43xx_registers_init(struct oxygen *chip, XonarAud
     cs4398_write(chip, 7, data->cs4398_regs[7], engineInstance);
     cs4362a_write(chip, 0x02, CS4362A_DIF_LJUST, engineInstance);
     cs4362a_write(chip, 0x03, CS4362A_MUTEC_6 | CS4362A_AMUTE |
-                                  CS4362A_RMP_UP | CS4362A_ZERO_CROSS | CS4362A_SOFT_RAMP, engineInstance);
+                  CS4362A_RMP_UP | CS4362A_ZERO_CROSS | CS4362A_SOFT_RAMP, engineInstance);
     cs4362a_write(chip, 0x04, data->cs4362a_regs[0x04], engineInstance);
     cs4362a_write(chip, 0x05, 0, engineInstance);
     for (i = 6; i <= 14; ++i)
@@ -187,7 +187,7 @@ void XonarCS43XXAudioEngine::xonar_d1_resume(struct oxygen *chip, XonarAudioEngi
 }
 
 void XonarCS43XXAudioEngine::set_cs43xx_params(struct oxygen *chip,
-                              XonarAudioEngine *engineInstance)
+                                               XonarAudioEngine *engineInstance)
 {
     struct xonar_cs43xx *data = (struct xonar_cs43xx *)chip->model_data;
     
@@ -293,8 +293,8 @@ void XonarCS43XXAudioEngine::set_cs43xx_params(struct oxygen *chip,
  .put = rolloff_put,
  };
  */
-static void xonar_d1_line_mic_ac97_switch(struct oxygen *chip,
-                                          unsigned int reg, unsigned int mute)
+void XonarCS43XXAudioEngine::xonar_d1_line_mic_ac97_switch(struct oxygen *chip,
+                                                           unsigned int reg, unsigned int mute)
 {
     if (reg == AC97_LINE) {
         OSSpinLockLock(&chip->reg_lock);
@@ -389,13 +389,13 @@ bool XonarCS43XXAudioEngine::init(XonarAudioEngine *audioEngine, struct oxygen *
      * (majority of assignments are in the 'else' of
      * XonarAudioEngine.cpp
      */
-
+    
     chip->model.set_dac_params = set_cs43xx_params;
     chip->model.set_adc_params = audioEngine->xonar_set_cs53x1_params;
     chip->model.update_dac_volume = update_cs43xx_volume;
     chip->model.update_dac_mute = update_cs43xx_mute;
     // chip->model.update_center_lfe_mix = update_cs43xx_center_lfe_mix;
-    // chip->model.ac97_switch = xonar_d1_line_mic_ac97_switch;
+    chip->model.ac97_switch = xonar_d1_line_mic_ac97_switch;
     // chip->model.dump_registers = dump_d1_registers;
     // chip->model.dac_tlv = cs4362a_db_scale;
     
@@ -403,53 +403,56 @@ bool XonarCS43XXAudioEngine::init(XonarAudioEngine *audioEngine, struct oxygen *
     
     //DX model is the same as D1, so just set the three params
     // if the card is a DX, as d1_init is required for both.
-    if(model == XONAR_DX) {
-        data->generic.ext_power_reg = OXYGEN_GPI_DATA;
-        data->generic.ext_power_int_reg = OXYGEN_GPI_INTERRUPT_MASK;
-        data->generic.ext_power_bit = GPI_EXT_POWER;
-        engineInstance->xonar_init_ext_power(chip);
+    if(model == DX_MODEL || model == CS4XX_MODEL || model== D1_MODEL) {
+        if(model == DX_MODEL) {
+            data->generic.ext_power_reg = OXYGEN_GPI_DATA;
+            data->generic.ext_power_int_reg = OXYGEN_GPI_INTERRUPT_MASK;
+            data->generic.ext_power_bit = GPI_EXT_POWER;
+            engineInstance->xonar_init_ext_power(chip);
+        }
+        
+        
+        data->generic.anti_pop_delay = 800;
+        data->generic.output_enable_bit = GPIO_D1_OUTPUT_ENABLE;
+        data->cs4398_regs[2] =
+        CS4398_FM_SINGLE | CS4398_DEM_NONE | CS4398_DIF_LJUST;
+        data->cs4398_regs[4] = CS4398_MUTEP_LOW |
+        CS4398_MUTE_B | CS4398_MUTE_A | CS4398_PAMUTE;
+        data->cs4398_regs[5] = 60 * 2;
+        data->cs4398_regs[6] = 60 * 2;
+        data->cs4398_regs[7] = CS4398_RMP_DN | CS4398_RMP_UP |
+        CS4398_ZERO_CROSS | CS4398_SOFT_RAMP;
+        data->cs4362a_regs[4] = CS4362A_RMP_DN | CS4362A_DEM_NONE;
+        data->cs4362a_regs[6] = CS4362A_FM_SINGLE |
+        CS4362A_ATAPI_B_R | CS4362A_ATAPI_A_L;
+        data->cs4362a_regs[7] = 60 | CS4362A_MUTE;
+        data->cs4362a_regs[8] = 60 | CS4362A_MUTE;
+        data->cs4362a_regs[9] = data->cs4362a_regs[6];
+        data->cs4362a_regs[10] = 60 | CS4362A_MUTE;
+        data->cs4362a_regs[11] = 60 | CS4362A_MUTE;
+        data->cs4362a_regs[12] = data->cs4362a_regs[6];
+        data->cs4362a_regs[13] = 60 | CS4362A_MUTE;
+        data->cs4362a_regs[14] = 60 | CS4362A_MUTE;
+        
+        oxygen_write16(chip, OXYGEN_2WIRE_BUS_STATUS,
+                       OXYGEN_2WIRE_LENGTH_8 |
+                       OXYGEN_2WIRE_INTERRUPT_MASK |
+                       OXYGEN_2WIRE_SPEED_FAST);
+        
+        cs43xx_registers_init(chip, engineInstance);
+        
+        oxygen_set_bits16(chip, OXYGEN_GPIO_CONTROL,
+                          GPIO_D1_FRONT_PANEL |
+                          GPIO_D1_MAGIC |
+                          GPIO_D1_INPUT_ROUTE);
+        oxygen_clear_bits16(chip, OXYGEN_GPIO_DATA,
+                            GPIO_D1_FRONT_PANEL | GPIO_D1_INPUT_ROUTE);
+        
+        engineInstance->xonar_init_cs53x1(chip);
+        engineInstance->xonar_enable_output(chip);
     }
-    
-    
-    data->generic.anti_pop_delay = 800;
-    data->generic.output_enable_bit = GPIO_D1_OUTPUT_ENABLE;
-    data->cs4398_regs[2] =
-    CS4398_FM_SINGLE | CS4398_DEM_NONE | CS4398_DIF_LJUST;
-    data->cs4398_regs[4] = CS4398_MUTEP_LOW |
-    CS4398_MUTE_B | CS4398_MUTE_A | CS4398_PAMUTE;
-    data->cs4398_regs[5] = 60 * 2;
-    data->cs4398_regs[6] = 60 * 2;
-    data->cs4398_regs[7] = CS4398_RMP_DN | CS4398_RMP_UP |
-    CS4398_ZERO_CROSS | CS4398_SOFT_RAMP;
-    data->cs4362a_regs[4] = CS4362A_RMP_DN | CS4362A_DEM_NONE;
-    data->cs4362a_regs[6] = CS4362A_FM_SINGLE |
-    CS4362A_ATAPI_B_R | CS4362A_ATAPI_A_L;
-    data->cs4362a_regs[7] = 60 | CS4362A_MUTE;
-    data->cs4362a_regs[8] = 60 | CS4362A_MUTE;
-    data->cs4362a_regs[9] = data->cs4362a_regs[6];
-    data->cs4362a_regs[10] = 60 | CS4362A_MUTE;
-    data->cs4362a_regs[11] = 60 | CS4362A_MUTE;
-    data->cs4362a_regs[12] = data->cs4362a_regs[6];
-    data->cs4362a_regs[13] = 60 | CS4362A_MUTE;
-    data->cs4362a_regs[14] = 60 | CS4362A_MUTE;
-    
-    oxygen_write16(chip, OXYGEN_2WIRE_BUS_STATUS,
-                   OXYGEN_2WIRE_LENGTH_8 |
-                   OXYGEN_2WIRE_INTERRUPT_MASK |
-                   OXYGEN_2WIRE_SPEED_FAST);
-    
-    cs43xx_registers_init(chip, engineInstance);
-    
-    oxygen_set_bits16(chip, OXYGEN_GPIO_CONTROL,
-                      GPIO_D1_FRONT_PANEL |
-                      GPIO_D1_MAGIC |
-                      GPIO_D1_INPUT_ROUTE);
-    oxygen_clear_bits16(chip, OXYGEN_GPIO_DATA,
-                        GPIO_D1_FRONT_PANEL | GPIO_D1_INPUT_ROUTE);
-    
-    engineInstance->xonar_init_cs53x1(chip);
-    engineInstance->xonar_enable_output(chip);
-    
+    else
+        goto Done;
     
     //set registers/engine and finish APPUL sampleaudioengine init
     deviceRegisters = (struct xonar_cs43xx*) data;

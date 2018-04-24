@@ -181,6 +181,8 @@ struct oxygen_model {
                            XonarAudioEngine *audioEngineInstance);
     void (*dump_registers)(struct oxygen *chip,
                            XonarAudioEngine *audioEngineInstance);
+    void (*ac97_switch)(struct oxygen *chip,
+                        unsigned int reg, unsigned int mute);
 };
 
 struct oxygen {
@@ -354,7 +356,7 @@ class PCIAudioDevice : public IOAudioDevice
     struct oxygen               *deviceRegisters;
     
     virtual bool initHardware(IOService *provider);
-    virtual bool createAudioEngine(XonarAudioEngine *instance, UInt16 model);
+    virtual bool createAudioEngine(XonarAudioEngine *instance);
     virtual void free();
     
     static IOReturn volumeChangeHandler(IOService *target, IOAudioControl *volumeControl, SInt32 oldValue, SInt32 newValue);

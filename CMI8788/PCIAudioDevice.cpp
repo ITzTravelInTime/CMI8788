@@ -54,6 +54,10 @@
 #include "XonarHDAVAudioEngine.hpp"
 #include "XonarD2XAudioEngine.hpp"
 #include "XonarSTAudioEngine.hpp"
+#include "XonarGenericAudioEngine.hpp"
+#include "XonarCS43XXAudioEngine.hpp"
+#include "XonarWM87x6AudioEngine.hpp"
+
 #include "cm9780.h"
 #include "ac97.h"
 
@@ -220,6 +224,8 @@ bool PCIAudioDevice::initHardware(IOService *provider)
         setDeviceName("ASUS Xonar ST(X [II])+Xense models");
     else if (subdev_id == D2_MODEL || subdev_id == D2X_MODEL)
         setDeviceName("ASUS Xonar D2(X) models");
+    else if (subdev_id == DS_MODEL || subdev_id == DSX_MODEL || subdev_id == HDAV_SLIM)
+        setDeviceName("ASUS Xonar DS(X)+HDAV SLIM models");
     
     setDeviceShortName("CMI8788");
     setManufacturerName("CMedia");
@@ -234,7 +240,7 @@ bool PCIAudioDevice::initHardware(IOService *provider)
     
     //see comments in createAudioEngine to follow rest of oxygen_pci_probe
     //(chip->model.init() and onwards)
-    if (!createAudioEngine(audioEngineInstance, subdev_id)) {
+    if (!createAudioEngine(audioEngineInstance)) {
         goto Done;
     }
     
@@ -264,7 +270,7 @@ void PCIAudioDevice::free()
     super::free();
 }
 
-bool PCIAudioDevice::createAudioEngine(XonarAudioEngine *audioEngineInstance, UInt16 submodel)
+bool PCIAudioDevice::createAudioEngine(XonarAudioEngine *audioEngineInstance)
 {
     IOAudioControl *control;
     //At this point, we should be at the chip->model.init() part of the oxygen_pci_probe function.
@@ -274,18 +280,17 @@ bool PCIAudioDevice::createAudioEngine(XonarAudioEngine *audioEngineInstance, UI
     bool result = false;
     IOAudioEngine *audioEngine = NULL;
     
-    if(submodel == HDAV_MODEL) {
-        //XonarHDAVAudioEngine *audioEngine = NULL;
+    if(subdev_id == HDAV_MODEL)
         audioEngine = new XonarHDAVAudioEngine;
-    }
-    else if (submodel == ST_MODEL || submodel == STX_MODEL || submodel == XENSE_MODEL) {
-        //XonarSTAudioEngine *audioEngine = NULL;
+    else if (subdev_id == ST_MODEL || subdev_id == STX_MODEL || subdev_id == XENSE_MODEL)
         audioEngine = new XonarSTAudioEngine;
-    }
-    else if (submodel == D2_MODEL || submodel == D2X_MODEL) {
-        // XonarD2XAudioEngine *audioEngine = NULL;
+    else if (subdev_id == D2_MODEL || subdev_id == D2X_MODEL)
         audioEngine = new XonarD2XAudioEngine;
-    }
+    else if (subdev_id == DX_MODEL || subdev_id == CS4XX_MODEL || subdev_id== D1_MODEL)
+        audioEngine = new XonarCS43XXAudioEngine;
+    else if (subdev_id == DS_MODEL || subdev_id == DSX_MODEL || subdev_id == HDAV_SLIM)
+        audioEngine = new XonarWM87x6AudioEngine;
+    
     if (!audioEngine)
         goto Done;
     
@@ -294,18 +299,28 @@ bool PCIAudioDevice::createAudioEngine(XonarAudioEngine *audioEngineInstance, UI
     // Init the new audio engine with the device registers so it can access them if necessary
     // The audio engine subclass could be defined to take any number of parameters for its
     // initialization - use it like a constructor
-    if(submodel == HDAV_MODEL) {
+    if(subdev_id == HDAV_MODEL) {
         if (!((XonarHDAVAudioEngine*)audioEngine)->init(audioEngineInstance,deviceRegisters))
             goto Done;
     }
-    else if (submodel == ST_MODEL || submodel == STX_MODEL || submodel == XENSE_MODEL) {
-        if (!((XonarSTAudioEngine*)audioEngine)->init(audioEngineInstance,deviceRegisters,submodel))
+    else if (subdev_id == ST_MODEL || subdev_id == STX_MODEL || subdev_id == XENSE_MODEL) {
+        if (!((XonarSTAudioEngine*)audioEngine)->init(audioEngineInstance,deviceRegisters,subdev_id))
             goto Done;
     }
-    else if (submodel == D2_MODEL || submodel == D2X_MODEL) {
-        if (!((XonarD2XAudioEngine*)audioEngine)->init(audioEngineInstance,deviceRegisters,submodel))
+    else if (subdev_id == D2_MODEL || subdev_id == D2X_MODEL) {
+        if (!((XonarD2XAudioEngine*)audioEngine)->init(audioEngineInstance,deviceRegisters,subdev_id))
             goto Done;
         
+    }
+    else if( subdev_id == DX_MODEL || subdev_id == CS4XX_MODEL || subdev_id== D1_MODEL) {
+        if (!((XonarCS43XXAudioEngine*)audioEngine)->init(audioEngineInstance,deviceRegisters,subdev_id))
+            goto Done;
+        
+    }
+    else if (subdev_id == DS_MODEL || subdev_id == DSX_MODEL || subdev_id == HDAV_SLIM) {
+        if (!((XonarWM87x6AudioEngine*)audioEngine)->init(audioEngineInstance,deviceRegisters,subdev_id))
+            goto Done;
+
     }
     
     /* The remaining portions of oxygen_pci_probe focus on initialising PCM and the mixer.
