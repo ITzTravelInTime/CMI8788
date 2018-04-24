@@ -135,7 +135,7 @@ struct xonar_cs43xx {
 #define D2X_MODEL   0x82b7
 #define XENSE_MODEL 0x8428
 #define XONAR_GENERIC 7
-
+#define XONAR_DX    8 //placeholder
 //objective C does not use the bitwise operator
 // so i am simply declaring SNDRV_PCM_FORMAT as-is
 //Linux Def below for reference:

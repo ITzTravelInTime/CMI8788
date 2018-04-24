@@ -24,7 +24,7 @@ class XonarCS43XXAudioEngine : public IOAudioEngine
 {
     friend class XonarAudioEngine;
     OSDeclareDefaultStructors(XonarCS43XXAudioEngine)
-    struct xonar_generic                   *deviceRegisters;
+    struct xonar_cs43xx                   *deviceRegisters;
     //right now i've created 4 since there are 4 I2S input buffers
     // however, i am not sure how to incorporate them yet,
     // as i have to (probably) create an ioaudiostream for each
