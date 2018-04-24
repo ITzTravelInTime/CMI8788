@@ -914,6 +914,27 @@ bool XonarAudioEngine::init(struct oxygen *chip, int model)
         //end 0x82b7
 
     }
+    else { // generic
+        chip->model.model_data_size = sizeof(struct generic_data);
+        chip->model.device_config = PLAYBACK_0_TO_I2S |
+        PLAYBACK_1_TO_SPDIF |
+        PLAYBACK_2_TO_AC97_1 |
+        CAPTURE_0_FROM_I2S_1 |
+        CAPTURE_1_FROM_SPDIF |
+        CAPTURE_2_FROM_AC97_1 |
+        AC97_CD_INPUT;
+        chip->model.dac_channels_pcm = 8;
+        chip->model.dac_channels_mixer = 8;
+        chip->model.dac_volume_min = 0;
+        chip->model.dac_volume_max = 255;
+        chip->model.function_flags = OXYGEN_FUNCTION_SPI |
+        OXYGEN_FUNCTION_ENABLE_SPI_4_5;
+        chip->model.dac_mclks = OXYGEN_MCLKS(256, 128, 128);
+        chip->model.adc_mclks = OXYGEN_MCLKS(256, 256, 128);
+        chip->model.dac_i2s_format = OXYGEN_I2S_FORMAT_LJUST;
+        chip->model.adc_i2s_format = OXYGEN_I2S_FORMAT_LJUST;
+
+    }
     
     pthread_mutex_init(&chip->mutex,NULL);
     pthread_mutex_init(&chip->ac97_mutex,NULL);

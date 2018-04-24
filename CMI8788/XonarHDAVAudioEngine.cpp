@@ -242,6 +242,7 @@ bool XonarHDAVAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip)
     engine->xonar_init_ext_power(chip);
     xonar_hdmi_init(chip, &deviceRegisters->hdmi);
     engine->xonar_enable_output(chip);
+    
     this->engineInstance = engine;
     result = true;
     /* end alsa oxygen_init, begin last bit of SamplePCIAudioEngine.cpp's init

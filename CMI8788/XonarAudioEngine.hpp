@@ -211,14 +211,18 @@ public:
     int xonar_gpio_bit_switch_put(struct snd_kcontrol *ctl,
                                   struct snd_ctl_elem_value *value);
     static void oxygen_gpio_changed(struct oxygen* chip);
-    /* model-specific card drivers */
+    static void ak4396_write(struct oxygen *chip, unsigned int codec,
+                             UInt8 reg, UInt8 value);
+    
+    static void wm8785_write(struct oxygen *chip, UInt8 reg, unsigned int value);
+    /* model-specific card drivers
     
     int get_xonar_pcm179x_model(struct oxygen *chip,
                                 const struct pci_device_id *id);
     int get_xonar_cs43xx_model(struct oxygen *chip,
                                const struct pci_device_id *id);
     int get_xonar_wm87x6_model(struct oxygen *chip,
-                               const struct pci_device_id *id);
+                               const struct pci_device_id *id);*/
     static void cs2000_registers_init(struct oxygen *chip);
     static void update_cs2000_rate(struct oxygen *chip, unsigned int rate);
     
@@ -229,10 +233,7 @@ public:
     static void oxygen_write_uart(struct oxygen *chip, UInt8 data);
     
     static void oxygen_spdif_input_bits_changed(struct oxygen *chip);
-    void ak4396_write(struct oxygen *chip, unsigned int codec,
-                      UInt8 reg, UInt8 value);
-    
-    void wm8785_write(struct oxygen *chip, UInt8 reg, unsigned int value);
+
 
     
 };

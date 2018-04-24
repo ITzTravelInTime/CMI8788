@@ -358,6 +358,7 @@ void XonarGenericAudioEngine::set_ak5385_params(struct oxygen *chip)
 
 bool XonarGenericAudioEngine::init(XonarAudioEngine *audioEngine, struct oxygen *chip, UInt16 model)
 {
+    //begin APPUL portion of sampleaudioengine::init
     bool result = false;
     
     IOLog("SamplePCIAudioEngine[%p]::init(%p)\n", this, chip);
@@ -369,10 +370,13 @@ bool XonarGenericAudioEngine::init(XonarAudioEngine *audioEngine, struct oxygen 
     if (!super::init(NULL)) {
         goto Done;
     }
+    //end APPUL portion of sampleaudioengine::init
     
+    /* assign remaining values for oxygen_generic struct
+     * (majority of assignments are in the 'else' of
+     * XonarAudioEngine.cpp
+     */
     chip->model.shortname = "C-Media CMI8788";
-    //.longname = "C-Media Oxygen HD Audio",
-    //.chip = "CMI8788",
     //chip->model.init = generic_init;
     //chip->model.mixer_init = generic_wm8785_mixer_init,
     //chip->model.cleanup = generic_cleanup,
@@ -387,28 +391,15 @@ bool XonarGenericAudioEngine::init(XonarAudioEngine *audioEngine, struct oxygen 
     chip->model.set_adc_params = set_wm8785_params;
     //chip->model.dump_registers = dump_oxygen_registers;
     //.dac_tlv = ak4396_db_scale,
-    chip->model.model_data_size = sizeof(struct generic_data);
-    chip->model.device_config = PLAYBACK_0_TO_I2S |
-			 PLAYBACK_1_TO_SPDIF |
-			 PLAYBACK_2_TO_AC97_1 |
-			 CAPTURE_0_FROM_I2S_1 |
-			 CAPTURE_1_FROM_SPDIF |
-			 CAPTURE_2_FROM_AC97_1 |
-			 AC97_CD_INPUT;
-    chip->model.dac_channels_pcm = 8;
-    chip->model.dac_channels_mixer = 8;
-    chip->model.dac_volume_min = 0;
-    chip->model.dac_volume_max = 255;
-    chip->model.function_flags = OXYGEN_FUNCTION_SPI |
-    OXYGEN_FUNCTION_ENABLE_SPI_4_5;
-    chip->model.dac_mclks = OXYGEN_MCLKS(256, 128, 128);
-    chip->model.adc_mclks = OXYGEN_MCLKS(256, 256, 128);
-    chip->model.dac_i2s_format = OXYGEN_I2S_FORMAT_LJUST;
-    chip->model.adc_i2s_format = OXYGEN_I2S_FORMAT_LJUST;
+
+    //begin generic_init
+    ak4396_init(chip,audioEngine);
+    wm8785_init(chip,audioEngine);
+    //end generic_init
     
-    
-    //deviceRegisters = regs;
-    
+    //set registers/engine and finish APPUL sampleaudioengine init
+    deviceRegisters = (struct xonar_generic*) chip->model_data;
+    this->engineInstance = audioEngine;
     result = true;
     
 Done:

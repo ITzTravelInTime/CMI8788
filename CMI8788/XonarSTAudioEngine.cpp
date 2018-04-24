@@ -449,8 +449,6 @@ bool XonarSTAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip, UIn
     }
 
 
-    //  ak4396_init(chip);
-    //  wm8785_init(chip);
     deviceRegisters = (struct xonar_pcm179x*)chip->model_data;
     
     //set the pointer to XonarAudioEngine.
