@@ -17,6 +17,8 @@
 		CE560190208AB4F2001A5D0D /* libcompiler_rt.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE56018F208AB4F2001A5D0D /* libcompiler_rt.dylib */; };
 		CE560193208AB54C001A5D0D /* libsystem_platform.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE560191208AB54C001A5D0D /* libsystem_platform.dylib */; };
 		CE560194208AB54C001A5D0D /* libsystem_pthread.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE560192208AB54C001A5D0D /* libsystem_pthread.dylib */; };
+		CE5601AE208EBC77001A5D0D /* XonarGenericAudioEngine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CE5601AC208EBC77001A5D0D /* XonarGenericAudioEngine.cpp */; };
+		CE5601AF208EBC77001A5D0D /* XonarGenericAudioEngine.hpp in Headers */ = {isa = PBXBuildFile; fileRef = CE5601AD208EBC77001A5D0D /* XonarGenericAudioEngine.hpp */; };
 		CEACF3E120806D6D00D01190 /* ac97.h in Headers */ = {isa = PBXBuildFile; fileRef = CEACF3E020806D6D00D01190 /* ac97.h */; };
 		CEACF3E5208074C200D01190 /* cm9780.h in Headers */ = {isa = PBXBuildFile; fileRef = CEACF3E4208074C200D01190 /* cm9780.h */; };
 		CEACF3EC2081216300D01190 /* pcm1796.h in Headers */ = {isa = PBXBuildFile; fileRef = CEACF3E62081216300D01190 /* pcm1796.h */; };
@@ -43,6 +45,8 @@
 		CE560191208AB54C001A5D0D /* libsystem_platform.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libsystem_platform.dylib; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.10.sdk/usr/lib/system/libsystem_platform.dylib; sourceTree = DEVELOPER_DIR; };
 		CE560192208AB54C001A5D0D /* libsystem_pthread.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libsystem_pthread.dylib; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.10.sdk/usr/lib/system/libsystem_pthread.dylib; sourceTree = DEVELOPER_DIR; };
 		CE5601AA208EB7CA001A5D0D /* hexdumpfn.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = hexdumpfn.c; sourceTree = "<group>"; };
+		CE5601AC208EBC77001A5D0D /* XonarGenericAudioEngine.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = XonarGenericAudioEngine.cpp; sourceTree = "<group>"; };
+		CE5601AD208EBC77001A5D0D /* XonarGenericAudioEngine.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = XonarGenericAudioEngine.hpp; sourceTree = "<group>"; };
 		CEACF3E020806D6D00D01190 /* ac97.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ac97.h; sourceTree = "<group>"; };
 		CEACF3E4208074C200D01190 /* cm9780.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cm9780.h; sourceTree = "<group>"; };
 		CEACF3E62081216300D01190 /* pcm1796.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = pcm1796.h; sourceTree = "<group>"; };
@@ -98,13 +102,15 @@
 				CE442428207FF78500158F35 /* oxygen_regs.h */,
 				CEACF3E62081216300D01190 /* pcm1796.h */,
 				CE44242A207FF78500158F35 /* wm8785.h */,
-				CEACF4062082F67D00D01190 /* XonarHDAVAudioEngine.cpp */,
 				CE5601AA208EB7CA001A5D0D /* hexdumpfn.c */,
+				CEACF4062082F67D00D01190 /* XonarHDAVAudioEngine.cpp */,
 				CEACF4042082F65E00D01190 /* XonarHDAVAudioEngine.hpp */,
 				CE442425207FDBE100158F35 /* XonarAudioEngine.cpp */,
 				CE442426207FDBE100158F35 /* XonarAudioEngine.hpp */,
 				CEACF3FA20829E4F00D01190 /* XonarSTAudioEngine.cpp */,
 				CEACF3FE2082A09600D01190 /* XonarSTAudioEngine.hpp */,
+				CE5601AC208EBC77001A5D0D /* XonarGenericAudioEngine.cpp */,
+				CE5601AD208EBC77001A5D0D /* XonarGenericAudioEngine.hpp */,
 				CEACF40C2083177100D01190 /* XonarD2XAudioEngine.cpp */,
 				CEACF40E208317AC00D01190 /* XonarD2XAudioEngine.hpp */,
 				CE235FA1207DBA0600AF3203 /* PCIAudioDevice.cpp */,
@@ -131,6 +137,7 @@
 				CE235FA0207DBA0600AF3203 /* PCIAudioDevice.hpp in Headers */,
 				CEACF40F208317AC00D01190 /* XonarD2XAudioEngine.hpp in Headers */,
 				CE44242C207FF78500158F35 /* oxygen_regs.h in Headers */,
+				CE5601AF208EBC77001A5D0D /* XonarGenericAudioEngine.hpp in Headers */,
 				CEACF3EC2081216300D01190 /* pcm1796.h in Headers */,
 				CEACF3E5208074C200D01190 /* cm9780.h in Headers */,
 				CEACF4052082F65E00D01190 /* XonarHDAVAudioEngine.hpp in Headers */,
@@ -210,6 +217,7 @@
 				CE235FA2207DBA0600AF3203 /* PCIAudioDevice.cpp in Sources */,
 				CE44242F207FF99000158F35 /* XonarAudioEngine.cpp in Sources */,
 				CEACF3FC20829E4F00D01190 /* XonarSTAudioEngine.cpp in Sources */,
+				CE5601AE208EBC77001A5D0D /* XonarGenericAudioEngine.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -175,6 +175,10 @@ struct oxygen_model {
     void (*gpio_changed)(struct oxygen *chip);
     void (*update_dac_volume)(struct oxygen *chip);
     void (*set_dac_params)(struct oxygen *chip, XonarAudioEngine *audioEngineInstance);
+    void (*set_adc_params)(struct oxygen *chip,
+                           XonarAudioEngine *audioEngineInstance);
+    void (*dump_registers)(struct oxygen *chip,
+                           XonarAudioEngine *audioEngineInstance);
 };
 
 struct oxygen {
