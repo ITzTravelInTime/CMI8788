@@ -61,7 +61,7 @@
 #define NUM_CHANNELS		2
 #define BIT_DEPTH			16
 
-
+#include "hexdumpfn.c"
 #define super IOAudioEngine
 
 OSDefineMetaClassAndStructors(XonarAudioEngine, IOAudioEngine)
@@ -737,6 +737,119 @@ void XonarAudioEngine::ak4396_write(struct oxygen *chip, unsigned int codec,
 }
 
 
+void XonarAudioEngine::hdmi_write_command(struct oxygen *chip, UInt8 command,
+                                              unsigned int count, const UInt8 *params)
+{
+    unsigned int i;
+    UInt8 checksum;
+    
+    oxygen_write_uart(chip, 0xfb);
+    oxygen_write_uart(chip, 0xef);
+    oxygen_write_uart(chip, command);
+    oxygen_write_uart(chip, count);
+    for (i = 0; i < count; ++i)
+        oxygen_write_uart(chip, params[i]);
+    checksum = 0xfb + 0xef + command + count;
+    for (i = 0; i < count; ++i)
+        checksum += params[i];
+    oxygen_write_uart(chip, checksum);
+}
+
+void XonarAudioEngine::xonar_hdmi_init_commands(struct oxygen *chip,
+                                                    struct xonar_hdmi *hdmi)
+{
+    UInt8 param;
+    
+    oxygen_reset_uart(chip);
+    param = 0;
+    hdmi_write_command(chip, 0x61, 1, &param);
+    param = 1;
+    hdmi_write_command(chip, 0x74, 1, &param);
+    hdmi_write_command(chip, 0x54, 5, hdmi->params);
+}
+
+
+void XonarAudioEngine::xonar_hdmi_init(struct oxygen *chip, struct xonar_hdmi *hdmi)
+{
+    hdmi->params[1] = IEC958_AES3_CON_FS_48000;
+    hdmi->params[4] = 1;
+    xonar_hdmi_init_commands(chip, hdmi);
+}
+
+void XonarAudioEngine::xonar_hdmi_cleanup(struct oxygen *chip)
+{
+    UInt8 param = 0;
+    
+    hdmi_write_command(chip, 0x74, 1, &param);
+}
+
+void XonarAudioEngine::xonar_hdmi_resume(struct oxygen *chip, struct xonar_hdmi *hdmi)
+{
+    xonar_hdmi_init_commands(chip, hdmi);
+}
+/*
+ void xonar_hdmi_pcm_hardware_filter(unsigned int channel,
+ struct snd_pcm_hardware *hardware)
+ {
+ if (channel == PCM_MULTICH) {
+ hardware->rates = SNDRV_PCM_RATE_44100 |
+ SNDRV_PCM_RATE_48000 |
+ SNDRV_PCM_RATE_96000 |
+ SNDRV_PCM_RATE_192000;
+ hardware->rate_min = 44100;
+ }
+ }
+ */
+void XonarAudioEngine::xonar_set_hdmi_params(struct oxygen *chip, struct xonar_hdmi *hdmi)
+{
+    hdmi->params[0] = 0; // 1 = non-audio
+    switch (getSampleRate()->whole) {
+        case 44100:
+            hdmi->params[1] = IEC958_AES3_CON_FS_44100;
+            break;
+        case 48000:
+            hdmi->params[1] = IEC958_AES3_CON_FS_48000;
+            break;
+        default: // 96000
+            hdmi->params[1] = IEC958_AES3_CON_FS_96000;
+            break;
+        case 192000:
+            hdmi->params[1] = IEC958_AES3_CON_FS_192000;
+            break;
+    }
+    //Linux call:
+    //hdmi->params[2] = params_channels(params) / 2 - 1;
+    //Mac Call:
+    hdmi->params[2] = inputs[0]->maxNumChannels / 2 - 1;
+    //^ this is wrong because it should be NumChannels, not MaxNum
+    //however since IOAudioStream calls are deprecated as of 10.10,
+    //i'm going to use this is a placeholder/semi-correct call.
+    
+    //Linux call:
+    //if (params_format(params) == SNDRV_PCM_FORMAT_S16_LE)
+    //Mac Call:
+    if(inputs[0]->format.fSampleFormat == SNDRV_PCM_FORMAT_S16_LE)
+        hdmi->params[3] = 0;
+    else
+        hdmi->params[3] = 0xc0;
+    hdmi->params[4] = 1; // ?
+    hdmi_write_command(chip, 0x54, 5, hdmi->params);
+}
+
+static void xonar_hdmi_uart_input(struct oxygen *chip)
+{
+    if (chip->uart_input_count >= 2 &&
+        chip->uart_input[chip->uart_input_count - 2] == 'O' &&
+        chip->uart_input[chip->uart_input_count - 1] == 'K') {
+        IOLog("message from HDMI chip received:\n");
+        print_hex_dump_bytes("", DUMP_PREFIX_OFFSET,
+                             chip->uart_input, chip->uart_input_count);
+        chip->uart_input_count = 0;
+    }
+}
+
+
+
 bool XonarAudioEngine::init(struct oxygen *chip, int model)
 {
     /*this function can be looked at as oxygen_pci_probe, with
@@ -800,6 +913,8 @@ bool XonarAudioEngine::init(struct oxygen *chip, int model)
                 chip->model.dac_mclks = OXYGEN_MCLKS(256, 128, 128);
                 break;
         }
+        chip->model.uart_input = xonar_hdmi_uart_input;
+
         
     }
     else if (model == ST_MODEL || model == STX_MODEL ||

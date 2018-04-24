@@ -379,8 +379,8 @@ bool XonarGenericAudioEngine::init(XonarAudioEngine *audioEngine, struct oxygen 
     chip->model.shortname = "C-Media CMI8788";
     //chip->model.init = generic_init;
     //chip->model.mixer_init = generic_wm8785_mixer_init,
-    //chip->model.cleanup = generic_cleanup,
-    //.resume = generic_resume,
+    chip->model.cleanup = generic_cleanup;
+    chip->model.resume = generic_resume;
     /* still not sure about these ALSA dac/adc_{params,volume,mute}
      * fields. i am leaving them commented out as a reference when
      * looking at how to incorporate the equivalent using IOAudiostream

@@ -122,10 +122,10 @@
 #define IEC958_AES3_CON_FS_96000        (10<<0) /* 96kHz */
 #define IEC958_AES3_CON_FS_192000       (14<<0) /* 192kHz */
 
-class XonarAudioEngine;
 #define PCIAudioDevice com_CMedia_CMI8788_PCIAudioDevice
+#define XonarAudioEngine com_CMedia_CMI8788_XonarAudioEngine
 
-
+class XonarAudioEngine;
 
 enum {
     CONTROL_SPDIF_PCM,
@@ -161,6 +161,8 @@ struct oxygen_model {
     unsigned int device_config;
     void (*update_dac_mute)(struct oxygen *chip);
     void (*resume)(struct oxygen *chip, XonarAudioEngine *audioEngineInstance);
+    void (*cleanup)(struct oxygen *chip);
+    void (*suspend)(struct oxygen *chip);
     UInt8 dac_channels_pcm;
     UInt8 dac_channels_mixer;
     UInt8 dac_volume_min;
