@@ -57,6 +57,7 @@
 #include "cm9780.h"
 #include "cs2000.h"
 #include "ac97.h"
+#include "hexdumpfn.c"
 #define INITIAL_SAMPLE_RATE	44100
 #define NUM_SAMPLE_FRAMES	16384
 #define NUM_CHANNELS		2
@@ -66,7 +67,6 @@
 #define super IOAudioEngine
 
 OSDefineMetaClassAndStructors(XonarHDAVAudioEngine, IOAudioEngine)
-
 
 
 void XonarHDAVAudioEngine::hdmi_write_command(struct oxygen *chip, UInt8 command,
@@ -92,7 +92,7 @@ void XonarHDAVAudioEngine::xonar_hdmi_init_commands(struct oxygen *chip,
 {
     UInt8 param;
     
-    //  oxygen_reset_uart(chip);
+    this->engineInstance->oxygen_reset_uart(chip);
     param = 0;
     hdmi_write_command(chip, 0x61, 1, &param);
     param = 1;

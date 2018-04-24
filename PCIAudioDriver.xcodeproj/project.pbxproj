@@ -42,6 +42,7 @@
 		CE56018F208AB4F2001A5D0D /* libcompiler_rt.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcompiler_rt.dylib; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.10.sdk/usr/lib/system/libcompiler_rt.dylib; sourceTree = DEVELOPER_DIR; };
 		CE560191208AB54C001A5D0D /* libsystem_platform.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libsystem_platform.dylib; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.10.sdk/usr/lib/system/libsystem_platform.dylib; sourceTree = DEVELOPER_DIR; };
 		CE560192208AB54C001A5D0D /* libsystem_pthread.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libsystem_pthread.dylib; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.10.sdk/usr/lib/system/libsystem_pthread.dylib; sourceTree = DEVELOPER_DIR; };
+		CE5601AA208EB7CA001A5D0D /* hexdumpfn.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = hexdumpfn.c; sourceTree = "<group>"; };
 		CEACF3E020806D6D00D01190 /* ac97.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ac97.h; sourceTree = "<group>"; };
 		CEACF3E4208074C200D01190 /* cm9780.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cm9780.h; sourceTree = "<group>"; };
 		CEACF3E62081216300D01190 /* pcm1796.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = pcm1796.h; sourceTree = "<group>"; };
@@ -98,6 +99,7 @@
 				CEACF3E62081216300D01190 /* pcm1796.h */,
 				CE44242A207FF78500158F35 /* wm8785.h */,
 				CEACF4062082F67D00D01190 /* XonarHDAVAudioEngine.cpp */,
+				CE5601AA208EB7CA001A5D0D /* hexdumpfn.c */,
 				CEACF4042082F65E00D01190 /* XonarHDAVAudioEngine.hpp */,
 				CE442425207FDBE100158F35 /* XonarAudioEngine.cpp */,
 				CE442426207FDBE100158F35 /* XonarAudioEngine.hpp */,
