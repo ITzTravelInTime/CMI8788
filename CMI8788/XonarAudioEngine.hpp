@@ -183,7 +183,6 @@ public:
     //static void oxygen_interrupt(OSObject *owner, IOInterruptEventSource *src, int dummy, void *dev_id);
     static bool interruptFilter(OSObject *owner, IOFilterInterruptEventSource *src);
     virtual void filterInterrupt(int index);
-    int oxygen_write_spi(struct oxygen *chip, UInt8 control, unsigned int data);
     static void xonar_enable_output(struct oxygen *chip);
     static void xonar_disable_output(struct oxygen *chip);
     static void xonar_init_ext_power(struct oxygen *chip);
@@ -230,7 +229,11 @@ public:
     static void oxygen_write_uart(struct oxygen *chip, UInt8 data);
     
     static void oxygen_spdif_input_bits_changed(struct oxygen *chip);
+    void ak4396_write(struct oxygen *chip, unsigned int codec,
+                      UInt8 reg, UInt8 value);
     
+    void wm8785_write(struct oxygen *chip, UInt8 reg, unsigned int value);
+
     
 };
 

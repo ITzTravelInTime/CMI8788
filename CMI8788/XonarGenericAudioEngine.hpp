@@ -90,11 +90,8 @@ public:
     static void update_ak4396_volume(struct oxygen *chip);
     static void update_ak4396_mute(struct oxygen *chip);
     
-        
     static void ak4396_write_cached(struct oxygen *chip, unsigned int codec,
                              UInt8 reg, UInt8 value, XonarAudioEngine *engineInstance);
-    
-    static void wm8785_write(struct oxygen *chip, UInt8 reg, unsigned int value, XonarAudioEngine *engineInstance);
     static void ak4396_registers_init(struct oxygen *chip, XonarAudioEngine *engineInstance);
     static void ak4396_init(struct oxygen *chip, XonarAudioEngine *engineInstance);
     

@@ -41,7 +41,7 @@
  */
 
 
-//#include "ak4396.h"
+#include "ak4396.h"
 //#include "wm8785.h"
 #include <libkern/OSByteOrder.h>
 #include <sys/errno.h>
@@ -243,7 +243,7 @@ void XonarAudioEngine::oxygen_read_uart(struct oxygen *chip)
         chip->model.uart_input(chip);
 }
 
-int oxygen_write_spi(struct oxygen *chip, UInt8 control, unsigned int data)
+static int oxygen_write_spi(struct oxygen *chip, UInt8 control, unsigned int data)
 {
     /*
      * We need to wait AFTER initiating the SPI transaction,
@@ -699,6 +699,43 @@ int XonarAudioEngine::add_pcm1796_controls(struct oxygen *chip)
      }*/
     return 0;
 }
+
+
+
+void XonarAudioEngine::wm8785_write(struct oxygen *chip, UInt8 reg, unsigned int value)
+{
+    
+    struct generic_data *data = (struct generic_data*) chip->model_data;
+    
+    oxygen_write_spi(chip, OXYGEN_SPI_TRIGGER |
+                                         OXYGEN_SPI_DATA_LENGTH_2 |
+                                         OXYGEN_SPI_CLOCK_160 |
+                                         (3 << OXYGEN_SPI_CODEC_SHIFT) |
+                                         OXYGEN_SPI_CEN_LATCH_CLOCK_LO,
+                                         (reg << 9) | value);
+    if (reg < ARRAY_SIZE(data->wm8785_regs))
+        data->wm8785_regs[reg] = value;
+}
+
+
+void XonarAudioEngine::ak4396_write(struct oxygen *chip, unsigned int codec,
+                                           UInt8 reg, UInt8 value)
+{
+    /* maps ALSA channel pair number to SPI output */
+    static const UInt8 codec_spi_map[4] = {
+        0, 1, 2, 4
+    };
+    struct generic_data *data = (struct generic_data*) chip->model_data;
+    
+    oxygen_write_spi(chip, OXYGEN_SPI_TRIGGER |
+                                     OXYGEN_SPI_DATA_LENGTH_2 |
+                                     OXYGEN_SPI_CLOCK_160 |
+                                     (codec_spi_map[codec] << OXYGEN_SPI_CODEC_SHIFT) |
+                                     OXYGEN_SPI_CEN_LATCH_CLOCK_HI,
+                                     AK4396_WRITE | (reg << 8) | value);
+    data->ak4396_regs[codec][reg] = value;
+}
+
 
 bool XonarAudioEngine::init(struct oxygen *chip, int model)
 {

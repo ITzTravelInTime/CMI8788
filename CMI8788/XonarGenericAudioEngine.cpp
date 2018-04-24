@@ -115,23 +115,6 @@ OSDefineMetaClassAndStructors(XonarGenericAudioEngine, IOAudioEngine)
 //};
 
 
-static void ak4396_write(struct oxygen *chip, unsigned int codec,
-                                           UInt8 reg, UInt8 value, XonarAudioEngine *engineInstance)
-{
-    /* maps ALSA channel pair number to SPI output */
-    static const UInt8 codec_spi_map[4] = {
-        0, 1, 2, 4
-    };
-    struct generic_data *data = (struct generic_data*) chip->model_data;
-    
-    engineInstance->oxygen_write_spi(chip, OXYGEN_SPI_TRIGGER |
-                                     OXYGEN_SPI_DATA_LENGTH_2 |
-                                     OXYGEN_SPI_CLOCK_160 |
-                                     (codec_spi_map[codec] << OXYGEN_SPI_CODEC_SHIFT) |
-                                     OXYGEN_SPI_CEN_LATCH_CLOCK_HI,
-                                     AK4396_WRITE | (reg << 8) | value);
-    data->ak4396_regs[codec][reg] = value;
-}
 
 void XonarGenericAudioEngine::ak4396_write_cached(struct oxygen *chip, unsigned int codec,
                                                   UInt8 reg, UInt8 value, XonarAudioEngine *engineInstance)
@@ -139,24 +122,9 @@ void XonarGenericAudioEngine::ak4396_write_cached(struct oxygen *chip, unsigned 
     struct generic_data *data = (struct generic_data*) chip->model_data;
     
     if (value != data->ak4396_regs[codec][reg])
-        ak4396_write(chip, codec, reg, value, engineInstance);
+        engineInstance->ak4396_write(chip, codec, reg, value);
 }
 
-void XonarGenericAudioEngine::wm8785_write(struct oxygen *chip, UInt8 reg, unsigned int value,
-                                           XonarAudioEngine *engineInstance)
-{
-    
-    struct generic_data *data = (struct generic_data*) chip->model_data;
-    
-    engineInstance->oxygen_write_spi(chip, OXYGEN_SPI_TRIGGER |
-                                     OXYGEN_SPI_DATA_LENGTH_2 |
-                                     OXYGEN_SPI_CLOCK_160 |
-                                     (3 << OXYGEN_SPI_CODEC_SHIFT) |
-                                     OXYGEN_SPI_CEN_LATCH_CLOCK_LO,
-                                     (reg << 9) | value);
-    if (reg < ARRAY_SIZE(data->wm8785_regs))
-        data->wm8785_regs[reg] = value;
-}
 
 void XonarGenericAudioEngine::ak4396_registers_init(struct oxygen *chip, XonarAudioEngine *engineInstance)
 {
@@ -164,17 +132,16 @@ void XonarGenericAudioEngine::ak4396_registers_init(struct oxygen *chip, XonarAu
     unsigned int i;
     
     for (i = 0; i < data->dacs; ++i) {
-        ak4396_write(chip, i, AK4396_CONTROL_1,
-                     AK4396_DIF_24_MSB | AK4396_RSTN, engineInstance);
-        ak4396_write(chip, i, AK4396_CONTROL_2,
-                     data->ak4396_regs[0][AK4396_CONTROL_2], engineInstance
-                     );
-        ak4396_write(chip, i, AK4396_CONTROL_3,
-                     AK4396_PCM, engineInstance);
-        ak4396_write(chip, i, AK4396_LCH_ATT,
-                     chip->dac_volume[i * 2], engineInstance);
-        ak4396_write(chip, i, AK4396_RCH_ATT,
-                     chip->dac_volume[i * 2 + 1], engineInstance);
+        engineInstance->ak4396_write(chip, i, AK4396_CONTROL_1,
+                     AK4396_DIF_24_MSB | AK4396_RSTN);
+        engineInstance->ak4396_write(chip, i, AK4396_CONTROL_2,
+                     data->ak4396_regs[0][AK4396_CONTROL_2]);
+        engineInstance->ak4396_write(chip, i, AK4396_CONTROL_3,
+                     AK4396_PCM);
+        engineInstance->ak4396_write(chip, i, AK4396_LCH_ATT,
+                     chip->dac_volume[i * 2]);
+        engineInstance->ak4396_write(chip, i, AK4396_RCH_ATT,
+                     chip->dac_volume[i * 2 + 1]);
     }
 }
 
@@ -200,9 +167,9 @@ void XonarGenericAudioEngine::wm8785_registers_init(struct oxygen *chip, XonarAu
 {
     struct generic_data *data = (struct generic_data*) chip->model_data;
     
-    wm8785_write(chip, WM8785_R7, 0, engineInstance);
-    wm8785_write(chip, WM8785_R0, data->wm8785_regs[0], engineInstance);
-    wm8785_write(chip, WM8785_R2, data->wm8785_regs[2], engineInstance);
+    engineInstance->wm8785_write(chip, WM8785_R7, 0);
+    engineInstance->wm8785_write(chip, WM8785_R0, data->wm8785_regs[0]);
+    engineInstance->wm8785_write(chip, WM8785_R2, data->wm8785_regs[2]);
 }
 
 void XonarGenericAudioEngine::wm8785_init(struct oxygen *chip, XonarAudioEngine *engineInstance)
@@ -329,11 +296,11 @@ void XonarGenericAudioEngine::set_ak4396_params(struct oxygen *chip,
     
     if (value != data->ak4396_regs[0][AK4396_CONTROL_2]) {
         for (i = 0; i < data->dacs; ++i) {
-            ak4396_write(chip, i, AK4396_CONTROL_1,
-                         AK4396_DIF_24_MSB,engineInstance);
-            ak4396_write(chip, i, AK4396_CONTROL_2, value,engineInstance);
-            ak4396_write(chip, i, AK4396_CONTROL_1,
-                         AK4396_DIF_24_MSB | AK4396_RSTN,engineInstance);
+            engineInstance->ak4396_write(chip, i, AK4396_CONTROL_1,
+                         AK4396_DIF_24_MSB);
+            engineInstance->ak4396_write(chip, i, AK4396_CONTROL_2, value);
+            engineInstance->ak4396_write(chip, i, AK4396_CONTROL_1,
+                         AK4396_DIF_24_MSB | AK4396_RSTN);
         }
     }
 }
@@ -377,9 +344,9 @@ void XonarGenericAudioEngine::set_wm8785_params(struct oxygen *chip, XonarAudioE
     else
         value |= WM8785_OSR_QUAD;
     if (value != data->wm8785_regs[0]) {
-        wm8785_write(chip, WM8785_R7, 0, engineInstance);
-        wm8785_write(chip, WM8785_R0, value, engineInstance);
-        wm8785_write(chip, WM8785_R2, data->wm8785_regs[2], engineInstance);
+        engineInstance->wm8785_write(chip, WM8785_R7, 0);
+        engineInstance->wm8785_write(chip, WM8785_R0, value);
+        engineInstance->wm8785_write(chip, WM8785_R2, data->wm8785_regs[2]);
     }
 }
 
