@@ -1302,13 +1302,77 @@ bool XonarWM87x6AudioEngine::init(XonarAudioEngine *audioEngine, struct oxygen *
     if (!super::init(NULL)) {
         goto Done;
     }
-    if(model == DS_MODEL){
-    }
-    else if (model == DSX_MODEL) {
+    
+    static const struct oxygen_model model_xonar_ds = {
+        .longname = "Asus Virtuoso 66",
+        .chip = "AV200",
+        .init = xonar_ds_init,
+        .mixer_init = xonar_ds_mixer_init,
+        .cleanup = xonar_ds_cleanup,
+        .suspend = xonar_ds_suspend,
+        .resume = xonar_ds_resume,
+        .pcm_hardware_filter = wm8776_adc_hardware_filter,
+        .set_dac_params = set_wm87x6_dac_params,
+        .set_adc_params = set_wm8776_adc_params,
+        .update_dac_volume = update_wm87x6_volume,
+        .update_dac_mute = update_wm87x6_mute,
+        .update_center_lfe_mix = update_wm8766_center_lfe_mix,
+        .gpio_changed = xonar_ds_gpio_changed,
+        .dump_registers = dump_wm87x6_registers,
+        .dac_tlv = wm87x6_dac_db_scale,
+        .model_data_size = sizeof(struct xonar_wm87x6),
+        .device_config = PLAYBACK_0_TO_I2S |
+        PLAYBACK_1_TO_SPDIF |
+        CAPTURE_0_FROM_I2S_1 |
+        CAPTURE_1_FROM_SPDIF,
+        .dac_channels_pcm = 8,
+        .dac_channels_mixer = 8,
+        .dac_volume_min = 255 - 2*60,
+        .dac_volume_max = 255,
+        .function_flags = OXYGEN_FUNCTION_SPI,
+        .dac_mclks = OXYGEN_MCLKS(256, 256, 128),
+        .adc_mclks = OXYGEN_MCLKS(256, 256, 128),
+        .dac_i2s_format = OXYGEN_I2S_FORMAT_LJUST,
+        .adc_i2s_format = OXYGEN_I2S_FORMAT_LJUST,
+    };
+    
+    static const struct oxygen_model model_xonar_hdav_slim = {
+        .shortname = "Xonar HDAV1.3 Slim",
+        .longname = "Asus Virtuoso 200",
+        .chip = "AV200",
+        .init = xonar_hdav_slim_init,
+        .mixer_init = xonar_hdav_slim_mixer_init,
+        .cleanup = xonar_hdav_slim_cleanup,
+        .suspend = xonar_hdav_slim_suspend,
+        .resume = xonar_hdav_slim_resume,
+        .pcm_hardware_filter = xonar_hdav_slim_hardware_filter,
+        .set_dac_params = set_hdav_slim_dac_params,
+        .set_adc_params = set_wm8776_adc_params,
+        .update_dac_volume = update_wm8776_volume,
+        .update_dac_mute = update_wm8776_mute,
+        .uart_input = xonar_hdmi_uart_input,
+        .dump_registers = dump_wm8776_registers,
+        .dac_tlv = wm87x6_dac_db_scale,
+        .model_data_size = sizeof(struct xonar_wm87x6),
+        .device_config = PLAYBACK_0_TO_I2S |
+        PLAYBACK_1_TO_SPDIF |
+        CAPTURE_0_FROM_I2S_1 |
+        CAPTURE_1_FROM_SPDIF,
+        .dac_channels_pcm = 8,
+        .dac_channels_mixer = 2,
+        .dac_volume_min = 255 - 2*60,
+        .dac_volume_max = 255,
+        .function_flags = OXYGEN_FUNCTION_2WIRE,
+        .dac_mclks = OXYGEN_MCLKS(256, 256, 128),
+        .adc_mclks = OXYGEN_MCLKS(256, 256, 128),
+        .dac_i2s_format = OXYGEN_I2S_FORMAT_LJUST,
+        .adc_i2s_format = OXYGEN_I2S_FORMAT_LJUST,
+    };
+    
+    if(model == DS_MODEL || model == DSX_MODEL){
     }
     else if (model == HDAV_SLIM) {
     }
-    
     else
         return -EINVAL;
 
