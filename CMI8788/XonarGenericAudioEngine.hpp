@@ -1,10 +1,3 @@
-//
-//  XonarGenericAudioEngine.hpp
-//  PCIAudioDriver
-//
-//  Copyright © 2018 CMedia. All rights reserved.
-//
-
 #ifndef XonarGenericAudioEngine_hpp
 #define XonarGenericAudioEngine_hpp
 
