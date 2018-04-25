@@ -9,3 +9,4 @@ all code belongs to Clemens Ladisch (clemens@ladisch.de).
 i'm pretty sure Clemens Ladisch is JUHMAHN for "fucking masher" ;)
 
 http://www.osxbook.com
+http://www.newosxbook.com (forum is here: http://newosxbook.com/forum/)
