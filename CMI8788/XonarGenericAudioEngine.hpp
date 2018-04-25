@@ -80,19 +80,24 @@ public:
     static bool interruptFilter(OSObject *owner, IOFilterInterruptEventSource *source);
     virtual void filterInterrupt(int index);
     
+    static void ak4396_write(struct oxygen *chip, unsigned int codec,
+                             UInt8 reg, UInt8 value, XonarAudioEngine *engineInstance);
+    static void ak4396_write_cached(struct oxygen *chip, unsigned int codec,
+                                    UInt8 reg, UInt8 value, XonarAudioEngine *engineInstance);
     static void update_ak4396_volume(struct oxygen *chip);
     static void update_ak4396_mute(struct oxygen *chip);
-    
-    static void ak4396_write_cached(struct oxygen *chip, unsigned int codec,
-                             UInt8 reg, UInt8 value, XonarAudioEngine *engineInstance);
+    static void set_ak4396_params(struct oxygen *chip,
+                                  XonarAudioEngine *engineInstance);
     static void ak4396_registers_init(struct oxygen *chip, XonarAudioEngine *engineInstance);
     static void ak4396_init(struct oxygen *chip, XonarAudioEngine *engineInstance);
     
     static void ak5385_init(struct oxygen *chip, XonarAudioEngine *engineInstance);
+    void set_ak5385_params(struct oxygen *chip);
     
+    static void wm8785_write(struct oxygen *chip, UInt8 reg, unsigned int value,
+                             XonarAudioEngine *engineInstance);
     static void wm8785_registers_init(struct oxygen *chip, XonarAudioEngine* engineInstance);
     static void set_wm8785_params(struct oxygen *chip, XonarAudioEngine *engineInstance);
-
     static void wm8785_init(struct oxygen *chip, XonarAudioEngine *engineInstance);
     
     static void generic_init(struct oxygen *chip, XonarAudioEngine *engineInstance);
@@ -111,9 +116,10 @@ public:
     static void meridian_resume(struct oxygen *chip, XonarAudioEngine *engineInstance);
     static void claro_resume(struct oxygen *chip, XonarAudioEngine *engineInstance);
     static void stereo_resume(struct oxygen *chip, XonarAudioEngine *engineInstance);
-    static void set_ak4396_params(struct oxygen *chip,
-                           XonarAudioEngine *engineInstance);
-    void set_ak5385_params(struct oxygen *chip);
+   
+    
+    
+  
     
     
 };

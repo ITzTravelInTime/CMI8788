@@ -225,6 +225,16 @@ public:
     static void xonar_init_ext_power(struct oxygen *chip);
     static void xonar_init_cs53x1(struct oxygen *chip);
     static void xonar_set_cs53x1_params(struct oxygen *chip, XonarAudioEngine *instance);
+    static void xonar_line_mic_ac97_switch(struct oxygen *chip, unsigned int reg,
+                                           unsigned int mute);
+    
+    static void oxygen_reset_uart(struct oxygen *chip);
+    static void oxygen_read_uart(struct oxygen *chip);
+    static void oxygen_write_uart(struct oxygen *chip, UInt8 data);
+    static void oxygen_spdif_input_bits_changed(struct oxygen *chip);
+    static void oxygen_write_i2c(struct oxygen *chip, UInt8 device, UInt8 map, UInt8 data);
+    static int oxygen_write_spi(struct oxygen *chip, UInt8 control, unsigned int data);
+    static void oxygen_gpio_changed(struct oxygen* chip);
     
     static int  add_pcm1796_controls(struct oxygen *chip);
     static void pcm1796_init(struct oxygen *chip);
@@ -235,6 +245,13 @@ public:
     static void update_pcm1796_volume(struct oxygen *chip, XonarAudioEngine *instance);
     static inline void pcm1796_write_spi(struct oxygen *chip, unsigned int codec,
                                          UInt8 reg, UInt8 value);
+    static void pcm1796_write(struct oxygen *chip, unsigned int codec,
+                              UInt8 reg, UInt8 value);
+    static void pcm1796_write_cached(struct oxygen *chip, unsigned int codec,
+                                     UInt8 reg, UInt8 value);
+    static inline void pcm1796_write_i2c(struct oxygen *chip, unsigned int codec,
+                                         UInt8 reg, UInt8 value);
+    
     
     UInt16 oxygen_read_ac97(struct oxygen *chip, unsigned int codec,
                             unsigned int index);
@@ -242,25 +259,14 @@ public:
     //                       unsigned int index, UInt16 data);
     void oxygen_write_ac97_masked(struct oxygen *chip, unsigned int codec,
                                   unsigned int index, UInt16 data, UInt16 mask);
-    static void xonar_line_mic_ac97_switch(struct oxygen *chip, unsigned int reg,
-                                           unsigned int mute);
+    
+    
     int xonar_gpio_bit_switch_get(struct snd_kcontrol *ctl,
                                   struct snd_ctl_elem_value *value);
     int xonar_gpio_bit_switch_put(struct snd_kcontrol *ctl,
                                   struct snd_ctl_elem_value *value);
-    static void oxygen_gpio_changed(struct oxygen* chip);
-    static void ak4396_write(struct oxygen *chip, unsigned int codec,
-                             UInt8 reg, UInt8 value);
-    static void oxygen_write_i2c(struct oxygen *chip, UInt8 device, UInt8 map, UInt8 data);
-    static void pcm1796_write(struct oxygen *chip, unsigned int codec,
-                              UInt8 reg, UInt8 value);
-    static void pcm1796_write_cached(struct oxygen *chip, unsigned int codec,
-                                     UInt8 reg, UInt8 value);
-    static inline void pcm1796_write_i2c(struct oxygen *chip, unsigned int codec,
-                                         UInt8 reg, UInt8 value);
-    static void wm8785_write(struct oxygen *chip, UInt8 reg, unsigned int value);
-    static int oxygen_write_spi(struct oxygen *chip, UInt8 control, unsigned int data);
 
+    
     static void cs2000_registers_init(struct oxygen *chip);
     static void update_cs2000_rate(struct oxygen *chip, unsigned int rate);
     static void cs2000_write(struct oxygen *chip, UInt8 reg, UInt8 value);
@@ -281,11 +287,6 @@ public:
     
     
     //generic
-    static void oxygen_reset_uart(struct oxygen *chip);
-    static void oxygen_read_uart(struct oxygen *chip);
-    static void oxygen_write_uart(struct oxygen *chip, UInt8 data);
-    
-    static void oxygen_spdif_input_bits_changed(struct oxygen *chip);
     
     
     
