@@ -672,7 +672,7 @@ static inline void oxygen_ac97_clear_bits(struct oxygen *chip,
 
 
 
-static void xonar_line_mic_ac97_switch(struct oxygen *chip,
+void XonarAudioEngine::xonar_line_mic_ac97_switch(struct oxygen *chip,
                                        unsigned int reg, unsigned int mute)
 {
     if (reg == AC97_LINE) {
@@ -889,7 +889,7 @@ bool XonarAudioEngine::init(struct oxygen *chip, int model)
         chip->model.adc_mclks = OXYGEN_MCLKS(256, 128, 128);
         chip->model.dac_i2s_format = OXYGEN_I2S_FORMAT_I2S;
         chip->model.adc_i2s_format = OXYGEN_I2S_FORMAT_LJUST;
-        chip->model.ac97_switch = xonar_line_mic_ac97_switch;
+        chip->model.ac97_switch = this->xonar_line_mic_ac97_switch;
         oxygen_clear_bits16(chip,OXYGEN_GPIO_CONTROL,GPIO_DB_MASK);
         switch (oxygen_read16(chip, OXYGEN_GPIO_DATA) & GPIO_DB_MASK) {
             default:
@@ -922,7 +922,7 @@ bool XonarAudioEngine::init(struct oxygen *chip, int model)
         chip->model.adc_mclks = OXYGEN_MCLKS(256, 128, 128);
         chip->model.dac_i2s_format = OXYGEN_I2S_FORMAT_I2S;
         chip->model.adc_i2s_format = OXYGEN_I2S_FORMAT_LJUST;
-        chip->model.ac97_switch = xonar_line_mic_ac97_switch;
+        chip->model.ac97_switch = this->xonar_line_mic_ac97_switch;
         
         //0x835d
         if(model == ST_MODEL) {

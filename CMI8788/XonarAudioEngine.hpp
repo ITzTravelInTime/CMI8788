@@ -239,7 +239,6 @@ public:
                                   unsigned int index, UInt16 data, UInt16 mask);
     static void xonar_line_mic_ac97_switch(struct oxygen *chip,
                                unsigned int reg, unsigned int mute);
-    
     int xonar_gpio_bit_switch_get(struct snd_kcontrol *ctl,
                                   struct snd_ctl_elem_value *value);
     int xonar_gpio_bit_switch_put(struct snd_kcontrol *ctl,
