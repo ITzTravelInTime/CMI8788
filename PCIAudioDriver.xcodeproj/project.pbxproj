@@ -14,9 +14,6 @@
 		CE44242E207FF78500158F35 /* wm8785.h in Headers */ = {isa = PBXBuildFile; fileRef = CE44242A207FF78500158F35 /* wm8785.h */; };
 		CE44242F207FF99000158F35 /* XonarAudioEngine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CE442425207FDBE100158F35 /* XonarAudioEngine.cpp */; settings = {COMPILER_FLAGS = "-pthread"; }; };
 		CE442430207FF99200158F35 /* XonarAudioEngine.hpp in Headers */ = {isa = PBXBuildFile; fileRef = CE442426207FDBE100158F35 /* XonarAudioEngine.hpp */; };
-		CE560190208AB4F2001A5D0D /* libcompiler_rt.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE56018F208AB4F2001A5D0D /* libcompiler_rt.dylib */; };
-		CE560193208AB54C001A5D0D /* libsystem_platform.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE560191208AB54C001A5D0D /* libsystem_platform.dylib */; };
-		CE560194208AB54C001A5D0D /* libsystem_pthread.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE560192208AB54C001A5D0D /* libsystem_pthread.dylib */; };
 		CE5601B2208ECB6E001A5D0D /* XonarGenericAudioEngine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CE5601B0208ECB6E001A5D0D /* XonarGenericAudioEngine.cpp */; };
 		CE5601B3208ECB6E001A5D0D /* XonarGenericAudioEngine.hpp in Headers */ = {isa = PBXBuildFile; fileRef = CE5601B1208ECB6E001A5D0D /* XonarGenericAudioEngine.hpp */; };
 		CEACF3E120806D6D00D01190 /* ac97.h in Headers */ = {isa = PBXBuildFile; fileRef = CEACF3E020806D6D00D01190 /* ac97.h */; };
@@ -45,9 +42,6 @@
 		CE442427207FF78500158F35 /* ak4396.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ak4396.h; sourceTree = "<group>"; };
 		CE442428207FF78500158F35 /* oxygen_regs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = oxygen_regs.h; sourceTree = "<group>"; };
 		CE44242A207FF78500158F35 /* wm8785.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = wm8785.h; sourceTree = "<group>"; };
-		CE56018F208AB4F2001A5D0D /* libcompiler_rt.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcompiler_rt.dylib; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.10.sdk/usr/lib/system/libcompiler_rt.dylib; sourceTree = DEVELOPER_DIR; };
-		CE560191208AB54C001A5D0D /* libsystem_platform.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libsystem_platform.dylib; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.10.sdk/usr/lib/system/libsystem_platform.dylib; sourceTree = DEVELOPER_DIR; };
-		CE560192208AB54C001A5D0D /* libsystem_pthread.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libsystem_pthread.dylib; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.10.sdk/usr/lib/system/libsystem_pthread.dylib; sourceTree = DEVELOPER_DIR; };
 		CE5601AA208EB7CA001A5D0D /* hexdumpfn.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = hexdumpfn.c; sourceTree = "<group>"; };
 		CE5601B0208ECB6E001A5D0D /* XonarGenericAudioEngine.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = XonarGenericAudioEngine.cpp; sourceTree = "<group>"; };
 		CE5601B1208ECB6E001A5D0D /* XonarGenericAudioEngine.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = XonarGenericAudioEngine.hpp; sourceTree = "<group>"; };
@@ -76,9 +70,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CE560193208AB54C001A5D0D /* libsystem_platform.dylib in Frameworks */,
-				CE560194208AB54C001A5D0D /* libsystem_pthread.dylib in Frameworks */,
-				CE560190208AB4F2001A5D0D /* libcompiler_rt.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -88,9 +79,6 @@
 		CE235F92207DBA0600AF3203 = {
 			isa = PBXGroup;
 			children = (
-				CE560191208AB54C001A5D0D /* libsystem_platform.dylib */,
-				CE560192208AB54C001A5D0D /* libsystem_pthread.dylib */,
-				CE56018F208AB4F2001A5D0D /* libcompiler_rt.dylib */,
 				CE235F9E207DBA0600AF3203 /* PCIAudioDriver */,
 				CE235F9D207DBA0600AF3203 /* Products */,
 			);
