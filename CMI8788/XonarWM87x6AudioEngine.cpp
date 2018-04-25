@@ -267,53 +267,6 @@ void XonarWM87x6AudioEngine::xonar_ds_handle_hp_jack(struct oxygen *chip, XonarA
     pthread_mutex_unlock(&chip->mutex);
 }
 
-void XonarWM87x6AudioEngine::xonar_ds_init(struct oxygen *chip, XonarAudioEngine *audioEngine)
-{
-    struct xonar_wm87x6 *data = (struct xonar_wm87x6*) chip->model_data;
-    
-    data->generic.anti_pop_delay = 300;
-    data->generic.output_enable_bit = GPIO_DS_OUTPUT_ENABLE;
-    
-    wm8776_init(chip, audioEngine);
-    wm8766_init(chip, audioEngine);
-    
-    oxygen_set_bits16(chip, OXYGEN_GPIO_CONTROL,
-                      GPIO_DS_INPUT_ROUTE | GPIO_DS_OUTPUT_FRONTLR);
-    oxygen_clear_bits16(chip, OXYGEN_GPIO_CONTROL,
-                        GPIO_DS_HP_DETECT);
-    oxygen_set_bits16(chip, OXYGEN_GPIO_DATA, GPIO_DS_INPUT_ROUTE);
-    oxygen_set_bits16(chip, OXYGEN_GPIO_INTERRUPT_MASK, GPIO_DS_HP_DETECT);
-    chip->interrupt_mask |= OXYGEN_INT_GPIO;
-    
-    audioEngine->xonar_enable_output(chip);
-    
-    //snd_jack_new(chip->card, "Headphone",
-     //            SND_JACK_HEADPHONE, &data->hp_jack, false, false);
-   // xonar_ds_handle_hp_jack(chip);
-    
-   // snd_component_add(chip->card, "WM8776");
-   // snd_component_add(chip->card, "WM8766");
-}
-
-void XonarWM87x6AudioEngine::xonar_hdav_slim_init(struct oxygen *chip, XonarAudioEngine *audioEngine)
-{
-    struct xonar_wm87x6 *data = (struct xonar_wm87x6*)chip->model_data;
-    
-    data->generic.anti_pop_delay = 300;
-    data->generic.output_enable_bit = GPIO_SLIM_OUTPUT_ENABLE;
-    
-    wm8776_init(chip, audioEngine);
-    
-    oxygen_set_bits16(chip, OXYGEN_GPIO_CONTROL,
-                      GPIO_SLIM_HDMI_DISABLE |
-                      GPIO_SLIM_FIRMWARE_CLK |
-                      GPIO_SLIM_FIRMWARE_DATA);
-    
-    audioEngine->xonar_hdmi_init(chip, &data->hdmi);
-    audioEngine->xonar_enable_output(chip);
-    
-    //snd_component_add(chip->card, "WM8776");
-}
 
 void XonarWM87x6AudioEngine::xonar_ds_cleanup(struct oxygen *chip, XonarAudioEngine *audioEngine)
 {
@@ -488,8 +441,9 @@ bool XonarWM87x6AudioEngine::init(XonarAudioEngine *audioEngine, struct oxygen *
     
     
     if(model == DS_MODEL || model == DSX_MODEL){
-        //    .init = xonar_ds_init,
-        //    .mixer_init = xonar_ds_mixer_init,
+        /*for all submodels, this manual assignment
+        * mimics chip->model = <struct model name> 
+         */
         chip->model.cleanup = xonar_ds_cleanup;
         chip->model.suspend = xonar_ds_suspend;
         chip->model.resume = xonar_ds_resume;
@@ -502,25 +456,28 @@ bool XonarWM87x6AudioEngine::init(XonarAudioEngine *audioEngine, struct oxygen *
         //chip->model.gpio_changed = xonar_ds_gpio_changed;
         //chip->model.dump_registers = dump_wm87x6_registers;
         //chip->model.dac_tlv = wm87x6_dac_db_scale;
-        chip->model.model_data_size = sizeof(struct xonar_wm87x6);
-        chip->model.device_config = PLAYBACK_0_TO_I2S |
-            PLAYBACK_1_TO_SPDIF |
-            CAPTURE_0_FROM_I2S_1 |
-        CAPTURE_1_FROM_SPDIF;
-        chip->model.dac_channels_pcm = 8;
-        chip->model.dac_channels_mixer = 8;
-        chip->model.dac_volume_min = 255 - 2*60;
-        chip->model.dac_volume_max = 255;
-        chip->model.function_flags = OXYGEN_FUNCTION_SPI;
-        chip->model.dac_mclks = OXYGEN_MCLKS(256, 256, 128);
-        chip->model.adc_mclks = OXYGEN_MCLKS(256, 256, 128);
-        chip->model.dac_i2s_format = OXYGEN_I2S_FORMAT_LJUST;
-        chip->model.adc_i2s_format = OXYGEN_I2S_FORMAT_LJUST;
+        
+        /* begin ds_init */
+        data->generic.anti_pop_delay = 300;
+        data->generic.output_enable_bit = GPIO_DS_OUTPUT_ENABLE;
+        
+        wm8776_init(chip, audioEngine);
+        wm8766_init(chip, audioEngine);
+        
+        oxygen_set_bits16(chip, OXYGEN_GPIO_CONTROL,
+                          GPIO_DS_INPUT_ROUTE | GPIO_DS_OUTPUT_FRONTLR);
+        oxygen_clear_bits16(chip, OXYGEN_GPIO_CONTROL,
+                            GPIO_DS_HP_DETECT);
+        oxygen_set_bits16(chip, OXYGEN_GPIO_DATA, GPIO_DS_INPUT_ROUTE);
+        oxygen_set_bits16(chip, OXYGEN_GPIO_INTERRUPT_MASK, GPIO_DS_HP_DETECT);
+        chip->interrupt_mask |= OXYGEN_INT_GPIO;
+        
+        audioEngine->xonar_enable_output(chip);
+        /*end xonar_ds_init*/
 
     }
     else if (model == HDAV_SLIM) {
-        
-            //.init = xonar_hdav_slim_init,
+        //.init = xonar_hdav_slim_init,
         //chip->model.mixer_init = xonar_hdav_slim_mixer_init;
         chip->model.cleanup = xonar_hdav_slim_cleanup;
         chip->model.suspend = xonar_hdav_slim_suspend;
@@ -531,24 +488,28 @@ bool XonarWM87x6AudioEngine::init(XonarAudioEngine *audioEngine, struct oxygen *
         chip->model.update_dac_volume = update_wm8776_volume;
         chip->model.update_dac_mute = update_wm8776_mute;
         chip->model.uart_input = audioEngine->xonar_hdmi_uart_input;
-       // chip->model.dump_registers = dump_wm8776_registers;
+        //chip->model.dump_registers = dump_wm8776_registers;
         //chip->model.dac_tlv = wm87x6_dac_db_scale;
-        chip->model.model_data_size = sizeof(struct xonar_wm87x6);
-        chip->model.device_config = PLAYBACK_0_TO_I2S |
-            PLAYBACK_1_TO_SPDIF |
-            CAPTURE_0_FROM_I2S_1 |
-        CAPTURE_1_FROM_SPDIF;
-        chip->model.dac_channels_pcm = 8;
-        chip->model.dac_channels_mixer = 2;
-        chip->model.dac_volume_min = 255 - 2*60;
-        chip->model.dac_volume_max = 255;
-        chip->model.function_flags = OXYGEN_FUNCTION_2WIRE;
-        chip->model.dac_mclks = OXYGEN_MCLKS(256, 256, 128);
-        chip->model.adc_mclks = OXYGEN_MCLKS(256, 256, 128);
-        chip->model.dac_i2s_format = OXYGEN_I2S_FORMAT_LJUST;
-        chip->model.adc_i2s_format = OXYGEN_I2S_FORMAT_LJUST;
-    
+        
+        /* begin hdav_slim_init */
+        struct xonar_wm87x6 *data = (struct xonar_wm87x6*)chip->model_data;
+        
+        data->generic.anti_pop_delay = 300;
+        data->generic.output_enable_bit = GPIO_SLIM_OUTPUT_ENABLE;
+        
+        wm8776_init(chip, audioEngine);
+        
+        oxygen_set_bits16(chip, OXYGEN_GPIO_CONTROL,
+                          GPIO_SLIM_HDMI_DISABLE |
+                          GPIO_SLIM_FIRMWARE_CLK |
+                          GPIO_SLIM_FIRMWARE_DATA);
+        
+        audioEngine->xonar_hdmi_init(chip, &data->hdmi);
+        audioEngine->xonar_enable_output(chip);
+        
+        //snd_component_add(chip->card, "WM8776");
 
+        /*end hdav_slim_init */
     }
     else
         goto Done;

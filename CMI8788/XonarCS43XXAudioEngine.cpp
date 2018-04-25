@@ -402,17 +402,17 @@ bool XonarCS43XXAudioEngine::init(XonarAudioEngine *audioEngine, struct oxygen *
     
     //begin D1/DX init.
     
-    //DX model is the same as D1, so just set the three params
-    // if the card is a DX, as d1_init is required for both.
     if(model == DX_MODEL || model == CS4XX_MODEL || model== D1_MODEL) {
         if(model == DX_MODEL) {
+            //DX model is the same as D1, so just set the three params
             data->generic.ext_power_reg = OXYGEN_GPI_DATA;
             data->generic.ext_power_int_reg = OXYGEN_GPI_INTERRUPT_MASK;
             data->generic.ext_power_bit = GPI_EXT_POWER;
             engineInstance->xonar_init_ext_power(chip);
         }
         
-        
+        //d1_init is required for all CS4XXX cards.
+
         data->generic.anti_pop_delay = 800;
         data->generic.output_enable_bit = GPIO_D1_OUTPUT_ENABLE;
         data->cs4398_regs[2] =

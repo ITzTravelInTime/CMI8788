@@ -673,7 +673,7 @@ static inline void oxygen_ac97_clear_bits(struct oxygen *chip,
 
 
 void XonarAudioEngine::xonar_line_mic_ac97_switch(struct oxygen *chip,
-                                       unsigned int reg, unsigned int mute)
+                                                  unsigned int reg, unsigned int mute)
 {
     if (reg == AC97_LINE) {
         OSSpinLockLock(&chip->reg_lock);
@@ -1038,8 +1038,47 @@ bool XonarAudioEngine::init(struct oxygen *chip, int model)
         chip->model.adc_i2s_format = OXYGEN_I2S_FORMAT_LJUST;
         
     }
-    else {
+    else if (model == DS_MODEL || model == DSX_MODEL ||
+             model == HDAV_SLIM) {
+        if(model == DS_MODEL || model == DSX_MODEL){
+            /*for all submodels, this manual assignment
+             * mimics chip->model = <struct model name>
+             */
+            chip->model.model_data_size = sizeof(struct xonar_wm87x6);
+            chip->model.device_config = PLAYBACK_0_TO_I2S |
+            PLAYBACK_1_TO_SPDIF |
+            CAPTURE_0_FROM_I2S_1 |
+            CAPTURE_1_FROM_SPDIF;
+            chip->model.dac_channels_pcm = 8;
+            chip->model.dac_channels_mixer = 8;
+            chip->model.dac_volume_min = 255 - 2*60;
+            chip->model.dac_volume_max = 255;
+            chip->model.function_flags = OXYGEN_FUNCTION_SPI;
+            chip->model.dac_mclks = OXYGEN_MCLKS(256, 256, 128);
+            chip->model.adc_mclks = OXYGEN_MCLKS(256, 256, 128);
+            chip->model.dac_i2s_format = OXYGEN_I2S_FORMAT_LJUST;
+            chip->model.adc_i2s_format = OXYGEN_I2S_FORMAT_LJUST;
+            /*end chip->model struct assignment */
+        }
         
+        else if (model == HDAV_SLIM) {
+            chip->model.model_data_size = sizeof(struct xonar_wm87x6);
+            chip->model.device_config = PLAYBACK_0_TO_I2S |
+            PLAYBACK_1_TO_SPDIF |
+            CAPTURE_0_FROM_I2S_1 |
+            CAPTURE_1_FROM_SPDIF;
+            chip->model.dac_channels_pcm = 8;
+            chip->model.dac_channels_mixer = 2;
+            chip->model.dac_volume_min = 255 - 2*60;
+            chip->model.dac_volume_max = 255;
+            chip->model.function_flags = OXYGEN_FUNCTION_2WIRE;
+            chip->model.dac_mclks = OXYGEN_MCLKS(256, 256, 128);
+            chip->model.adc_mclks = OXYGEN_MCLKS(256, 256, 128);
+            chip->model.dac_i2s_format = OXYGEN_I2S_FORMAT_LJUST;
+            chip->model.adc_i2s_format = OXYGEN_I2S_FORMAT_LJUST;
+        }
+    }
+    else {
         
         chip->model.model_data_size = sizeof(struct xonar_cs43xx);
         chip->model.device_config = PLAYBACK_0_TO_I2S |

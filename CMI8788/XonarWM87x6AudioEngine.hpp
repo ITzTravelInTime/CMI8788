@@ -89,13 +89,13 @@ public:
     static void update_wm87x6_mute(struct oxygen *chip, XonarAudioEngine *engineInstance);
     
     static void xonar_ds_handle_hp_jack(struct oxygen *chip, XonarAudioEngine *engineInstance);
-    static void xonar_ds_init(struct oxygen *chip, XonarAudioEngine *engineInstance);
+    //static void xonar_ds_init(struct oxygen *chip, XonarAudioEngine *engineInstance);
     static void xonar_ds_cleanup(struct oxygen *chip, XonarAudioEngine *engineInstance);
     static void xonar_ds_suspend(struct oxygen *chip, XonarAudioEngine *engineInstance);
     static void xonar_ds_resume(struct oxygen *chip, XonarAudioEngine *engineInstance);
     static void xonar_ds_gpio_changed(struct oxygen *chip, XonarAudioEngine *audioEngine);
     
-    static void xonar_hdav_slim_init(struct oxygen *chip, XonarAudioEngine *engineInstance);
+    //static void xonar_hdav_slim_init(struct oxygen *chip, XonarAudioEngine *engineInstance);
     static void xonar_hdav_slim_cleanup(struct oxygen *chip, XonarAudioEngine *engineInstance);
     static void xonar_hdav_slim_suspend(struct oxygen *chip, XonarAudioEngine *engineInstance);
     static void xonar_hdav_slim_resume(struct oxygen *chip, XonarAudioEngine *engineInstance);
