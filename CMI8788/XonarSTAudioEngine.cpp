@@ -447,6 +447,8 @@ bool XonarSTAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip, UIn
         //   snd_component_add(chip->card, "CS5381");
         //  snd_component_add(chip->card, "CS2000");
     }
+    else
+        goto Done;
     chip->model.cleanup = this->xonar_st_cleanup;
     chip->model.suspend = this->xonar_st_suspend;
     chip->model.resume = this->xonar_st_resume;

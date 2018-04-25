@@ -148,7 +148,7 @@ bool XonarD2XAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip, UI
     
     if(submodel == D2_MODEL)
         xonar_d2_init(chip, engine);
-    if(submodel == D2X_MODEL) {
+    else if(submodel == D2X_MODEL) {
         data->generic.ext_power_reg = OXYGEN_GPIO_DATA;
         data->generic.ext_power_int_reg = OXYGEN_GPIO_INTERRUPT_MASK;
         data->generic.ext_power_bit = GPIO_D2X_EXT_POWER;
@@ -156,6 +156,8 @@ bool XonarD2XAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip, UI
         engine->xonar_init_ext_power(chip);
         xonar_d2_init(chip, engine);
     }
+    else
+        goto Done;
       
     deviceRegisters = data;
     

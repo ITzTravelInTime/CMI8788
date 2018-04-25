@@ -551,7 +551,7 @@ bool XonarWM87x6AudioEngine::init(XonarAudioEngine *audioEngine, struct oxygen *
 
     }
     else
-        return -EINVAL;
+        goto Done;
 
     //end APPUL portion of sampleaudioengine::init
     
