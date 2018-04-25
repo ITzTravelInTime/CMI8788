@@ -1,11 +1,3 @@
-//
-//  ac97.h
-//  CMI8788
-//
-//  Created by Gagan on 2018-04-12.
-//  Copyright © 2018 CMedia. All rights reserved.
-//
-
 #ifndef ac97_h
 #define ac97_h
 
