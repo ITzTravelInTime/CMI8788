@@ -102,58 +102,58 @@ struct xonar_wm87x6 {
 };
 
 
-#define GPIO_CS53x1_M_MASK      0x000c
-#define GPIO_CS53x1_M_SINGLE    0x0000
-#define GPIO_CS53x1_M_DOUBLE    0x0004
-#define GPIO_CS53x1_M_QUAD      0x0008
-#define XONAR_GPIO_BIT_INVERT	(1 << 16)
-#define GPIO_D2X_EXT_POWER	0x0020
-#define GPIO_D2_ALT		0x0080
-#define GPIO_D2_OUTPUT_ENABLE	0x0100
+#define GPIO_CS53x1_M_MASK          0x000c
+#define GPIO_CS53x1_M_SINGLE        0x0000
+#define GPIO_CS53x1_M_DOUBLE        0x0004
+#define GPIO_CS53x1_M_QUAD          0x0008
+#define XONAR_GPIO_BIT_INVERT       (1 << 16)
+#define GPIO_D2X_EXT_POWER          0x0020
+#define GPIO_D2_ALT                 0x0080
+#define GPIO_D2_OUTPUT_ENABLE       0x0100
 
-#define GPI_EXT_POWER		0x01
-#define GPIO_INPUT_ROUTE	0x0100
+#define GPI_EXT_POWER               0x01
+#define GPIO_INPUT_ROUTE            0x0100
 
-#define GPIO_HDAV_OUTPUT_ENABLE	0x0001
-#define GPIO_HDAV_MAGIC		0x00c0
+#define GPIO_HDAV_OUTPUT_ENABLE     0x0001
+#define GPIO_HDAV_MAGIC             0x00c0
 
-#define GPIO_DB_MASK		0x0030
-#define GPIO_DB_H6		0x0000
+#define GPIO_DB_MASK                0x0030
+#define GPIO_DB_H6                  0x0000
 
-#define GPIO_ST_OUTPUT_ENABLE	0x0001
-#define GPIO_ST_HP_REAR		0x0002
-#define GPIO_ST_MAGIC		0x0040
-#define GPIO_ST_HP		0x0080
+#define GPIO_ST_OUTPUT_ENABLE       0x0001
+#define GPIO_ST_HP_REAR             0x0002
+#define GPIO_ST_MAGIC               0x0040
+#define GPIO_ST_HP                  0x0080
 
 #define GPIO_XENSE_OUTPUT_ENABLE	(0x0001 | 0x0010 | 0x0020)
-#define GPIO_XENSE_SPEAKERS		0x0080
+#define GPIO_XENSE_SPEAKERS         0x0080
 
-#define I2C_DEVICE_PCM1796(i)	(0x98 + ((i) << 1))	/* 10011, ii, /W=0 */
-#define I2C_DEVICE_CS2000	0x9c			/* 100111, 0, /W=0 */
+#define I2C_DEVICE_PCM1796(i)       (0x98 + ((i) << 1))	/* 10011, ii, /W=0 */
+#define I2C_DEVICE_CS2000           0x9c			/* 100111, 0, /W=0 */
 
-#define I2C_DEVICE_CS4398	0x9e	/* 10011, AD1=1, AD0=1, /W=0 */
-#define I2C_DEVICE_CS4362A	0x30	/* 001100, AD0=0, /W=0 */
+#define I2C_DEVICE_CS4398           0x9e	/* 10011, AD1=1, AD0=1, /W=0 */
+#define I2C_DEVICE_CS4362A          0x30	/* 001100, AD0=0, /W=0 */
 
 
 
-#define PCM1796_REG_BASE	16
+#define PCM1796_REG_BASE            16
 
-#define HDAV_MODEL  0x8314
-#define ST_MODEL    0x835d
-#define STX_MODEL   0x835c
-#define STX2_MODEL  0x85f4
-#define D2_MODEL    0x8269
-#define D2X_MODEL   0x82b7
-#define XENSE_MODEL 0x8428
+#define HDAV_MODEL                  0x8314
+#define ST_MODEL                    0x835d
+#define STX_MODEL                   0x835c
+#define STX2_MODEL                  0x85f4
+#define D2_MODEL                    0x8269
+#define D2X_MODEL                   0x82b7
+#define XENSE_MODEL                 0x8428
 #define XONAR_GENERIC 7
 
-#define D1_MODEL    0x834F
-#define CS4XX_MODEL 0x8275
-#define DX_MODEL    0x8327
+#define D1_MODEL                    0x834F
+#define CS4XX_MODEL                 0x8275
+#define DX_MODEL                    0x8327
 
-#define DS_MODEL    0x838e
-#define DSX_MODEL   0x8522
-#define HDAV_SLIM   0x835e
+#define DS_MODEL                    0x838e
+#define DSX_MODEL                   0x8522
+#define HDAV_SLIM                   0x835e
 
 //objective C does not use the bitwise operator
 // so i am simply declaring SNDRV_PCM_FORMAT as-is
@@ -174,7 +174,6 @@ class XonarAudioEngine : public IOAudioEngine
     
     OSDeclareDefaultStructors(XonarAudioEngine)
     
-    //struct xonar_hdav                   *deviceRegisters;
     //right now i've created 4 since there are 4 I2S input buffers
     // however, i am not sure how to incorporate them yet,
     // as i have to (probably) create an ioaudiostream for each
@@ -184,8 +183,8 @@ class XonarAudioEngine : public IOAudioEngine
     SInt16							*inputBuffer;
     IOWorkLoop                      *workLoop;
     IOFilterInterruptEventSource	*interruptEventSource_main;
-    IOFilterInterruptEventSource	*gpioEventSource;
-    IOFilterInterruptEventSource	*spdifEventSource;
+    //IOFilterInterruptEventSource	*gpioEventSource; unused (if runAction works in the interrupthandler, which is all we need)
+    //IOFilterInterruptEventSource	*spdifEventSource; unused (see above line)
     //need this for the interrupt handler, as the filterInterrupt OS call doesn't allow us to pass parameters.
     void                            *dev_id;
     
@@ -213,9 +212,9 @@ public:
     virtual IOReturn convertInputSamples(const void *sampleBuf, void *destBuf, UInt32 firstSampleFrame, UInt32 numSampleFrames, const IOAudioStreamFormat *streamFormat, IOAudioStream *audioStream);
     
     static void interruptHandler(OSObject *owner, IOInterruptEventSource *source, int count);
-    //static void oxygen_interrupt(OSObject *owner, IOInterruptEventSource *src, int dummy, void *dev_id);
     static bool interruptFilter(OSObject *owner, IOFilterInterruptEventSource *src);
     virtual void filterInterrupt(int index);
+    
     static void xonar_enable_output(struct oxygen *chip);
     static void xonar_disable_output(struct oxygen *chip);
     static void xonar_init_ext_power(struct oxygen *chip);
@@ -238,8 +237,8 @@ public:
     //                       unsigned int index, UInt16 data);
     void oxygen_write_ac97_masked(struct oxygen *chip, unsigned int codec,
                                   unsigned int index, UInt16 data, UInt16 mask);
-    //static void xonar_line_mic_ac97_switch(struct oxygen *chip,
-    //                           unsigned int reg, unsigned int mute);
+    static void xonar_line_mic_ac97_switch(struct oxygen *chip,
+                               unsigned int reg, unsigned int mute);
     
     int xonar_gpio_bit_switch_get(struct snd_kcontrol *ctl,
                                   struct snd_ctl_elem_value *value);

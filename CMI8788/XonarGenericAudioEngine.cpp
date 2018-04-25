@@ -362,7 +362,7 @@ bool XonarGenericAudioEngine::init(XonarAudioEngine *audioEngine, struct oxygen 
     bool result = false;
     
     IOLog("SamplePCIAudioEngine[%p]::init(%p)\n", this, chip);
-    
+    chip->model_data = IOMalloc(chip->model.model_data_size);
     if (!chip) {
         goto Done;
     }
@@ -397,6 +397,8 @@ bool XonarGenericAudioEngine::init(XonarAudioEngine *audioEngine, struct oxygen 
     //end generic_init
     
     //set registers/engine and finish APPUL sampleaudioengine init
+    
+
     deviceRegisters = (struct xonar_generic*) chip->model_data;
     this->engineInstance = audioEngine;
     result = true;

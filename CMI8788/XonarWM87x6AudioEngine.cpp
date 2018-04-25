@@ -1267,6 +1267,7 @@ bool XonarWM87x6AudioEngine::init(XonarAudioEngine *audioEngine, struct oxygen *
     bool result = false;
     
     IOLog("SamplePCIAudioEngine[%p]::init(%p)\n", this, chip);
+    chip->model_data = IOMalloc(chip->model.model_data_size);
     struct xonar_wm87x6 *data = (struct xonar_wm87x6 *) chip->model_data;
     if (!chip) {
         goto Done;

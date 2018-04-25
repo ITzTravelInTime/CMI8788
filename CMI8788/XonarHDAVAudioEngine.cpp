@@ -40,9 +40,6 @@
  
  */
 
-
-//#include "ak4396.h"
-//#include "wm8785.h"
 #include <libkern/OSByteOrder.h>
 #include <sys/errno.h>
 #include <i386/limits.h>
@@ -51,12 +48,12 @@
 
 #include <IOKit/IOLib.h>
 #include <IOKit/IOFilterInterruptEventSource.h>
-//#include <architecture/i386/pio.h>
 #include "XonarHDAVAudioEngine.hpp"
 #include "pcm1796.h"
 #include "cm9780.h"
 #include "cs2000.h"
 #include "ac97.h"
+
 #define INITIAL_SAMPLE_RATE	44100
 #define NUM_SAMPLE_FRAMES	16384
 #define NUM_CHANNELS		2
@@ -129,7 +126,7 @@ bool XonarHDAVAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip)
 
     
     chip->model_data = IOMalloc(chip->model.model_data_size);
-    deviceRegisters = (struct xonar_hdav*)chip->model_data;
+    
 
     /* begin ALSA xonar_hdav_init */
     oxygen_write16(chip, OXYGEN_2WIRE_BUS_STATUS,
@@ -147,7 +144,6 @@ bool XonarHDAVAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip)
     //assign fn ptr uart_input to xonar_hdmi_uart_input
     chip->model.resume = xonar_hdav_resume;
     chip->model.cleanup = xonar_hdav_cleanup;
-    
     engine->pcm1796_init(chip);
     
     oxygen_set_bits16(chip, OXYGEN_GPIO_CONTROL,
@@ -160,6 +156,8 @@ bool XonarHDAVAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip)
     engine->xonar_enable_output(chip);
     /* end hdav_init, begin last bit of SamplePCIAudioEngine.cpp's init
      */
+    
+    deviceRegisters = (struct xonar_hdav*)chip->model_data;
     this->engineInstance = engine;
     result = true;
     
