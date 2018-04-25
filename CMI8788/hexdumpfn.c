@@ -1,11 +1,3 @@
-//
-//  hexdumpfn.c
-//  PCIAudioDriver
-//
-//  Created by Gagan on 2018-04-23.
-//  Copyright © 2018 CMedia. All rights reserved.
-//
-
 enum {
     DUMP_PREFIX_NONE,
     DUMP_PREFIX_ADDRESS,
