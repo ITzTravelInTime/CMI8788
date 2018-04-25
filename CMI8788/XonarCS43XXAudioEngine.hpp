@@ -61,7 +61,6 @@ public:
     static bool interruptFilter(OSObject *owner, IOFilterInterruptEventSource *source);
     virtual void filterInterrupt(int index);
 
-    static void cs43xx_registers_init(struct oxygen *chip, XonarAudioEngine *engineInstance);
 
     static void xonar_d1_init(struct oxygen *chip, XonarAudioEngine *engineInstance);
     static void xonar_dx_init(struct oxygen *chip, XonarAudioEngine *engineInstance);
@@ -69,26 +68,25 @@ public:
     static void xonar_d1_cleanup(struct oxygen *chip, XonarAudioEngine *engineInstance);
     static void xonar_d1_suspend(struct oxygen *chip, XonarAudioEngine *engineInstance);
     static void xonar_d1_resume(struct oxygen *chip, XonarAudioEngine *engineInstance);
-    
-    static void set_cs43xx_params(struct oxygen *chip,
-                                 XonarAudioEngine *engineInstance);
+    static void xonar_d1_line_mic_ac97_switch(struct oxygen *chip,
+                                              unsigned int reg, unsigned int mute);
     
     //d1
     static void cs4398_write(struct oxygen *chip, UInt8 reg, UInt8 value, XonarAudioEngine *engineInstance);
-    
     static void cs4398_write_cached(struct oxygen *chip, UInt8 reg, UInt8 value, XonarAudioEngine *engineInstance);
     static void cs4362a_write(struct oxygen *chip, UInt8 reg, UInt8 value, XonarAudioEngine *engineInstance);
     static void cs4362a_write_cached(struct oxygen *chip, UInt8 reg, UInt8 value, XonarAudioEngine *engineInstance);
     
-    static void update_cs4362a_volumes(struct oxygen *chip, XonarAudioEngine *engineInstance);
     
     static void update_cs43xx_volume(struct oxygen *chip, XonarAudioEngine *engineInstance);
-    
     static void update_cs43xx_mute(struct oxygen *chip, XonarAudioEngine *engineInstance);
+    static void set_cs43xx_params(struct oxygen *chip,
+                                  XonarAudioEngine *engineInstance);
+    static void cs43xx_registers_init(struct oxygen *chip, XonarAudioEngine *engineInstance);
+    static void update_cs4362a_volumes(struct oxygen *chip, XonarAudioEngine *engineInstance);
+    //static void update_cs43xx_center_lfe_mix(struct oxygen *chip, bool mixed);
     
-    static void update_cs43xx_center_lfe_mix(struct oxygen *chip, bool mixed);
-    static void xonar_d1_line_mic_ac97_switch(struct oxygen *chip,
-                                  unsigned int reg, unsigned int mute);
+
 };
 
 #endif /* XonarCS43XXAudioEngine_hpp */

@@ -97,7 +97,7 @@ public:
     
     static void generic_init(struct oxygen *chip, XonarAudioEngine *engineInstance);
     
-    void meridian_init(struct oxygen *chip, XonarAudioEngine *engineInstance);
+    static void meridian_init(struct oxygen *chip, XonarAudioEngine *engineInstance);
     static void claro_enable_hp(struct oxygen *chip);
     static void claro_init(struct oxygen *chip, XonarAudioEngine *engineInstance);
     static void claro_halo_init(struct oxygen *chip, XonarAudioEngine *engineInstance);

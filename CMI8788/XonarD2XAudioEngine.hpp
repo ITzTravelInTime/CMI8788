@@ -82,14 +82,16 @@ public:
     virtual bool initHardware(IOService *provider);
     virtual void stop(IOService *provider);
     
-    virtual IOAudioStream *createNewAudioStream(IOAudioStreamDirection direction, void *sampleBuffer, UInt32 sampleBufferSize);
+    virtual IOAudioStream *createNewAudioStream(IOAudioStreamDirection direction, void *sampleBuffer,
+                                                UInt32 sampleBufferSize);
     
     virtual IOReturn performAudioEngineStart();
     virtual IOReturn performAudioEngineStop();
     
     virtual UInt32 getCurrentSampleFrame();
     
-    virtual IOReturn performFormatChange(IOAudioStream *audioStream, const IOAudioStreamFormat *newFormat, const IOAudioSampleRate *newSampleRate);
+    virtual IOReturn performFormatChange(IOAudioStream *audioStream, const IOAudioStreamFormat *newFormat,
+                                         const IOAudioSampleRate *newSampleRate);
     
    // virtual IOReturn clipOutputSamples(const void *mixBuf, void *sampleBuf, UInt32 firstSampleFrame, UInt32 numSampleFrames, const IOAudioStreamFormat *streamFormat, IOAudioStream *audioStream);
    // virtual IOReturn convertInputSamples(const void *sampleBuf, void *destBuf, UInt32 firstSampleFrame, UInt32 numSampleFrames, const IOAudioStreamFormat *streamFormat, IOAudioStream *audioStream);
