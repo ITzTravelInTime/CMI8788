@@ -213,86 +213,6 @@ void XonarCS43XXAudioEngine::set_cs43xx_params(struct oxygen *chip,
     cs4362a_write_cached(chip, 9, cs4362a_fm, engineInstance);
 }
 
-/*
- void XonarCS43XXAudioEngine::update_cs43xx_center_lfe_mix(struct oxygen *chip, bool mixed)
- {
- struct xonar_cs43xx *data = (struct xonar_cs43xx *)chip->model_data;
- 
- UInt8 reg;
- 
- reg = data->cs4362a_regs[9] & ~CS4362A_ATAPI_MASK;
- if (mixed)
- reg |= CS4362A_ATAPI_B_LR | CS4362A_ATAPI_A_LR;
- else
- reg |= CS4362A_ATAPI_B_R | CS4362A_ATAPI_A_L;
- cs4362a_write_cached(chip, 9, reg);
- }
- 
- static const struct snd_kcontrol_new front_panel_switch = {
- .iface = SNDRV_CTL_ELEM_IFACE_MIXER,
- .name = "Front Panel Playback Switch",
- .info = snd_ctl_boolean_mono_info,
- .get = xonar_gpio_bit_switch_get,
- .put = xonar_gpio_bit_switch_put,
- .private_value = GPIO_D1_FRONT_PANEL,
- };
- 
- static int rolloff_info(struct snd_kcontrol *ctl,
- struct snd_ctl_elem_info *info)
- {
- static const char *const names[2] = {
- "Fast Roll-off", "Slow Roll-off"
- };
- 
- return snd_ctl_enum_info(info, 1, 2, names);
- }
- 
- static int rolloff_get(struct snd_kcontrol *ctl,
- struct snd_ctl_elem_value *value)
- {
- struct oxygen *chip = ctl->private_data;
- struct xonar_cs43xx *data = chip->model_data;
- 
- value->value.enumerated.item[0] =
- (data->cs4398_regs[7] & CS4398_FILT_SEL) != 0;
- return 0;
- }
- 
- static int rolloff_put(struct snd_kcontrol *ctl,
- struct snd_ctl_elem_value *value)
- {
- struct oxygen *chip = ctl->private_data;
- struct xonar_cs43xx *data = chip->model_data;
- int changed;
- UInt8 reg;
- 
- mutex_lock(&chip->mutex);
- reg = data->cs4398_regs[7];
- if (value->value.enumerated.item[0])
- reg |= CS4398_FILT_SEL;
- else
- reg &= ~CS4398_FILT_SEL;
- changed = reg != data->cs4398_regs[7];
- if (changed) {
- cs4398_write(chip, 7, reg);
- if (reg & CS4398_FILT_SEL)
- reg = data->cs4362a_regs[0x04] | CS4362A_FILT_SEL;
- else
- reg = data->cs4362a_regs[0x04] & ~CS4362A_FILT_SEL;
- cs4362a_write(chip, 0x04, reg);
- }
- mutex_unlock(&chip->mutex);
- return changed;
- }
- 
- static const struct snd_kcontrol_new rolloff_control = {
- .iface = SNDRV_CTL_ELEM_IFACE_MIXER,
- .name = "DAC Filter Playback Enum",
- .info = rolloff_info,
- .get = rolloff_get,
- .put = rolloff_put,
- };
- */
 void XonarCS43XXAudioEngine::xonar_d1_line_mic_ac97_switch(struct oxygen *chip,
                                                            unsigned int reg, unsigned int mute)
 {
@@ -305,67 +225,6 @@ void XonarCS43XXAudioEngine::xonar_d1_line_mic_ac97_switch(struct oxygen *chip,
     }
 }
 
-/*
- static int xonar_d1_mixer_init(struct oxygen *chip)
- {
- int err;
- 
- err = snd_ctl_add(chip->card, snd_ctl_new1(&front_panel_switch, chip));
- if (err < 0)
- return err;
- err = snd_ctl_add(chip->card, snd_ctl_new1(&rolloff_control, chip));
- if (err < 0)
- return err;
- return 0;
- }
- 
- static void dump_cs4362a_registers(struct xonar_cs43xx *data,
- struct snd_info_buffer *buffer)
- {
- unsigned int i;
- 
- snd_iprintf(buffer, "\nCS4362A:");
- for (i = 1; i <= 14; ++i)
- snd_iprintf(buffer, " %02x", data->cs4362a_regs[i]);
- snd_iprintf(buffer, "\n");
- }
- 
- static void dump_d1_registers(struct oxygen *chip,
- struct snd_info_buffer *buffer)
- {
- struct xonar_cs43xx *data = chip->model_data;
- unsigned int i;
- 
- snd_iprintf(buffer, "\nCS4398: 7?");
- for (i = 2; i < 8; ++i)
- snd_iprintf(buffer, " %02x", data->cs4398_regs[i]);
- snd_iprintf(buffer, "\n");
- dump_cs4362a_registers(data, buffer);
- }
- 
- 
- 
- int get_xonar_cs43xx_model(struct oxygen *chip,
- const struct pci_device_id *id)
- {
- switch (id->subdevice) {
- case 0x834f:
- chip->model = model_xonar_d1;
- chip->model.shortname = "Xonar D1";
- break;
- case 0x8275:
- case 0x8327:
- chip->model = model_xonar_d1;
- chip->model.shortname = "Xonar DX";
- chip->model.init = xonar_dx_init;
- break;
- default:
- return -EINVAL;
- }
- return 0;
- }
- 
- */
 
 bool XonarCS43XXAudioEngine::init(XonarAudioEngine *audioEngine, struct oxygen *chip, UInt16 model)
 {
@@ -763,3 +622,142 @@ void XonarCS43XXAudioEngine::filterInterrupt(int index)
     // in to takeTimeStamp()
     takeTimeStamp();
 }
+/*
+ void XonarCS43XXAudioEngine::update_cs43xx_center_lfe_mix(struct oxygen *chip, bool mixed)
+ {
+ struct xonar_cs43xx *data = (struct xonar_cs43xx *)chip->model_data;
+ 
+ UInt8 reg;
+ 
+ reg = data->cs4362a_regs[9] & ~CS4362A_ATAPI_MASK;
+ if (mixed)
+ reg |= CS4362A_ATAPI_B_LR | CS4362A_ATAPI_A_LR;
+ else
+ reg |= CS4362A_ATAPI_B_R | CS4362A_ATAPI_A_L;
+ cs4362a_write_cached(chip, 9, reg);
+ }
+ 
+ static const struct snd_kcontrol_new front_panel_switch = {
+ .iface = SNDRV_CTL_ELEM_IFACE_MIXER,
+ .name = "Front Panel Playback Switch",
+ .info = snd_ctl_boolean_mono_info,
+ .get = xonar_gpio_bit_switch_get,
+ .put = xonar_gpio_bit_switch_put,
+ .private_value = GPIO_D1_FRONT_PANEL,
+ };
+ 
+ static int rolloff_info(struct snd_kcontrol *ctl,
+ struct snd_ctl_elem_info *info)
+ {
+ static const char *const names[2] = {
+ "Fast Roll-off", "Slow Roll-off"
+ };
+ 
+ return snd_ctl_enum_info(info, 1, 2, names);
+ }
+ 
+ static int rolloff_get(struct snd_kcontrol *ctl,
+ struct snd_ctl_elem_value *value)
+ {
+ struct oxygen *chip = ctl->private_data;
+ struct xonar_cs43xx *data = chip->model_data;
+ 
+ value->value.enumerated.item[0] =
+ (data->cs4398_regs[7] & CS4398_FILT_SEL) != 0;
+ return 0;
+ }
+ 
+ static int rolloff_put(struct snd_kcontrol *ctl,
+ struct snd_ctl_elem_value *value)
+ {
+ struct oxygen *chip = ctl->private_data;
+ struct xonar_cs43xx *data = chip->model_data;
+ int changed;
+ UInt8 reg;
+ 
+ mutex_lock(&chip->mutex);
+ reg = data->cs4398_regs[7];
+ if (value->value.enumerated.item[0])
+ reg |= CS4398_FILT_SEL;
+ else
+ reg &= ~CS4398_FILT_SEL;
+ changed = reg != data->cs4398_regs[7];
+ if (changed) {
+ cs4398_write(chip, 7, reg);
+ if (reg & CS4398_FILT_SEL)
+ reg = data->cs4362a_regs[0x04] | CS4362A_FILT_SEL;
+ else
+ reg = data->cs4362a_regs[0x04] & ~CS4362A_FILT_SEL;
+ cs4362a_write(chip, 0x04, reg);
+ }
+ mutex_unlock(&chip->mutex);
+ return changed;
+ }
+ 
+ static const struct snd_kcontrol_new rolloff_control = {
+ .iface = SNDRV_CTL_ELEM_IFACE_MIXER,
+ .name = "DAC Filter Playback Enum",
+ .info = rolloff_info,
+ .get = rolloff_get,
+ .put = rolloff_put,
+ };
+ static int xonar_d1_mixer_init(struct oxygen *chip)
+ {
+ int err;
+ 
+ err = snd_ctl_add(chip->card, snd_ctl_new1(&front_panel_switch, chip));
+ if (err < 0)
+ return err;
+ err = snd_ctl_add(chip->card, snd_ctl_new1(&rolloff_control, chip));
+ if (err < 0)
+ return err;
+ return 0;
+ }
+ 
+ static void dump_cs4362a_registers(struct xonar_cs43xx *data,
+ struct snd_info_buffer *buffer)
+ {
+ unsigned int i;
+ 
+ snd_iprintf(buffer, "\nCS4362A:");
+ for (i = 1; i <= 14; ++i)
+ snd_iprintf(buffer, " %02x", data->cs4362a_regs[i]);
+ snd_iprintf(buffer, "\n");
+ }
+ 
+ static void dump_d1_registers(struct oxygen *chip,
+ struct snd_info_buffer *buffer)
+ {
+ struct xonar_cs43xx *data = chip->model_data;
+ unsigned int i;
+ 
+ snd_iprintf(buffer, "\nCS4398: 7?");
+ for (i = 2; i < 8; ++i)
+ snd_iprintf(buffer, " %02x", data->cs4398_regs[i]);
+ snd_iprintf(buffer, "\n");
+ dump_cs4362a_registers(data, buffer);
+ }
+ 
+ 
+ 
+ int get_xonar_cs43xx_model(struct oxygen *chip,
+ const struct pci_device_id *id)
+ {
+ switch (id->subdevice) {
+ case 0x834f:
+ chip->model = model_xonar_d1;
+ chip->model.shortname = "Xonar D1";
+ break;
+ case 0x8275:
+ case 0x8327:
+ chip->model = model_xonar_d1;
+ chip->model.shortname = "Xonar DX";
+ chip->model.init = xonar_dx_init;
+ break;
+ default:
+ return -EINVAL;
+ }
+ return 0;
+ }
+ 
+ */
