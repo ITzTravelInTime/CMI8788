@@ -1064,7 +1064,7 @@ bool XonarAudioEngine::init(struct oxygen *chip, int model)
     pthread_mutex_init(&chip->mutex,NULL);
     pthread_mutex_init(&chip->ac97_mutex,NULL);
     pthread_cond_init(&chip->ac97_condition,NULL);
-    
+    chip->reg_lock = OS_SPINLOCK_INIT;
     //begin oxygen_init
     unsigned int i;
     

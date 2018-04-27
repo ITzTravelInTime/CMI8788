@@ -37,7 +37,7 @@
 		CE235F9F207DBA0600AF3203 /* PCIAudioDevice.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = PCIAudioDevice.hpp; sourceTree = "<group>"; };
 		CE235FA1207DBA0600AF3203 /* PCIAudioDevice.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = PCIAudioDevice.cpp; sourceTree = "<group>"; };
 		CE235FA3207DBA0600AF3203 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		CE442425207FDBE100158F35 /* XonarAudioEngine.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = XonarAudioEngine.cpp; sourceTree = "<group>"; };
+		CE442425207FDBE100158F35 /* XonarAudioEngine.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = XonarAudioEngine.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		CE442426207FDBE100158F35 /* XonarAudioEngine.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = XonarAudioEngine.hpp; sourceTree = "<group>"; };
 		CE442427207FF78500158F35 /* ak4396.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ak4396.h; sourceTree = "<group>"; };
 		CE442428207FF78500158F35 /* oxygen_regs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = oxygen_regs.h; sourceTree = "<group>"; };
@@ -55,7 +55,7 @@
 		CEACF4062082F67D00D01190 /* XonarHDAVAudioEngine.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = XonarHDAVAudioEngine.cpp; sourceTree = "<group>"; };
 		CEACF40C2083177100D01190 /* XonarD2XAudioEngine.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = XonarD2XAudioEngine.cpp; sourceTree = "<group>"; };
 		CEACF40E208317AC00D01190 /* XonarD2XAudioEngine.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = XonarD2XAudioEngine.hpp; sourceTree = "<group>"; };
-		CEBCDDBD208FC6F70036FE29 /* XonarCS43XXAudioEngine.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = XonarCS43XXAudioEngine.cpp; sourceTree = "<group>"; };
+		CEBCDDBD208FC6F70036FE29 /* XonarCS43XXAudioEngine.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = XonarCS43XXAudioEngine.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		CEBCDDBF208FC7220036FE29 /* XonarCS43XXAudioEngine.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = XonarCS43XXAudioEngine.hpp; sourceTree = "<group>"; };
 		CEBCDDC1208FC7F70036FE29 /* cs4398.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cs4398.h; sourceTree = "<group>"; };
 		CEBCDDC2208FC83F0036FE29 /* cs4362a.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cs4362a.h; sourceTree = "<group>"; };
