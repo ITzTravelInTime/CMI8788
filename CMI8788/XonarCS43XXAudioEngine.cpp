@@ -217,11 +217,11 @@ void XonarCS43XXAudioEngine::xonar_d1_line_mic_ac97_switch(struct oxygen *chip,
                                                            unsigned int reg, unsigned int mute)
 {
     if (reg == AC97_LINE) {
-        OSSpinLockTry(&chip->reg_lock);
+        IOLockLock(chip->reg_lock);
         oxygen_write16_masked(chip, OXYGEN_GPIO_DATA,
                               mute ? GPIO_D1_INPUT_ROUTE : 0,
                               GPIO_D1_INPUT_ROUTE);
-        OSSpinLockUnlock(&chip->reg_lock);
+        IOLockUnlock(chip->reg_lock);
     }
 }
 
@@ -692,7 +692,7 @@ void XonarCS43XXAudioEngine::filterInterrupt(int index)
  }
  mutex_unlock(&chip->mutex);
  return changed;
- }
+ }assert_wait_timeout
  
  static const struct snd_kcontrol_new rolloff_control = {
  .iface = SNDRV_CTL_ELEM_IFACE_MIXER,

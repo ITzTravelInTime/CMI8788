@@ -187,8 +187,8 @@ struct oxygen_model {
 
 struct oxygen {
     unsigned long addr;
-    OSSpinLock reg_lock;
-    pthread_mutex_t mutex;
+    IOLock *reg_lock;
+    IOLock *mutex;
     struct snd_card *card;
     struct pci_dev *pci;
     struct snd_rawmidi *midi;
@@ -212,8 +212,10 @@ struct oxygen {
     //IOWorkLoop gpio_work;
     //wait_queue_t ac97_waitqueue;
     pthread_cond_t  ac97_condition;
-    pthread_mutex_t  ac97_mutex;
-    struct timespec ac97_timeout = {0, (long)1e6};
+    IOLock *ac97_mutex;
+    //struct timespec ac97_timeout = {0, (long)1e6};
+    wait_result_t ac97_result;
+    unsigned int ac97_maskval;
     union {// have to swap these ... remember.
         UInt8 _8[OXYGEN_IO_SIZE];
         SInt16 _16[OXYGEN_IO_SIZE / 2];

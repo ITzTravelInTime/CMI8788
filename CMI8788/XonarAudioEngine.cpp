@@ -50,6 +50,7 @@
 
 #include <IOKit/IOLib.h>
 #include <IOKit/IOFilterInterruptEventSource.h>
+#include <libkern/locks.h>
 //#include <architecture/i386/pio.h>
 #include "XonarAudioEngine.hpp"
 #include "pcm1796.h"
@@ -573,13 +574,14 @@ static int oxygen_ac97_wait(struct oxygen *chip, unsigned int mask)
      * Reading the status register also clears the bits, so we have to save
      * the read bits in status.
      */
-    
+    chip->ac97_maskval = mask;
     //wait_queue_assert_wait(chip->ac97_waitqueue,
     //   (event_t),1);
-    pthread_mutex_lock(&chip->ac97_mutex);
-    if(({ status |= oxygen_read8(chip, OXYGEN_AC97_INTERRUPT_STATUS);status & mask;}))
-        pthread_cond_timedwait(&chip->ac97_condition,&chip->ac97_mutex,&chip->ac97_timeout);
-    pthread_mutex_unlock(&chip->ac97_mutex);
+    //pthread_mutex_lock(&chip->ac97_mutex);
+    //if(({ status |= oxygen_read8(chip, OXYGEN_AC97_INTERRUPT_STATUS);status & mask;}))
+        //pthread_cond_timedwait(&chip->ac97_condition,&chip->ac97_mutex,&chip->ac97_timeout);
+    //pthread_mutex_unlock(&chip->ac97_mutex);
+    //chip->ac97_result = assert_wait_timeout((event_t)({ status |= oxygen_read8(chip, OXYGEN_AC97_INTERRUPT_STATUS);status & mask;}),1,1,1000*NSEC_PER_USEC);
     /*
      * Check even after a timeout because this function should not require
      * the AC'97 interrupt to be enabled.
@@ -676,11 +678,11 @@ void XonarAudioEngine::xonar_line_mic_ac97_switch(struct oxygen *chip,
                                                   unsigned int reg, unsigned int mute)
 {
     if (reg == AC97_LINE) {
-        OSSpinLockLock(&chip->reg_lock);
+        IOLockLock(chip->reg_lock);
         oxygen_write16_masked(chip, OXYGEN_GPIO_DATA,
                               mute ? GPIO_INPUT_ROUTE : 0,
                               GPIO_INPUT_ROUTE);
-        OSSpinLockUnlock(&chip->reg_lock);
+        IOLockUnlock(chip->reg_lock);
     }
 }
 
@@ -1061,10 +1063,13 @@ bool XonarAudioEngine::init(struct oxygen *chip, int model)
         chip->model.adc_i2s_format = OXYGEN_I2S_FORMAT_LJUST;
         
     }
-    pthread_mutex_init(&chip->mutex,NULL);
-    pthread_mutex_init(&chip->ac97_mutex,NULL);
-    pthread_cond_init(&chip->ac97_condition,NULL);
-    chip->reg_lock = OS_SPINLOCK_INIT;
+    chip->mutex = IOLockAlloc();
+    chip->ac97_mutex = IOLockAlloc();
+    chip->reg_lock = IOLockAlloc();
+    //pthread_mutex_init(&chip->mutex,NULL);
+    //pthread_mutex_init(&chip->ac97_mutex,NULL);
+    //pthread_cond_init(&chip->ac97_condition,NULL);
+    //chip->reg_lock = OS_SPINLOCK_INIT;
     //begin oxygen_init
     unsigned int i;
     
@@ -1676,7 +1681,7 @@ void XonarAudioEngine::oxygen_spdif_input_bits_changed(struct oxygen* chip)
      * changes.
      */
     IODelay(1000);
-    OSSpinLockLock(&chip->reg_lock);
+    IOLockLock(chip->reg_lock);
     reg = oxygen_read32(chip, OXYGEN_SPDIF_CONTROL);
     if ((reg & (OXYGEN_SPDIF_SENSE_STATUS |
                 OXYGEN_SPDIF_LOCK_STATUS))
@@ -1687,9 +1692,9 @@ void XonarAudioEngine::oxygen_spdif_input_bits_changed(struct oxygen* chip)
          */
         reg ^= OXYGEN_SPDIF_IN_CLOCK_MASK;
         oxygen_write32(chip, OXYGEN_SPDIF_CONTROL, reg);
-        OSSpinLockUnlock(&chip->reg_lock);
+        IOLockUnlock(chip->reg_lock);
         IODelay(1000);
-        OSSpinLockLock(&chip->reg_lock);
+        IOLockLock(chip->reg_lock);
         reg = oxygen_read32(chip, OXYGEN_SPDIF_CONTROL);
         if ((reg & (OXYGEN_SPDIF_SENSE_STATUS |
                     OXYGEN_SPDIF_LOCK_STATUS))
@@ -1707,7 +1712,7 @@ void XonarAudioEngine::oxygen_spdif_input_bits_changed(struct oxygen* chip)
             }
         }
     }
-    OSSpinLockUnlock(&chip->reg_lock);
+    IOLockUnlock(chip->reg_lock);
     /*
      if (chip->controls[CONTROL_SPDIF_INPUT_BITS]) {
      OSSpinLockLock(&chip->reg_lock);
@@ -1746,7 +1751,7 @@ bool XonarAudioEngine::interruptFilter(OSObject *owner, IOFilterInterruptEventSo
     if (!status)
         return false;
     
-    OSSpinLockLock(&chip->reg_lock);
+    IOLockLock(chip->reg_lock);
     
     clear = status & (OXYGEN_CHANNEL_A |
                       OXYGEN_CHANNEL_B |
@@ -1768,7 +1773,7 @@ bool XonarAudioEngine::interruptFilter(OSObject *owner, IOFilterInterruptEventSo
     
     elapsed_streams = status & chip->pcm_running;
     
-    OSSpinLockUnlock(&chip->reg_lock);
+    IOLockUnlock(chip->reg_lock);
     /* Not sure if we need this loop since OSX handles PCM very differently
      *from Linux/ALSA. commenting out for now since there is no equivalent of
      *snd_pcm_period_elapsed (updates the position and tells us if we've run over
@@ -1780,7 +1785,7 @@ bool XonarAudioEngine::interruptFilter(OSObject *owner, IOFilterInterruptEventSo
         //         snd_pcm_period_elapsed(chip->streams[i]);
         
         if (status & OXYGEN_INT_SPDIF_IN_DETECT) {
-            OSSpinLockLock(&chip->reg_lock);
+            IOLockLock(chip->reg_lock);
             i = oxygen_read32(chip, OXYGEN_SPDIF_CONTROL);
             if (i & (OXYGEN_SPDIF_SENSE_INT | OXYGEN_SPDIF_LOCK_INT |
                      OXYGEN_SPDIF_RATE_INT)) {
@@ -1795,7 +1800,7 @@ bool XonarAudioEngine::interruptFilter(OSObject *owner, IOFilterInterruptEventSo
                  * the work. in this case, checking the spdif bits*/
                 callingInstance->workLoop->runAction((Action)callingInstance->oxygen_spdif_input_bits_changed, callingInstance, callingInstance->dev_id);
             }
-            OSSpinLockUnlock(&chip->reg_lock);
+            IOLockUnlock(chip->reg_lock);
         }
     
     if (status & OXYGEN_INT_GPIO)
@@ -1827,9 +1832,10 @@ bool XonarAudioEngine::interruptFilter(OSObject *owner, IOFilterInterruptEventSo
     }
     
     if (status & OXYGEN_INT_AC97) {
-        pthread_mutex_lock(&chip->ac97_mutex);
-        pthread_cond_signal(&chip->ac97_condition);
-        pthread_mutex_unlock(&chip->ac97_mutex);
+//        thread_wakeup_prim((event_t)({ status |= oxygen_read8(chip, OXYGEN_AC97_INTERRUPT_STATUS);status & chip->ac97_maskval;}),1,chip->ac97_result);
+//        pthread_mutex_lock(&chip->ac97_mutex);
+//        pthread_cond_signal(&chip->ac97_condition);
+//        pthread_mutex_unlock(&chip->ac97_mutex);
     }
     
     return true;

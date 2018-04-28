@@ -248,7 +248,8 @@ void XonarWM87x6AudioEngine::xonar_ds_handle_hp_jack(struct oxygen *chip, XonarA
     bool hp_plugged;
     unsigned int reg;
     
-    pthread_mutex_lock(&chip->mutex);
+    IOLockLock(chip->mutex);
+    //pthread_mutex_lock(&chip->mutex);
     
     hp_plugged = !(oxygen_read16(chip, OXYGEN_GPIO_DATA) &
                    GPIO_DS_HP_DETECT);
@@ -263,8 +264,8 @@ void XonarWM87x6AudioEngine::xonar_ds_handle_hp_jack(struct oxygen *chip, XonarA
     wm8766_write_cached(chip, WM8766_DAC_CTRL, reg, audioEngine);
     
    // snd_jack_report(data->hp_jack, hp_plugged ? SND_JACK_HEADPHONE : 0);
-    
-    pthread_mutex_unlock(&chip->mutex);
+    IOLockUnlock(chip->mutex);
+    //pthread_mutex_unlock(&chip->mutex);
 }
 
 
