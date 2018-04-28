@@ -1,10 +1,10 @@
 #ifndef XonarCS43XXAudioEngine_hpp
 #define XonarCS43XXAudioEngine_hpp
 
-#include <IOKit/audio/IOAudioEngine.h>
+#import <IOKit/audio/IOAudioEngine.h>
 
-#include "PCIAudioDevice.hpp"
-#include "XonarAudioEngine.hpp"
+#import "PCIAudioDevice.hpp"
+#import "XonarAudioEngine.hpp"
 
 
 #define GPI_EXT_POWER		0x01

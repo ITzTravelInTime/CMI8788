@@ -44,9 +44,9 @@
 #ifndef _XonarHDAVAUDIOENGINE_H
 #define _XonarHDAVAUDIOENGINE_H
 
-#include <IOKit/audio/IOAudioEngine.h>
+#import <IOKit/audio/IOAudioEngine.h>
 
-#include "XonarAudioEngine.hpp"
+#import "XonarAudioEngine.hpp"
 
 #define XonarHDAVAudioEngine com_CMedia_CMI8788_XonarHDAVAudioEngine
 class IOFilterInterruptEventSource;

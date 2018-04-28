@@ -14,7 +14,7 @@
 		CE44242E207FF78500158F35 /* wm8785.h in Headers */ = {isa = PBXBuildFile; fileRef = CE44242A207FF78500158F35 /* wm8785.h */; };
 		CE44242F207FF99000158F35 /* XonarAudioEngine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CE442425207FDBE100158F35 /* XonarAudioEngine.cpp */; settings = {COMPILER_FLAGS = "-pthread"; }; };
 		CE442430207FF99200158F35 /* XonarAudioEngine.hpp in Headers */ = {isa = PBXBuildFile; fileRef = CE442426207FDBE100158F35 /* XonarAudioEngine.hpp */; };
-		CE5601B2208ECB6E001A5D0D /* XonarGenericAudioEngine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CE5601B0208ECB6E001A5D0D /* XonarGenericAudioEngine.cpp */; };
+		CE5601B2208ECB6E001A5D0D /* XonarGenericAudioEngine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CE5601B0208ECB6E001A5D0D /* XonarGenericAudioEngine.cpp */; settings = {COMPILER_FLAGS = "-pthread"; }; };
 		CE5601B3208ECB6E001A5D0D /* XonarGenericAudioEngine.hpp in Headers */ = {isa = PBXBuildFile; fileRef = CE5601B1208ECB6E001A5D0D /* XonarGenericAudioEngine.hpp */; };
 		CEACF3E120806D6D00D01190 /* ac97.h in Headers */ = {isa = PBXBuildFile; fileRef = CEACF3E020806D6D00D01190 /* ac97.h */; };
 		CEACF3E5208074C200D01190 /* cm9780.h in Headers */ = {isa = PBXBuildFile; fileRef = CEACF3E4208074C200D01190 /* cm9780.h */; };
@@ -26,16 +26,16 @@
 		CEACF4072082F67D00D01190 /* XonarHDAVAudioEngine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEACF4062082F67D00D01190 /* XonarHDAVAudioEngine.cpp */; settings = {COMPILER_FLAGS = "-pthread"; }; };
 		CEACF40D2083177100D01190 /* XonarD2XAudioEngine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEACF40C2083177100D01190 /* XonarD2XAudioEngine.cpp */; settings = {COMPILER_FLAGS = "-pthread"; }; };
 		CEACF40F208317AC00D01190 /* XonarD2XAudioEngine.hpp in Headers */ = {isa = PBXBuildFile; fileRef = CEACF40E208317AC00D01190 /* XonarD2XAudioEngine.hpp */; };
-		CEBCDDBE208FC6F70036FE29 /* XonarCS43XXAudioEngine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEBCDDBD208FC6F70036FE29 /* XonarCS43XXAudioEngine.cpp */; };
+		CEBCDDBE208FC6F70036FE29 /* XonarCS43XXAudioEngine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEBCDDBD208FC6F70036FE29 /* XonarCS43XXAudioEngine.cpp */; settings = {COMPILER_FLAGS = "-pthread"; }; };
 		CEBCDDC0208FC7220036FE29 /* XonarCS43XXAudioEngine.hpp in Headers */ = {isa = PBXBuildFile; fileRef = CEBCDDBF208FC7220036FE29 /* XonarCS43XXAudioEngine.hpp */; };
-		CEBCDDC4208FE0540036FE29 /* XonarWM87x6AudioEngine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEBCDDC3208FE0540036FE29 /* XonarWM87x6AudioEngine.cpp */; };
+		CEBCDDC4208FE0540036FE29 /* XonarWM87x6AudioEngine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEBCDDC3208FE0540036FE29 /* XonarWM87x6AudioEngine.cpp */; settings = {COMPILER_FLAGS = "-pthread"; }; };
 		CEBCDDC6208FE0BD0036FE29 /* XonarWM87x6AudioEngine.hpp in Headers */ = {isa = PBXBuildFile; fileRef = CEBCDDC5208FE0BD0036FE29 /* XonarWM87x6AudioEngine.hpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		CE235F9C207DBA0600AF3203 /* PCIAudioDriver.kext */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PCIAudioDriver.kext; sourceTree = BUILT_PRODUCTS_DIR; };
-		CE235F9F207DBA0600AF3203 /* PCIAudioDevice.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = PCIAudioDevice.hpp; sourceTree = "<group>"; };
-		CE235FA1207DBA0600AF3203 /* PCIAudioDevice.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = PCIAudioDevice.cpp; sourceTree = "<group>"; };
+		CE235F9F207DBA0600AF3203 /* PCIAudioDevice.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = PCIAudioDevice.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		CE235FA1207DBA0600AF3203 /* PCIAudioDevice.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = PCIAudioDevice.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		CE235FA3207DBA0600AF3203 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		CE442425207FDBE100158F35 /* XonarAudioEngine.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = XonarAudioEngine.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		CE442426207FDBE100158F35 /* XonarAudioEngine.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = XonarAudioEngine.hpp; sourceTree = "<group>"; };
@@ -334,25 +334,27 @@
 				COPY_HEADERS_RUN_UNIFDEF = NO;
 				CURRENT_PROJECT_VERSION = 1.0.0d1;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu89;
+				GCC_INPUT_FILETYPE = automatic;
 				GCC_PREPROCESSOR_DEFINITIONS = "";
 				GCC_USE_STANDARD_INCLUDE_SEARCHING = YES;
 				GENERATE_MASTER_OBJECT_FILE = NO;
 				INFOPLIST_FILE = CMI8788/Info.plist;
 				INFOPLIST_PREPROCESS = NO;
 				KEEP_PRIVATE_EXTERNS = YES;
+				LD_QUOTE_LINKER_ARGUMENTS_FOR_COMPILER_DRIVER = YES;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(SDKROOT)/usr/lib/system",
 				);
 				LINK_WITH_STANDARD_LIBRARIES = YES;
+				MACH_O_TYPE = mh_execute;
 				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				MODULE_NAME = PCIAudioDriver;
 				MODULE_VERSION = 1.0.0d1;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = NO;
-				OTHER_CFLAGS = "";
-				OTHER_CPLUSPLUSFLAGS = "";
-				OTHER_LDFLAGS = "";
 				PRECOMPS_INCLUDE_HEADERS_FROM_BUILT_PRODUCTS_DIR = NO;
 				PRODUCT_NAME = PCIAudioDriver;
 				PROVISIONING_PROFILE = "";
@@ -376,24 +378,26 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_HEADERS_RUN_UNIFDEF = NO;
 				CURRENT_PROJECT_VERSION = 1.0.0d1;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu89;
+				GCC_INPUT_FILETYPE = automatic;
 				GCC_PREPROCESSOR_DEFINITIONS = "";
 				GCC_USE_STANDARD_INCLUDE_SEARCHING = YES;
 				GENERATE_MASTER_OBJECT_FILE = NO;
 				INFOPLIST_FILE = CMI8788/Info.plist;
 				INFOPLIST_PREPROCESS = NO;
 				KEEP_PRIVATE_EXTERNS = YES;
+				LD_QUOTE_LINKER_ARGUMENTS_FOR_COMPILER_DRIVER = YES;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(SDKROOT)/usr/lib/system",
 				);
 				LINK_WITH_STANDARD_LIBRARIES = YES;
+				MACH_O_TYPE = mh_execute;
 				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				MODULE_NAME = PCIAudioDriver;
 				MODULE_VERSION = 1.0.0d1;
 				ONLY_ACTIVE_ARCH = NO;
-				OTHER_CFLAGS = "";
-				OTHER_CPLUSPLUSFLAGS = "";
-				OTHER_LDFLAGS = "";
 				PRECOMPS_INCLUDE_HEADERS_FROM_BUILT_PRODUCTS_DIR = NO;
 				PRODUCT_NAME = PCIAudioDriver;
 				PROVISIONING_PROFILE = "";

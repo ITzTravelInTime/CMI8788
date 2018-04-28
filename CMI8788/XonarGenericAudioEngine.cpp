@@ -1,12 +1,12 @@
-#include "ak4396.h"
-#include "wm8785.h"
-#include <libkern/OSByteOrder.h>
-#include <sys/errno.h>
-#include <i386/limits.h>
-#include </usr/include/libkern/OSAtomic.h>
-#include <IOKit/IOLib.h>
-#include <IOKit/IOFilterInterruptEventSource.h>
-#include "XonarGenericAudioEngine.hpp"
+#import "ak4396.h"
+#import "wm8785.h"
+#import <libkern/OSByteOrder.h>
+#import <sys/errno.h>
+#import <i386/limits.h>
+#import </usr/include/libkern/OSAtomic.h>
+#import <IOKit/IOLib.h>
+#import <IOKit/IOFilterInterruptEventSource.h>
+#import "XonarGenericAudioEngine.hpp"
 
 #define INITIAL_SAMPLE_RATE	44100
 #define NUM_SAMPLE_FRAMES	16384
@@ -14,7 +14,7 @@
 #define BIT_DEPTH			16
 
 
-//#include <architecture/i386/pio.h>
+//#import <architecture/i386/pio.h>
 
 /*
  * C-Media CMI8788 driver for C-Media's reference design and similar models

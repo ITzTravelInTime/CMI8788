@@ -41,23 +41,23 @@
  */
 
 
-//#include "ak4396.h"
-//#include "wm8785.h"
-#include <libkern/OSByteOrder.h>
-#include <sys/errno.h>
-#include <i386/limits.h>
-#include </usr/include/libkern/OSAtomic.h>
+//#import "ak4396.h"
+//#import "wm8785.h"
+#import <libkern/OSByteOrder.h>
+#import <sys/errno.h>
+#import <i386/limits.h>
+#import </usr/include/libkern/OSAtomic.h>
 
 
-#include <IOKit/IOLib.h>
-#include <IOKit/IOFilterInterruptEventSource.h>
-//#include <architecture/i386/pio.h>
-#include "XonarSTAudioEngine.hpp"
+#import <IOKit/IOLib.h>
+#import <IOKit/IOFilterInterruptEventSource.h>
+//#import <architecture/i386/pio.h>
+#import "XonarSTAudioEngine.hpp"
 
-#include "pcm1796.h"
-#include "cm9780.h"
-#include "cs2000.h"
-#include "ac97.h"
+#import "pcm1796.h"
+#import "cm9780.h"
+#import "cs2000.h"
+#import "ac97.h"
 #define INITIAL_SAMPLE_RATE	44100
 #define NUM_SAMPLE_FRAMES	16384
 #define NUM_CHANNELS		2

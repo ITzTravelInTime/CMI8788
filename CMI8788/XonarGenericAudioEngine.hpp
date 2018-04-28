@@ -1,10 +1,10 @@
 #ifndef XonarGenericAudioEngine_hpp
 #define XonarGenericAudioEngine_hpp
 
-#include <IOKit/audio/IOAudioEngine.h>
+#import <IOKit/audio/IOAudioEngine.h>
 
-#include "PCIAudioDevice.hpp"
-#include "XonarAudioEngine.hpp"
+#import "PCIAudioDevice.hpp"
+#import "XonarAudioEngine.hpp"
 
 
 enum {

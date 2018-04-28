@@ -44,18 +44,18 @@
 #ifndef _SAMPLEPCIAUDIODEVICE_H
 #define _SAMPLEPCIAUDIODEVICE_H
 #define _POSIX_C_SOURCE
-#include </usr/include/libkern/OSAtomic.h>
-#include <pthread.h>
+#import </usr/include/libkern/OSAtomic.h>
+#import <pthread.h>
 // to remove conflict with mach_port_t (happens when you use pthreads)
-#include <IOKit/audio/IOAudioDevice.h>
-#include <IOKit/IOWorkLoop.h>
-#include <IOKit/IOLocks.h>
-#include <sys/types.h>
-#include <architecture/i386/pio.h>
-#include <sys/errno.h>
-#include <machine/limits.h>
-//#include <kern/waitq.h>
-#include "oxygen_regs.h"
+#import <IOKit/audio/IOAudioDevice.h>
+#import <IOKit/IOWorkLoop.h>
+#import <IOKit/IOLocks.h>
+#import <sys/types.h>
+#import <architecture/i386/pio.h>
+#import <sys/errno.h>
+#import <machine/limits.h>
+//#import <kern/waitq.h>
+#import "oxygen_regs.h"
 
 #import "XonarAudioEngine.hpp"
 #define dev_err(dev, format, args...) do {IOLog("CMI8788: " format, ##args);} while (0)
