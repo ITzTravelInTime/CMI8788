@@ -56,7 +56,7 @@
 #import <machine/limits.h>
 //#import <kern/waitq.h>
 #import "oxygen_regs.h"
-
+#define OSSpinLockLock(lck) do {} while(!OSSpinLockTry(lck))
 #import "XonarAudioEngine.hpp"
 #define dev_err(dev, format, args...) do {IOLog("CMI8788: " format, ##args);} while (0)
 
@@ -187,7 +187,7 @@ struct oxygen_model {
 
 struct oxygen {
     unsigned long addr;
-    IOLock *reg_lock;
+    OSSpinLock reg_lock;
     IOLock *mutex;
     struct snd_card *card;
     struct pci_dev *pci;
