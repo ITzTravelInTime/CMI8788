@@ -1832,7 +1832,7 @@ bool XonarAudioEngine::interruptFilter(OSObject *owner, IOFilterInterruptEventSo
     }
     
     if (status & OXYGEN_INT_AC97) {
-//        thread_wakeup_prim((event_t)({ status |= oxygen_read8(chip, OXYGEN_AC97_INTERRUPT_STATUS);status & chip->ac97_maskval;}),1,chip->ac97_result);
+          thread_wakeup_prim((event_t)({ status |= oxygen_read8(chip, OXYGEN_AC97_INTERRUPT_STATUS);status & chip->ac97_maskval;}),1,chip->ac97_result);
 //        pthread_mutex_lock(&chip->ac97_mutex);
 //        pthread_cond_signal(&chip->ac97_condition);
 //        pthread_mutex_unlock(&chip->ac97_mutex);
