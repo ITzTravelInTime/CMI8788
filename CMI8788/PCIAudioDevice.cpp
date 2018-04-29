@@ -102,7 +102,7 @@ void PCIAudioDevice::oxygen_write_eeprom(struct oxygen *chip, unsigned int index
 void PCIAudioDevice::oxygen_restore_eeprom(IOPCIDevice *device, struct oxygen *chip)
 {
     UInt16 eeprom_id;
-    
+    printf("In oxygen_restore_eeprom!\n");
     eeprom_id = oxygen_read_eeprom(chip, 0);
     if (eeprom_id != OXYGEN_EEPROM_ID &&
         (eeprom_id != 0xffff || subdev_id != 0x8788)) {
@@ -237,17 +237,27 @@ bool PCIAudioDevice::createAudioEngine(XonarAudioEngine *audioEngineInstance)
     bool result = false;
     IOAudioEngine *audioEngine = NULL;
     
-    if(subdev_id == HDAV_MODEL)
+    if(subdev_id == HDAV_MODEL){
         audioEngine = new XonarHDAVAudioEngine;
-    else if (subdev_id == ST_MODEL || subdev_id == STX_MODEL || subdev_id == XENSE_MODEL)
+        printf("HDAV\n");
+    }
+    else if (subdev_id == ST_MODEL || subdev_id == STX_MODEL || subdev_id == XENSE_MODEL) {
         audioEngine = new XonarSTAudioEngine;
-    else if (subdev_id == D2_MODEL || subdev_id == D2X_MODEL)
+        printf("STA\n");
+    }
+    else if (subdev_id == D2_MODEL || subdev_id == D2X_MODEL) {
         audioEngine = new XonarD2XAudioEngine;
-    else if (subdev_id == DX_MODEL || subdev_id == CS4XX_MODEL || subdev_id== D1_MODEL)
+        printf("D2X\n");
+    }
+    else if (subdev_id == DX_MODEL || subdev_id == CS4XX_MODEL || subdev_id== D1_MODEL) {
         audioEngine = new XonarCS43XXAudioEngine;
-    else if (subdev_id == DS_MODEL || subdev_id == DSX_MODEL || subdev_id == HDAV_SLIM)
-        audioEngine = new XonarWM87x6AudioEngine;
+        printf("CS43XX\n");
     
+    }
+    else if (subdev_id == DS_MODEL || subdev_id == DSX_MODEL || subdev_id == HDAV_SLIM) {
+        audioEngine = new XonarWM87x6AudioEngine;
+        printf("WM87x6\n");
+    }
     if (!audioEngine)
         goto Done;
     

@@ -124,7 +124,6 @@ bool XonarHDAVAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip)
     }
     /* end sample driver template */
 
-    
     chip->model_data = IOMalloc(chip->model.model_data_size);
     
 

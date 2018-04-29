@@ -8,27 +8,27 @@
 
 /* Begin PBXBuildFile section */
 		CE235FA0207DBA0600AF3203 /* PCIAudioDevice.hpp in Headers */ = {isa = PBXBuildFile; fileRef = CE235F9F207DBA0600AF3203 /* PCIAudioDevice.hpp */; };
-		CE235FA2207DBA0600AF3203 /* PCIAudioDevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CE235FA1207DBA0600AF3203 /* PCIAudioDevice.cpp */; settings = {COMPILER_FLAGS = "-pthread"; }; };
+		CE235FA2207DBA0600AF3203 /* PCIAudioDevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CE235FA1207DBA0600AF3203 /* PCIAudioDevice.cpp */; };
 		CE44242B207FF78500158F35 /* ak4396.h in Headers */ = {isa = PBXBuildFile; fileRef = CE442427207FF78500158F35 /* ak4396.h */; };
 		CE44242C207FF78500158F35 /* oxygen_regs.h in Headers */ = {isa = PBXBuildFile; fileRef = CE442428207FF78500158F35 /* oxygen_regs.h */; };
 		CE44242E207FF78500158F35 /* wm8785.h in Headers */ = {isa = PBXBuildFile; fileRef = CE44242A207FF78500158F35 /* wm8785.h */; };
-		CE44242F207FF99000158F35 /* XonarAudioEngine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CE442425207FDBE100158F35 /* XonarAudioEngine.cpp */; settings = {COMPILER_FLAGS = "-pthread"; }; };
+		CE44242F207FF99000158F35 /* XonarAudioEngine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CE442425207FDBE100158F35 /* XonarAudioEngine.cpp */; };
 		CE442430207FF99200158F35 /* XonarAudioEngine.hpp in Headers */ = {isa = PBXBuildFile; fileRef = CE442426207FDBE100158F35 /* XonarAudioEngine.hpp */; };
-		CE5601B2208ECB6E001A5D0D /* XonarGenericAudioEngine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CE5601B0208ECB6E001A5D0D /* XonarGenericAudioEngine.cpp */; settings = {COMPILER_FLAGS = "-pthread"; }; };
+		CE5601B2208ECB6E001A5D0D /* XonarGenericAudioEngine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CE5601B0208ECB6E001A5D0D /* XonarGenericAudioEngine.cpp */; };
 		CE5601B3208ECB6E001A5D0D /* XonarGenericAudioEngine.hpp in Headers */ = {isa = PBXBuildFile; fileRef = CE5601B1208ECB6E001A5D0D /* XonarGenericAudioEngine.hpp */; };
 		CEACF3E120806D6D00D01190 /* ac97.h in Headers */ = {isa = PBXBuildFile; fileRef = CEACF3E020806D6D00D01190 /* ac97.h */; };
 		CEACF3E5208074C200D01190 /* cm9780.h in Headers */ = {isa = PBXBuildFile; fileRef = CEACF3E4208074C200D01190 /* cm9780.h */; };
 		CEACF3EC2081216300D01190 /* pcm1796.h in Headers */ = {isa = PBXBuildFile; fileRef = CEACF3E62081216300D01190 /* pcm1796.h */; };
 		CEACF3F32081219A00D01190 /* cs2000.h in Headers */ = {isa = PBXBuildFile; fileRef = CEACF3F22081219A00D01190 /* cs2000.h */; };
-		CEACF3FC20829E4F00D01190 /* XonarSTAudioEngine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEACF3FA20829E4F00D01190 /* XonarSTAudioEngine.cpp */; settings = {COMPILER_FLAGS = "-pthread"; }; };
+		CEACF3FC20829E4F00D01190 /* XonarSTAudioEngine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEACF3FA20829E4F00D01190 /* XonarSTAudioEngine.cpp */; };
 		CEACF3FF2082A09600D01190 /* XonarSTAudioEngine.hpp in Headers */ = {isa = PBXBuildFile; fileRef = CEACF3FE2082A09600D01190 /* XonarSTAudioEngine.hpp */; };
 		CEACF4052082F65E00D01190 /* XonarHDAVAudioEngine.hpp in Headers */ = {isa = PBXBuildFile; fileRef = CEACF4042082F65E00D01190 /* XonarHDAVAudioEngine.hpp */; };
-		CEACF4072082F67D00D01190 /* XonarHDAVAudioEngine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEACF4062082F67D00D01190 /* XonarHDAVAudioEngine.cpp */; settings = {COMPILER_FLAGS = "-pthread"; }; };
-		CEACF40D2083177100D01190 /* XonarD2XAudioEngine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEACF40C2083177100D01190 /* XonarD2XAudioEngine.cpp */; settings = {COMPILER_FLAGS = "-pthread"; }; };
+		CEACF4072082F67D00D01190 /* XonarHDAVAudioEngine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEACF4062082F67D00D01190 /* XonarHDAVAudioEngine.cpp */; };
+		CEACF40D2083177100D01190 /* XonarD2XAudioEngine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEACF40C2083177100D01190 /* XonarD2XAudioEngine.cpp */; };
 		CEACF40F208317AC00D01190 /* XonarD2XAudioEngine.hpp in Headers */ = {isa = PBXBuildFile; fileRef = CEACF40E208317AC00D01190 /* XonarD2XAudioEngine.hpp */; };
-		CEBCDDBE208FC6F70036FE29 /* XonarCS43XXAudioEngine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEBCDDBD208FC6F70036FE29 /* XonarCS43XXAudioEngine.cpp */; settings = {COMPILER_FLAGS = "-pthread"; }; };
+		CEBCDDBE208FC6F70036FE29 /* XonarCS43XXAudioEngine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEBCDDBD208FC6F70036FE29 /* XonarCS43XXAudioEngine.cpp */; };
 		CEBCDDC0208FC7220036FE29 /* XonarCS43XXAudioEngine.hpp in Headers */ = {isa = PBXBuildFile; fileRef = CEBCDDBF208FC7220036FE29 /* XonarCS43XXAudioEngine.hpp */; };
-		CEBCDDC4208FE0540036FE29 /* XonarWM87x6AudioEngine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEBCDDC3208FE0540036FE29 /* XonarWM87x6AudioEngine.cpp */; settings = {COMPILER_FLAGS = "-pthread"; }; };
+		CEBCDDC4208FE0540036FE29 /* XonarWM87x6AudioEngine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEBCDDC3208FE0540036FE29 /* XonarWM87x6AudioEngine.cpp */; };
 		CEBCDDC6208FE0BD0036FE29 /* XonarWM87x6AudioEngine.hpp in Headers */ = {isa = PBXBuildFile; fileRef = CEBCDDC5208FE0BD0036FE29 /* XonarWM87x6AudioEngine.hpp */; };
 /* End PBXBuildFile section */
 
