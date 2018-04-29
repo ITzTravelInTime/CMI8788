@@ -218,6 +218,7 @@ bool PCIAudioDevice::initHardware(IOService *provider)
     dev_id = pciDevice->configRead16(kIOPCIConfigDeviceID);
     subdev_id = pciDevice->configRead16(kIOPCIConfigSubSystemID);
     // add the hardware init code here
+    
     if(subdev_id == HDAV_MODEL)
         setDeviceName("ASUS Xonar HDAV1.3 Deluxe");
     else if (subdev_id == ST_MODEL || subdev_id == STX_MODEL || subdev_id == XENSE_MODEL)
@@ -229,23 +230,22 @@ bool PCIAudioDevice::initHardware(IOService *provider)
     
     setDeviceShortName("CMI8788");
     setManufacturerName("CMedia");
+    //oxygen_restore_eeprom(pciDevice,deviceRegisters);
     
-    oxygen_restore_eeprom(pciDevice,deviceRegisters);
-    //Before:AudioEngine's init didn't do much. now it instantiates everything like oxygen_init.
-    //so, by creating the engine, we instantiate the registers as well.
+    /*
     if (!audioEngineInstance->init(deviceRegisters,subdev_id))
         goto Done;
-    //#error Put your own hardware initialization code here...and in other routines!!
     this->accessibleEngineInstance = audioEngineInstance;
-    
+    */
     //see comments in createAudioEngine to follow rest of oxygen_pci_probe
     //(chip->model.init() and onwards)
+    /*
     if (!createAudioEngine(audioEngineInstance)) {
         goto Done;
     }
     
     result = true;
-    
+    */
 Done:
     
     if (!result) {
@@ -254,6 +254,7 @@ Done:
             deviceMap = NULL;
         }
     }
+    
     
     return result;
 }
