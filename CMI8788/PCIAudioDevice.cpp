@@ -182,7 +182,7 @@ bool PCIAudioDevice::initHardware(IOService *provider)
     bool result = false;
     XonarAudioEngine *audioEngineInstance = NULL;
     audioEngineInstance = new XonarAudioEngine;
-    IOLog("SamplePCIAudioDevice[%p]::initHardware(%p)\n", this, provider);
+    printf("SamplePCIAudioDevice[%p]::initHardware(%p)\n", this, provider);
     
     if (!super::initHardware(provider)) {
         goto Done;
@@ -206,7 +206,7 @@ bool PCIAudioDevice::initHardware(IOService *provider)
     if (!deviceRegisters) {
         goto Done;
     }
-    
+    //deviceRegisters->addr = deviceMap->getPhysicalAddress();
     // Enable the PCI memory access - the kernel will panic if this isn't done before accessing the
     // mapped registers
     pciDevice->setMemoryEnable(true);
@@ -217,6 +217,7 @@ bool PCIAudioDevice::initHardware(IOService *provider)
     */
     dev_id = pciDevice->configRead16(kIOPCIConfigDeviceID);
     subdev_id = pciDevice->configRead16(kIOPCIConfigSubSystemID);
+    printf("XONAR DEV_ID:%d SUBDEV_ID:%d\n", dev_id, subdev_id);
     // add the hardware init code here
     
     if(subdev_id == HDAV_MODEL)
