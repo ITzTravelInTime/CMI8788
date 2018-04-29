@@ -10,3 +10,4 @@ i'm pretty sure Clemens Ladisch is JUHMAHN for "fucking masher" ;)
 
 http://www.osxbook.com
 http://www.newosxbook.com (forum is here: http://newosxbook.com/forum/)
+also want to thank Siguza on the newosxbook forum for his timely, insightful, helpful, kind, and honest remarks; it is because of him the driver now kernel panics ("successful") instead of failing to link. 
