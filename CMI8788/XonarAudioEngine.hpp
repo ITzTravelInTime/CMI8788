@@ -165,13 +165,13 @@ struct xonar_wm87x6 {
 
 class IOFilterInterruptEventSource;
 class IOInterruptEventSource;
-
+class PCIAudioDevice;
 
 class XonarAudioEngine : public IOAudioEngine
 {
     friend class XonarSTAudioEngine;
     friend class XonarHDAVAudioEngine;
-    
+    friend class PCIAudioDevice;
     OSDeclareDefaultStructors(XonarAudioEngine)
     
     //right now i've created 4 since there are 4 I2S input buffers

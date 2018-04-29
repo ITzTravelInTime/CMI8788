@@ -1743,7 +1743,7 @@ void XonarAudioEngine::interruptHandler(OSObject *owner, IOInterruptEventSource 
 bool XonarAudioEngine::interruptFilter(OSObject *owner, IOFilterInterruptEventSource *src)
 {
     XonarAudioEngine *callingInstance = OSDynamicCast(XonarAudioEngine, owner);
-    struct oxygen *chip;// = (struct oxygen*)dev_id;
+    struct oxygen *chip = callingInstance->chipData;
     unsigned int status, clear, elapsed_streams, i;
     
     status = oxygen_read16(chip, OXYGEN_INTERRUPT_STATUS);
