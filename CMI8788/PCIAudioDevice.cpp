@@ -67,51 +67,6 @@
 OSDefineMetaClassAndStructors(PCIAudioDevice, IOAudioDevice)
 
 
-
-//static void oxygen_gpio_changed(struct work_struct *work)
-//{
-//    struct oxygen *chip = container_of(work, struct oxygen, gpio_work);
-//
-//    if (chip->model.gpio_changed)
-//        chip->model.gpio_changed(chip);
-//}
-
-
-//const struct pci_device_id *
-//PCIAudioDevice::oxygen_search_pci_id(struct oxygen *chip, const struct pci_device_id ids[])
-//{
-//    UInt16 subdevice;
-//
-//    /*
-//     * Make sure the EEPROM pins are available, i.e., not used for SPI.
-//     * (This function is called before we initialize or use SPI.)
-//     */
-//    oxygen_clear_bits8(chip, OXYGEN_FUNCTION,
-//                       OXYGEN_FUNCTION_ENABLE_SPI_4_5);
-//    /*
-//     * Read the subsystem device ID directly from the EEPROM, because the
-//     * chip didn't if the first EEPROM word was overwritten.
-//     */
-//    subdevice = oxygen_read_eeprom(chip, 2);
-//    /* use default ID if EEPROM is missing */
-//    if (subdevice == 0xffff && oxygen_read_eeprom(chip, 1) == 0xffff)
-//        subdevice = 0x8788;
-//    /*
-//     * We use only the subsystem device ID for searching because it is
-//     * unique even without the subsystem vendor ID, which may have been
-//     * overwritten in the EEPROM.
-//     */
-//    for (; ids->vendor; ++ids)
-//        if (ids->subdevice == subdevice &&
-//            ids->driver_data != BROKEN_EEPROM_DRIVER_DATA)
-//            return ids;
-//    return NULL;
-//}
-
-
-
-
-
 UInt16 PCIAudioDevice::oxygen_read_eeprom(struct oxygen *chip, unsigned int index)
 {
     unsigned int timeout;
@@ -145,7 +100,6 @@ void PCIAudioDevice::oxygen_write_eeprom(struct oxygen *chip, unsigned int index
 
 
 void PCIAudioDevice::oxygen_restore_eeprom(IOPCIDevice *device, struct oxygen *chip)
-// const struct pci_device_id *id)
 {
     UInt16 eeprom_id;
     
@@ -210,7 +164,6 @@ bool PCIAudioDevice::initHardware(IOService *provider)
     // Enable the PCI memory access - the kernel will panic if this isn't done before accessing the
     // mapped registers
     pciDevice->setMemoryEnable(true);
-    //IODeviceMemory *temp;
     deviceRegisters->addr = deviceMap->getPhysicalAddress();
     /*not sure if this will actually get our device ID (thanks to APPUL withholding
     *pthreads). but i figure if we can pull the subdeviceID after matching, it'd be helpful
@@ -233,22 +186,22 @@ bool PCIAudioDevice::initHardware(IOService *provider)
     
     setDeviceShortName("CMI8788");
     setManufacturerName("CMedia");
-    //oxygen_restore_eeprom(pciDevice,deviceRegisters);
+    oxygen_restore_eeprom(pciDevice,deviceRegisters);
     
-    /*
+    
     if (!audioEngineInstance->init(deviceRegisters,subdev_id))
         goto Done;
     this->accessibleEngineInstance = audioEngineInstance;
-    */
+    
     //see comments in createAudioEngine to follow rest of oxygen_pci_probe
     //(chip->model.init() and onwards)
-    /*
+    
     if (!createAudioEngine(audioEngineInstance)) {
         goto Done;
     }
     
     result = true;
-    */
+    
 Done:
     
     if (!result) {
