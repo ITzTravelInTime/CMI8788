@@ -171,7 +171,7 @@ void PCIAudioDevice::oxygen_restore_eeprom(IOPCIDevice *device, struct oxygen *c
         oxygen_clear_bits8(chip, OXYGEN_MISC,
                            OXYGEN_MISC_WRITE_PCI_SUBID);
         
-        IOLog("PCIAudioDevice[%p]::oxygen_restore_eeprom EEPROM ID restored\n", this);
+        printf("PCIAudioDevice[%p]::oxygen_restore_eeprom EEPROM ID restored\n", this);
     }
 }
 
@@ -215,9 +215,10 @@ bool PCIAudioDevice::initHardware(IOService *provider)
     *pthreads). but i figure if we can pull the subdeviceID after matching, it'd be helpful
     *when comparing this work to the (original) ALSA code.
     */
+    vendor_id = pciDevice->configRead16(kIOPCIConfigVendorID);
     dev_id = pciDevice->configRead16(kIOPCIConfigDeviceID);
     subdev_id = pciDevice->configRead16(kIOPCIConfigSubSystemID);
-    printf("XONAR DEV_ID:%d SUBDEV_ID:%d\n", dev_id, subdev_id);
+    printf("Xonar Vendor ID:0x%04x, Device ID:0x%04x, SubDevice ID:0x%04x\n", vendor_id, dev_id, subdev_id);
     // add the hardware init code here
     
     if(subdev_id == HDAV_MODEL)
@@ -262,7 +263,7 @@ Done:
 
 void PCIAudioDevice::free()
 {
-    IOLog("SamplePCIAudioDevice[%p]::free()\n", this);
+    printf("SamplePCIAudioDevice[%p]::free()\n", this);
     
     if (deviceMap) {
         deviceMap->release();
@@ -278,7 +279,7 @@ bool PCIAudioDevice::createAudioEngine(XonarAudioEngine *audioEngineInstance)
     //At this point, we should be at the chip->model.init() part of the oxygen_pci_probe function.
     //chip->model.init() is handled by the init() method of the submodel's class that we wish to instantiate.
     //that is: XonarHDAVAudioEngine::init() contains the code for xonar_hdav_init, etc.
-    IOLog("SamplePCIAudioDevice[%p]::createAudioEngine()\n", this);
+    printf("SamplePCIAudioDevice[%p]::createAudioEngine()\n", this);
     bool result = false;
     IOAudioEngine *audioEngine = NULL;
     
@@ -469,10 +470,10 @@ IOReturn PCIAudioDevice::volumeChangeHandler(IOService *target, IOAudioControl *
 
 IOReturn PCIAudioDevice::volumeChanged(IOAudioControl *volumeControl, XonarAudioEngine *engine, SInt32 oldValue, SInt32 newValue)
 {
-    IOLog("SamplePCIAudioDevice[%p]::volumeChanged(%p, %ld, %ld)\n", this, volumeControl, oldValue, newValue);
+    printf("SamplePCIAudioDevice[%p]::volumeChanged(%p, %ld, %ld)\n", this, volumeControl, oldValue, newValue);
     
     if (volumeControl) {
-        IOLog("\t-> Channel %ld\n", volumeControl->getChannelID());
+        printf("\t-> Channel %ld\n", volumeControl->getChannelID());
     }
     
     
@@ -520,7 +521,7 @@ IOReturn PCIAudioDevice::outputMuteChangeHandler(IOService *target, IOAudioContr
 
 IOReturn PCIAudioDevice::outputMuteChanged(IOAudioControl *muteControl, XonarAudioEngine *engine, SInt32 oldValue, SInt32 newValue)
 {
-    IOLog("SamplePCIAudioDevice[%p]::outputMuteChanged(%p, %ld, %ld)\n", this, muteControl, oldValue, newValue);
+    printf("SamplePCIAudioDevice[%p]::outputMuteChanged(%p, %ld, %ld)\n", this, muteControl, oldValue, newValue);
     
     // Add output mute code here
     struct oxygen *chip = engine->chipData;
@@ -558,10 +559,10 @@ IOReturn PCIAudioDevice::gainChangeHandler(IOService *target, IOAudioControl *ga
 
 IOReturn PCIAudioDevice::gainChanged(IOAudioControl *gainControl, SInt32 oldValue, SInt32 newValue)
 {
-    IOLog("SamplePCIAudioDevice[%p]::gainChanged(%p, %ld, %ld)\n", this, gainControl, oldValue, newValue);
+    printf("SamplePCIAudioDevice[%p]::gainChanged(%p, %ld, %ld)\n", this, gainControl, oldValue, newValue);
     
     if (gainControl) {
-        IOLog("\t-> Channel %ld\n", gainControl->getChannelID());
+        printf("\t-> Channel %ld\n", gainControl->getChannelID());
     }
     
     // Add hardware gain change code here
@@ -584,7 +585,7 @@ IOReturn PCIAudioDevice::inputMuteChangeHandler(IOService *target, IOAudioContro
 
 IOReturn PCIAudioDevice::inputMuteChanged(IOAudioControl *muteControl, SInt32 oldValue, SInt32 newValue)
 {
-    IOLog("SamplePCIAudioDevice[%p]::inputMuteChanged(%p, %ld, %ld)\n", this, muteControl, oldValue, newValue);
+    printf("SamplePCIAudioDevice[%p]::inputMuteChanged(%p, %ld, %ld)\n", this, muteControl, oldValue, newValue);
     
     // Add input mute change code here
     

@@ -102,9 +102,9 @@ static void xonar_ext_power_gpio_changed(struct oxygen *chip)
     if (has_power != data->has_power) {
         data->has_power = has_power;
         if (has_power) {
-            IOLog("power restored\n");
+            printf("power restored\n");
         } else {
-            IOLog("Hey! Don't unplug the power cable!\n");
+            printf("Hey! Don't unplug the power cable!\n");
             /* TODO: stop PCMs */
         }
     }
@@ -795,7 +795,7 @@ void XonarAudioEngine::xonar_hdmi_uart_input(struct oxygen *chip)
     if (chip->uart_input_count >= 2 &&
         chip->uart_input[chip->uart_input_count - 2] == 'O' &&
         chip->uart_input[chip->uart_input_count - 1] == 'K') {
-        IOLog("message from HDMI chip received:\n");
+        printf("message from HDMI chip received:\n");
         print_hex_dump_bytes("", DUMP_PREFIX_OFFSET,
                              chip->uart_input, chip->uart_input_count);
         chip->uart_input_count = 0;
@@ -819,7 +819,7 @@ bool XonarAudioEngine::init(struct oxygen *chip, int model)
      */
     bool result = false;
     
-    IOLog("XonarAudioEngine[%p]::init(%p)\n", this, chip);
+    printf("XonarAudioEngine[%p]::init(%p)\n", this, chip);
     
     if (!chip) {
         goto Done;
@@ -1295,7 +1295,7 @@ bool XonarAudioEngine::initHardware(IOService *provider)
     IOAudioStream *audioStream;
     // IOWorkLoop *workLoop;
     
-    IOLog("XonarAudioEngine[%p]::initHardware(%p)\n", this, provider);
+    printf("XonarAudioEngine[%p]::initHardware(%p)\n", this, provider);
     
     if (!super::initHardware(provider)) {
         goto Done;
@@ -1380,7 +1380,7 @@ Done:
 
 void XonarAudioEngine::free()
 {
-    IOLog("XonarAudioEngine[%p]::free()\n", this);
+    printf("XonarAudioEngine[%p]::free()\n", this);
     
     // We need to free our resources when we're going away
     
@@ -1539,7 +1539,7 @@ IOAudioStream *XonarAudioEngine::createNewAudioStream(IOAudioStreamDirection dir
 
 void XonarAudioEngine::stop(IOService *provider)
 {
-    IOLog("XonarAudioEngine[%p]::stop(%p)\n", this, provider);
+    printf("XonarAudioEngine[%p]::stop(%p)\n", this, provider);
     
     // When our device is being stopped and torn down, we should go ahead and remove
     // the interrupt event source from the IOWorkLoop
@@ -1565,7 +1565,7 @@ void XonarAudioEngine::stop(IOService *provider)
 
 IOReturn XonarAudioEngine::performAudioEngineStart()
 {
-    IOLog("XonarAudioEngine[%p]::performAudioEngineStart()\n", this);
+    printf("XonarAudioEngine[%p]::performAudioEngineStart()\n", this);
     
     // The interruptEventSource needs to be enabled to allow interrupts to start firing
     assert(interruptEventSource);
@@ -1602,7 +1602,7 @@ IOReturn XonarAudioEngine::performAudioEngineStart()
 
 IOReturn XonarAudioEngine::performAudioEngineStop()
 {
-    IOLog("XonarAudioEngine[%p]::performAudioEngineStop()\n", this);
+    printf("XonarAudioEngine[%p]::performAudioEngineStop()\n", this);
     
     // Assuming we don't need interrupts after stopping the audio engine, we can disable them here
     assert(interruptEventSource_main);
@@ -1617,7 +1617,7 @@ IOReturn XonarAudioEngine::performAudioEngineStop()
 
 UInt32 XonarAudioEngine::getCurrentSampleFrame()
 {
-    IOLog("XonarAudioEngine[%p]::getCurrentSampleFrame()\n", this);
+    printf("XonarAudioEngine[%p]::getCurrentSampleFrame()\n", this);
     
     // In order for the erase process to run properly, this function must return the current location of
     // the audio engine - basically a sample counter
@@ -1634,7 +1634,7 @@ UInt32 XonarAudioEngine::getCurrentSampleFrame()
 
 IOReturn XonarAudioEngine::performFormatChange(IOAudioStream *audioStream, const IOAudioStreamFormat *newFormat, const IOAudioSampleRate *newSampleRate)
 {
-    IOLog("XonarAudioEngine[%p]::peformFormatChange(%p, %p, %p)\n", this, audioStream, newFormat, newSampleRate);
+    printf("XonarAudioEngine[%p]::peformFormatChange(%p, %p, %p)\n", this, audioStream, newFormat, newSampleRate);
     
     // Since we only allow one format, we only need to be concerned with sample rate changes
     // In this case, we only allow 2 sample rates - 44100 & 48000, so those are the only ones
@@ -1642,18 +1642,18 @@ IOReturn XonarAudioEngine::performFormatChange(IOAudioStream *audioStream, const
     if (newSampleRate) {
         switch (newSampleRate->whole) {
             case 44100:
-                IOLog("/t-> 44.1kHz selected\n");
+                printf("/t-> 44.1kHz selected\n");
                 
                 // Add code to switch hardware to 44.1khz
                 break;
             case 48000:
-                IOLog("/t-> 48kHz selected\n");
+                printf("/t-> 48kHz selected\n");
                 
                 // Add code to switch hardware to 48kHz
                 break;
             default:
                 // This should not be possible since we only specified 44100 and 48000 as valid sample rates
-                IOLog("/t Internal Error - unknown sample rate selected.\n");
+                printf("/t Internal Error - unknown sample rate selected.\n");
                 break;
         }
     }

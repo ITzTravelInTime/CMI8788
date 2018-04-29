@@ -58,7 +58,7 @@
 #import "oxygen_regs.h"
 #define OSSpinLockLock(lck) do {} while(!OSSpinLockTry(lck))
 #import "XonarAudioEngine.hpp"
-#define dev_err(dev, format, args...) do {IOLog("CMI8788: " format, ##args);} while (0)
+#define dev_err(dev, format, args...) do {printf("CMI8788: " format, ##args);} while (0)
 
 /* 1 << PCM_x == OXYGEN_CHANNEL_x */
 #define PCM_A		0
@@ -353,6 +353,7 @@ class PCIAudioDevice : public IOAudioDevice
     
     IOPCIDevice					*pciDevice;
     IOMemoryMap					*deviceMap;
+    UInt16                      vendor_id;
     UInt16                      dev_id;
     UInt16                      subdev_id;
     struct oxygen               *deviceRegisters;

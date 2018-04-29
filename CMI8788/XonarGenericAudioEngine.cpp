@@ -399,7 +399,7 @@ bool XonarGenericAudioEngine::init(XonarAudioEngine *audioEngine, struct oxygen 
     //begin APPUL portion of sampleaudioengine::init
     bool result = false;
     
-    IOLog("SamplePCIAudioEngine[%p]::init(%p)\n", this, chip);
+    printf("SamplePCIAudioEngine[%p]::init(%p)\n", this, chip);
     chip->model_data = IOMalloc(chip->model.model_data_size);
     if (!chip) {
         goto Done;
@@ -454,7 +454,7 @@ bool XonarGenericAudioEngine::initHardware(IOService *provider)
     IOAudioStream *audioStream;
     IOWorkLoop *workLoop;
     
-    IOLog("XonarGenericAudioEngine[%p]::initHardware(%p)\n", this, provider);
+    printf("XonarGenericAudioEngine[%p]::initHardware(%p)\n", this, provider);
     
     if (!super::initHardware(provider)) {
         goto Done;
@@ -538,7 +538,7 @@ Done:
 
 void XonarGenericAudioEngine::free()
 {
-    IOLog("XonarGenericAudioEngine[%p]::free()\n", this);
+    printf("XonarGenericAudioEngine[%p]::free()\n", this);
     
     // We need to free our resources when we're going away
     
@@ -604,7 +604,7 @@ IOAudioStream *XonarGenericAudioEngine::createNewAudioStream(IOAudioStreamDirect
 
 void XonarGenericAudioEngine::stop(IOService *provider)
 {
-    IOLog("XonarGenericAudioEngine[%p]::stop(%p)\n", this, provider);
+    printf("XonarGenericAudioEngine[%p]::stop(%p)\n", this, provider);
     
     // When our device is being stopped and torn down, we should go ahead and remove
     // the interrupt event source from the IOWorkLoop
@@ -630,7 +630,7 @@ void XonarGenericAudioEngine::stop(IOService *provider)
 
 IOReturn XonarGenericAudioEngine::performAudioEngineStart()
 {
-    IOLog("XonarGenericAudioEngine[%p]::performAudioEngineStart()\n", this);
+    printf("XonarGenericAudioEngine[%p]::performAudioEngineStart()\n", this);
     
     // The interruptEventSource needs to be enabled to allow interrupts to start firing
     assert(interruptEventSource);
@@ -654,7 +654,7 @@ IOReturn XonarGenericAudioEngine::performAudioEngineStart()
 
 IOReturn XonarGenericAudioEngine::performAudioEngineStop()
 {
-    IOLog("XonarGenericAudioEngine[%p]::performAudioEngineStop()\n", this);
+    printf("XonarGenericAudioEngine[%p]::performAudioEngineStop()\n", this);
     
     // Assuming we don't need interrupts after stopping the audio engine, we can disable them here
     assert(interruptEventSource);
@@ -669,7 +669,7 @@ IOReturn XonarGenericAudioEngine::performAudioEngineStop()
 
 UInt32 XonarGenericAudioEngine::getCurrentSampleFrame()
 {
-    IOLog("XonarGenericAudioEngine[%p]::getCurrentSampleFrame()\n", this);
+    printf("XonarGenericAudioEngine[%p]::getCurrentSampleFrame()\n", this);
     
     // In order for the erase process to run properly, this function must return the current location of
     // the audio engine - basically a sample counter
@@ -686,7 +686,7 @@ UInt32 XonarGenericAudioEngine::getCurrentSampleFrame()
 
 IOReturn XonarGenericAudioEngine::performFormatChange(IOAudioStream *audioStream, const IOAudioStreamFormat *newFormat, const IOAudioSampleRate *newSampleRate)
 {
-    IOLog("XonarGenericAudioEngine[%p]::peformFormatChange(%p, %p, %p)\n", this, audioStream, newFormat, newSampleRate);
+    printf("XonarGenericAudioEngine[%p]::peformFormatChange(%p, %p, %p)\n", this, audioStream, newFormat, newSampleRate);
     
     // Since we only allow one format, we only need to be concerned with sample rate changes
     // In this case, we only allow 2 sample rates - 44100 & 48000, so those are the only ones
@@ -694,18 +694,18 @@ IOReturn XonarGenericAudioEngine::performFormatChange(IOAudioStream *audioStream
     if (newSampleRate) {
         switch (newSampleRate->whole) {
             case 44100:
-                IOLog("/t-> 44.1kHz selected\n");
+                printf("/t-> 44.1kHz selected\n");
                 
                 // Add code to switch hardware to 44.1khz
                 break;
             case 48000:
-                IOLog("/t-> 48kHz selected\n");
+                printf("/t-> 48kHz selected\n");
                 
                 // Add code to switch hardware to 48kHz
                 break;
             default:
                 // This should not be possible since we only specified 44100 and 48000 as valid sample rates
-                IOLog("/t Internal Error - unknown sample rate selected.\n");
+                printf("/t Internal Error - unknown sample rate selected.\n");
                 break;
         }
     }
