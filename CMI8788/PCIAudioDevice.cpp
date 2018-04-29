@@ -210,7 +210,12 @@ bool PCIAudioDevice::initHardware(IOService *provider)
     // Enable the PCI memory access - the kernel will panic if this isn't done before accessing the
     // mapped registers
     pciDevice->setMemoryEnable(true);
-    deviceRegisters->addr = deviceMap->getPhysicalAddress();
+    IODeviceMemory *temp;
+    temp = pciDevice->getDeviceMemoryWithRegister(kIOPCIConfigBaseAddress0);
+    temp->prepare();
+    deviceRegisters->addr = temp->getPhysicalAddress();
+    temp->complete();
+    //deviceRegisters->addr = deviceMap->getPhysicalAddress();
     /*not sure if this will actually get our device ID (thanks to APPUL withholding
     *pthreads). but i figure if we can pull the subdeviceID after matching, it'd be helpful
     *when comparing this work to the (original) ALSA code.
