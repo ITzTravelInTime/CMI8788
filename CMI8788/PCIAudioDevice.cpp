@@ -201,6 +201,7 @@ bool PCIAudioDevice::initHardware(IOService *provider)
         goto Done;
     }
     */
+    this->accessibleEngineInstance = audioEngineInstance;
     result = true;
     
 Done:
@@ -224,7 +225,7 @@ void PCIAudioDevice::free()
         deviceMap->release();
         deviceMap = NULL;
     }
-    
+    this->accessibleEngineInstance->free();
     super::free();
 }
 
