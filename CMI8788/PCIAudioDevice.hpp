@@ -348,9 +348,9 @@ class IOMemoryMap;
 class PCIAudioDevice : public IOAudioDevice
 {
     friend class XonarAudioEngine;
-    XonarAudioEngine            *accessibleEngineInstance;
     OSDeclareDefaultStructors(PCIAudioDevice)
     
+    XonarAudioEngine            *accessibleEngineInstance;
     IOPCIDevice					*pciDevice;
     IOMemoryMap					*deviceMap;
     UInt16                      vendor_id;

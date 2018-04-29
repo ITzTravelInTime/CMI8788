@@ -150,7 +150,7 @@ bool PCIAudioDevice::initHardware(IOService *provider)
     
     // Config a map for the PCI config base registers
     // We need to keep this map around until we're done accessing the registers
-    deviceMap = pciDevice->mapDeviceMemoryWithRegister(kIOPCIConfigBaseAddress1);
+    deviceMap = pciDevice->mapDeviceMemoryWithRegister(kIOPCIConfigBaseAddress0);
     if (!deviceMap) {
         goto Done;
     }
@@ -164,7 +164,7 @@ bool PCIAudioDevice::initHardware(IOService *provider)
     // Enable the PCI memory access - the kernel will panic if this isn't done before accessing the
     // mapped registers
     pciDevice->setMemoryEnable(true);
-    deviceRegisters->addr = deviceMap->getPhysicalAddress();
+    //deviceRegisters->addr = deviceMap->getPhysicalAddress();
     /*not sure if this will actually get our device ID (thanks to APPUL withholding
     *pthreads). but i figure if we can pull the subdeviceID after matching, it'd be helpful
     *when comparing this work to the (original) ALSA code.
@@ -186,20 +186,21 @@ bool PCIAudioDevice::initHardware(IOService *provider)
     
     setDeviceShortName("CMI8788");
     setManufacturerName("CMedia");
+    /*
     oxygen_restore_eeprom(pciDevice,deviceRegisters);
     
     
     if (!audioEngineInstance->init(deviceRegisters,subdev_id))
         goto Done;
     this->accessibleEngineInstance = audioEngineInstance;
-    
+    */
     //see comments in createAudioEngine to follow rest of oxygen_pci_probe
     //(chip->model.init() and onwards)
-    
+    /*
     if (!createAudioEngine(audioEngineInstance)) {
         goto Done;
     }
-    
+    */
     result = true;
     
 Done:
@@ -237,27 +238,16 @@ bool PCIAudioDevice::createAudioEngine(XonarAudioEngine *audioEngineInstance)
     bool result = false;
     IOAudioEngine *audioEngine = NULL;
     
-    if(subdev_id == HDAV_MODEL){
+    if(subdev_id == HDAV_MODEL)
         audioEngine = new XonarHDAVAudioEngine;
-        printf("HDAV\n");
-    }
-    else if (subdev_id == ST_MODEL || subdev_id == STX_MODEL || subdev_id == XENSE_MODEL) {
+    else if (subdev_id == ST_MODEL || subdev_id == STX_MODEL || subdev_id == XENSE_MODEL)
         audioEngine = new XonarSTAudioEngine;
-        printf("STA\n");
-    }
-    else if (subdev_id == D2_MODEL || subdev_id == D2X_MODEL) {
+    else if (subdev_id == D2_MODEL || subdev_id == D2X_MODEL)
         audioEngine = new XonarD2XAudioEngine;
-        printf("D2X\n");
-    }
-    else if (subdev_id == DX_MODEL || subdev_id == CS4XX_MODEL || subdev_id== D1_MODEL) {
+    else if (subdev_id == DX_MODEL || subdev_id == CS4XX_MODEL || subdev_id== D1_MODEL)
         audioEngine = new XonarCS43XXAudioEngine;
-        printf("CS43XX\n");
-    
-    }
-    else if (subdev_id == DS_MODEL || subdev_id == DSX_MODEL || subdev_id == HDAV_SLIM) {
+    else if (subdev_id == DS_MODEL || subdev_id == DSX_MODEL || subdev_id == HDAV_SLIM)
         audioEngine = new XonarWM87x6AudioEngine;
-        printf("WM87x6\n");
-    }
     if (!audioEngine)
         goto Done;
     

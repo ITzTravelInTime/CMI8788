@@ -831,7 +831,6 @@ bool XonarAudioEngine::init(struct oxygen *chip, int model)
     
     //compare the subdevice id with known models'
     if(model == HDAV_MODEL) {
-        printf("MODEL IS HDAV\n");
         //code from get_xonar_pcm179x_model portions (case 0x8314)
         /*these are the relevant attributes from the xonar_model_hdav struct.
          *some of the function pointers in the xonar_model struct may not be needed
@@ -874,7 +873,6 @@ bool XonarAudioEngine::init(struct oxygen *chip, int model)
     }
     else if (model == ST_MODEL || model == STX_MODEL ||
              model == STX2_MODEL || model == XENSE_MODEL) {
-        printf("MODEL IS ST\n");
         chip->model.model_data_size = sizeof(struct xonar_pcm179x);
         chip->model.device_config = PLAYBACK_0_TO_I2S |
         PLAYBACK_1_TO_SPDIF |
@@ -1046,8 +1044,7 @@ bool XonarAudioEngine::init(struct oxygen *chip, int model)
             chip->model.adc_i2s_format = OXYGEN_I2S_FORMAT_LJUST;
         }
     }
-    else if (model == CS4XX_MODEL) {
-        printf("MODEL IS CS43XX\n");
+    else {
         chip->model.model_data_size = sizeof(struct xonar_cs43xx);
         chip->model.device_config = PLAYBACK_0_TO_I2S |
         PLAYBACK_1_TO_SPDIF |
