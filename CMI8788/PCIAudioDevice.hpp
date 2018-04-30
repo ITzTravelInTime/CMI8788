@@ -218,8 +218,8 @@ struct oxygen {
     unsigned int ac97_maskval;
     union {// have to swap these ... remember.
         UInt8 _8[OXYGEN_IO_SIZE];
-        SInt16 _16[OXYGEN_IO_SIZE / 2];
-        SInt32 _32[OXYGEN_IO_SIZE / 4];
+        UInt16 _16[OXYGEN_IO_SIZE / 2];
+        UInt32 _32[OXYGEN_IO_SIZE / 4];
     } saved_registers;
     UInt16 saved_ac97_registers[2][0x40];
     unsigned int uart_input_count;

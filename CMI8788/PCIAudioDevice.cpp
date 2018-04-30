@@ -150,6 +150,7 @@ bool PCIAudioDevice::initHardware(IOService *provider)
     
     // Config a map for the PCI config base registers
     // We need to keep this map around until we're done accessing the registers
+    
     deviceMap = pciDevice->mapDeviceMemoryWithRegister(kIOPCIConfigBaseAddress0);
     if (!deviceMap) {
         goto Done;
@@ -186,6 +187,7 @@ bool PCIAudioDevice::initHardware(IOService *provider)
     
     setDeviceShortName("CMI8788");
     setManufacturerName("CMedia");
+    oxygen_restore_eeprom(pciDevice,deviceRegisters);
     /*
     oxygen_restore_eeprom(pciDevice,deviceRegisters);
     
