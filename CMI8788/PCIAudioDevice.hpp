@@ -50,6 +50,7 @@
 #import <IOKit/audio/IOAudioDevice.h>
 #import <IOKit/IOWorkLoop.h>
 #import <IOKit/IOLocks.h>
+#include <IOKit/IOTypes.h>
 #import <sys/types.h>
 #import <architecture/i386/pio.h>
 #import <sys/errno.h>
