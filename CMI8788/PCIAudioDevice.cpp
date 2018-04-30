@@ -166,7 +166,7 @@ bool PCIAudioDevice::initHardware(IOService *provider)
     // mapped registers
     pciDevice->setMemoryEnable(true);
     //deviceRegisters->addr = pciDevice->getDeviceMemoryWithIndex(0)->getPhysicalAddress();
-    //deviceRegisters->addr = deviceMap->getPhysicalAddress();
+    physAddr = deviceMap->getPhysicalAddress();
     /*not sure if this will actually get our device ID (thanks to APPUL withholding
     *pthreads). but i figure if we can pull the subdeviceID after matching, it'd be helpful
     *when comparing this work to the (original) ALSA code.
