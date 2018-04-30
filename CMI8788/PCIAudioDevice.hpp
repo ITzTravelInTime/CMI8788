@@ -43,9 +43,9 @@
 
 #ifndef _SAMPLEPCIAUDIODEVICE_H
 #define _SAMPLEPCIAUDIODEVICE_H
-#define _POSIX_C_SOURCE
+//#define _POSIX_C_SOURCE
 #import </usr/include/libkern/OSAtomic.h>
-#import <pthread.h>
+//#import <pthread.h>
 // to remove conflict with mach_port_t (happens when you use pthreads)
 #import <IOKit/audio/IOAudioDevice.h>
 #import <IOKit/IOWorkLoop.h>
@@ -150,7 +150,7 @@ struct generic_data {
     unsigned int dacs;
     UInt8 ak4396_regs[4][5];
     UInt16 wm8785_regs[3];
-};
+} __attribute__((aligned(8)));
 
 
 struct oxygen_model {
@@ -183,7 +183,7 @@ struct oxygen_model {
                            XonarAudioEngine *audioEngineInstance);
     void (*ac97_switch)(struct oxygen *chip,
                         unsigned int reg, unsigned int mute);
-};
+} __attribute__((aligned(8)));
 
 struct oxygen {
     unsigned long addr;
@@ -225,7 +225,7 @@ struct oxygen {
     unsigned int uart_input_count;
     UInt8 uart_input[32];
     struct oxygen_model model;
-};
+} __attribute__((aligned(8)));
 
 
 
