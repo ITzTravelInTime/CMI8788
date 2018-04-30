@@ -187,7 +187,6 @@ bool PCIAudioDevice::initHardware(IOService *provider)
     
     setDeviceShortName("CMI8788");
     setManufacturerName("CMedia");
-    oxygen_restore_eeprom(pciDevice,deviceRegisters);
     /*
     oxygen_restore_eeprom(pciDevice,deviceRegisters);
     
