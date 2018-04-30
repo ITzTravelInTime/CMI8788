@@ -102,7 +102,6 @@ void PCIAudioDevice::oxygen_write_eeprom(struct oxygen *chip, unsigned int index
 void PCIAudioDevice::oxygen_restore_eeprom(IOPCIDevice *device, struct oxygen *chip)
 {
     UInt16 eeprom_id;
-    printf("In oxygen_restore_eeprom!\n");
     eeprom_id = oxygen_read_eeprom(chip, 0);
     if (eeprom_id != OXYGEN_EEPROM_ID &&
         (eeprom_id != 0xffff || subdev_id != 0x8788)) {
@@ -135,7 +134,6 @@ bool PCIAudioDevice::initHardware(IOService *provider)
 
     bool result = false;
     XonarAudioEngine *audioEngineInstance = NULL;
-    unsigned long physAddress;
     audioEngineInstance = new XonarAudioEngine;
     printf("SamplePCIAudioDevice[%p]::initHardware(%p)\n", this, provider);
     
@@ -152,7 +150,7 @@ bool PCIAudioDevice::initHardware(IOService *provider)
     // Config a map for the PCI config base registers
     // We need to keep this map around until we're done accessing the registers
     
-    deviceMap = pciDevice->mapDeviceMemoryWithRegister(kIOPCIConfigBaseAddress0);
+    deviceMap = pciDevice->mapDeviceMemoryWithRegister(kIOPCIConfigBaseAddress0, kIOMapWriteThruCache);
     if (!deviceMap) {
         goto Done;
     }
@@ -162,11 +160,11 @@ bool PCIAudioDevice::initHardware(IOService *provider)
     if (!deviceRegisters) {
         goto Done;
     }
+    
     // Enable the PCI memory access - the kernel will panic if this isn't done before accessing the
     // mapped registers
     pciDevice->setMemoryEnable(true);
-    //deviceRegisters->addr = pciDevice->getDeviceMemoryWithIndex(0)->getPhysicalAddress();
-    physAddress = deviceMap->getPhysicalAddress();
+    deviceRegisters->addr = deviceMap->getPhysicalAddress();
     /*not sure if this will actually get our device ID (thanks to APPUL withholding
     *pthreads). but i figure if we can pull the subdeviceID after matching, it'd be helpful
     *when comparing this work to the (original) ALSA code.
@@ -175,7 +173,7 @@ bool PCIAudioDevice::initHardware(IOService *provider)
     dev_id = pciDevice->configRead16(kIOPCIConfigDeviceID);
     subdev_id = pciDevice->configRead16(kIOPCIConfigSubSystemID);
     printf("Xonar Vendor ID:0x%04x, Device ID:0x%04x, SubDevice ID:0x%04x, Physical Address:%lu\n",
-           vendor_id, dev_id, subdev_id, physAddress);
+           vendor_id, dev_id, subdev_id, deviceRegisters->addr);
     // add the hardware init code here
     
     if(subdev_id == HDAV_MODEL)
@@ -189,17 +187,17 @@ bool PCIAudioDevice::initHardware(IOService *provider)
     
     setDeviceShortName("CMI8788");
     setManufacturerName("CMedia");
-    /*
     oxygen_restore_eeprom(pciDevice,deviceRegisters);
     
     
+    /*
     if (!audioEngineInstance->init(deviceRegisters,subdev_id))
         goto Done;
     this->accessibleEngineInstance = audioEngineInstance;
-    */
+    
     //see comments in createAudioEngine to follow rest of oxygen_pci_probe
     //(chip->model.init() and onwards)
-    /*
+    
     if (!createAudioEngine(audioEngineInstance)) {
         goto Done;
     }
