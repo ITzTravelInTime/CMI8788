@@ -135,6 +135,7 @@ bool PCIAudioDevice::initHardware(IOService *provider)
 
     bool result = false;
     XonarAudioEngine *audioEngineInstance = NULL;
+    unsigned long physAddress;
     audioEngineInstance = new XonarAudioEngine;
     printf("SamplePCIAudioDevice[%p]::initHardware(%p)\n", this, provider);
     
@@ -157,14 +158,15 @@ bool PCIAudioDevice::initHardware(IOService *provider)
     }
     
     // Get the virtual address for the registers - mapped in the kernel address space
-    deviceRegisters = (struct oxygen *)deviceMap->getVirtualAddress();
+    deviceRegisters = (struct oxygen *) deviceMap->getVirtualAddress();
     if (!deviceRegisters) {
         goto Done;
     }
-
     // Enable the PCI memory access - the kernel will panic if this isn't done before accessing the
     // mapped registers
     pciDevice->setMemoryEnable(true);
+    physAddress = deviceMap->getPhysicalAddress();
+    //deviceRegisters->addr = pciDevice->getDeviceMemoryWithIndex(0)->getPhysicalAddress();
     //deviceRegisters->addr = deviceMap->getPhysicalAddress();
     /*not sure if this will actually get our device ID (thanks to APPUL withholding
     *pthreads). but i figure if we can pull the subdeviceID after matching, it'd be helpful
@@ -173,7 +175,8 @@ bool PCIAudioDevice::initHardware(IOService *provider)
     vendor_id = pciDevice->configRead16(kIOPCIConfigVendorID);
     dev_id = pciDevice->configRead16(kIOPCIConfigDeviceID);
     subdev_id = pciDevice->configRead16(kIOPCIConfigSubSystemID);
-    printf("Xonar Vendor ID:0x%04x, Device ID:0x%04x, SubDevice ID:0x%04x\n", vendor_id, dev_id, subdev_id);
+    printf("Xonar Vendor ID:0x%04x, Device ID:0x%04x, SubDevice ID:0x%04x, Physical Address:%lu\n",
+           vendor_id, dev_id, subdev_id, physAddress);
     // add the hardware init code here
     
     if(subdev_id == HDAV_MODEL)
