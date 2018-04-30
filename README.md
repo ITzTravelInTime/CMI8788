@@ -4,11 +4,15 @@ CMI8788 ALSA driver port to APPUL (Apple) Macintosh (MAC) OSX
 still a work in progress (need to test gpio/spdif queues* & move alsa mixer/pcm to IOAudioEngine)
 * using runAction within interruptfilter via IOFilterInterruptEventSource.h to mimic gpio_work/spdif_input_bits_work workqueues (single threaded context w/in filter should be OK, but i am unable to test as it i think pthread fns are restricted to com.apple.kpi.private)
 
-update (29 04 2018):
-kext panics when calling oxygen_write/read fns
--i need to audit use of:
-"#import <architecture/i386/pio.h>"
-as it seems the inb,inw, etc in oxygen_write/read [i386 pio] are the remaining issue before proper testing can ensue.
+update (30 04 2018):
+oxygen_{read,write} functions are functional (tested using restore_eeprom function).
+the remaining work involves:
+    1. setting up the streams/volume-controls for each submodel's engine, 
+    2. finding the OSX-equivalent of wait_event_timeout. 
+        -it may be the case that i am calling assert_wait_timeout incorrectly.
+
+i will need to put my Xonar HDAV1.3 Deluxe back in my PC soon, as i am going to need it. however, i hope to pick up another card in this family to finish the work. i am hopeful others have used this work as a basis for their own investigations.
+
 
 all code belongs to Clemens Ladisch (clemens@ladisch.de).
 
