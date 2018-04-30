@@ -165,7 +165,6 @@ bool PCIAudioDevice::initHardware(IOService *provider)
     // Enable the PCI memory access - the kernel will panic if this isn't done before accessing the
     // mapped registers
     pciDevice->setMemoryEnable(true);
-    physAddress = deviceMap->getPhysicalAddress();
     //deviceRegisters->addr = pciDevice->getDeviceMemoryWithIndex(0)->getPhysicalAddress();
     //deviceRegisters->addr = deviceMap->getPhysicalAddress();
     /*not sure if this will actually get our device ID (thanks to APPUL withholding
