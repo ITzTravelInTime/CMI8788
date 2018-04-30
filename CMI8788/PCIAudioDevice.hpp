@@ -352,6 +352,7 @@ class PCIAudioDevice : public IOAudioDevice
     OSDeclareDefaultStructors(PCIAudioDevice)
     
     XonarAudioEngine            *accessibleEngineInstance;
+    IOAudioEngine               *submodelInstance;
     IOPCIDevice					*pciDevice;
     IOMemoryMap					*deviceMap;
     UInt16                      vendor_id;

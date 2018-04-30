@@ -189,14 +189,14 @@ bool PCIAudioDevice::initHardware(IOService *provider)
     oxygen_restore_eeprom(pciDevice,deviceRegisters);
     
     
-    /*
+    
     if (!audioEngineInstance->init(deviceRegisters,subdev_id))
         goto Done;
     this->accessibleEngineInstance = audioEngineInstance;
     
     //see comments in createAudioEngine to follow rest of oxygen_pci_probe
     //(chip->model.init() and onwards)
-    
+    /*
     if (!createAudioEngine(audioEngineInstance)) {
         goto Done;
     }
@@ -280,7 +280,7 @@ bool PCIAudioDevice::createAudioEngine(XonarAudioEngine *audioEngineInstance)
             goto Done;
 
     }
-    
+    submodelInstance = audioEngine;
     /* The remaining portions of oxygen_pci_probe focus on initialising PCM and the mixer.
      * from what i can gather, these portions of the init from the Linux Driver are handled
      * radically differently from OSX, and so this is where OSX-specific/new code will need to

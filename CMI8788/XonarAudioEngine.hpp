@@ -181,7 +181,7 @@ class XonarAudioEngine : public IOAudioEngine
     IOAudioStream                   *inputs[4];
     SInt16							*outputBuffer;
     SInt16							*inputBuffer;
-    IOWorkLoop                      *workLoop;
+    //IOWorkLoop                      *workLoop;
     IOFilterInterruptEventSource	*interruptEventSource_main;
     //IOFilterInterruptEventSource	*gpioEventSource; unused (if runAction works in the interrupthandler, which is all we need)
     //IOFilterInterruptEventSource	*spdifEventSource; unused (see above line)

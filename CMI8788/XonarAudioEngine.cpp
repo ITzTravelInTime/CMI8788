@@ -1287,7 +1287,7 @@ bool XonarAudioEngine::initHardware(IOService *provider)
     bool result = false;
     IOAudioSampleRate initialSampleRate;
     IOAudioStream *audioStream;
-    // IOWorkLoop *workLoop;
+    IOWorkLoop *workLoop;
     
     printf("XonarAudioEngine[%p]::initHardware(%p)\n", this, provider);
     
@@ -1321,8 +1321,7 @@ bool XonarAudioEngine::initHardware(IOService *provider)
     interruptEventSource_main = IOFilterInterruptEventSource::filterInterruptEventSource(this,
                                                                                          XonarAudioEngine::interruptHandler,
                                                                                          XonarAudioEngine::interruptFilter,                                                                                                                                                                       audioDevice->getProvider());
-    workLoop->addEventSource(interruptEventSource_main);
-    
+
     if (!interruptEventSource_main) { //|| !gpioEventSource || !spdifEventSource) { <- (see comment in header file)
         goto Done;
     }
@@ -1338,6 +1337,7 @@ bool XonarAudioEngine::initHardware(IOService *provider)
     
     // Allocate our input and output buffers - a real driver will likely need to allocate its buffers
     // differently
+    
     outputBuffer = (SInt16 *)IOMalloc(DEFAULT_BUFFER_BYTES);
     if (!outputBuffer) {
         goto Done;
