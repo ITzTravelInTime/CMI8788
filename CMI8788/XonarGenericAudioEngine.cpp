@@ -484,8 +484,8 @@ bool XonarGenericAudioEngine::initHardware(IOService *provider)
     // can do the work in the filter routine and then return false to
     // indicate that we do not want our secondary handler called
     interruptEventSource = IOFilterInterruptEventSource::filterInterruptEventSource(this,
-                                                                                    XonarGenericAudioEngine::interruptHandler,
-                                                                                    XonarGenericAudioEngine::interruptFilter,
+                                                                                    engineInstance->interruptHandler,
+                                                                                    engineInstance->interruptFilter,
                                                                                     audioDevice->getProvider());
     if (!interruptEventSource) {
         goto Done;

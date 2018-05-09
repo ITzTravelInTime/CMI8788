@@ -581,7 +581,7 @@ static int oxygen_ac97_wait(struct oxygen *chip, unsigned int mask)
     //if(({ status |= oxygen_read8(chip, OXYGEN_AC97_INTERRUPT_STATUS);status & mask;}))
         //pthread_cond_timedwait(&chip->ac97_condition,&chip->ac97_mutex,&chip->ac97_timeout);
     //pthread_mutex_unlock(&chip->ac97_mutex);
-    //chip->ac97_result = assert_wait_timeout((event_t)({ status |= oxygen_read8(chip, OXYGEN_AC97_INTERRUPT_STATUS);status & mask;}),1,1,1000*NSEC_PER_USEC);
+    chip->ac97_result = assert_wait_timeout((event_t)({ status |= oxygen_read8(chip, OXYGEN_AC97_INTERRUPT_STATUS);status & mask;}),0,1,1000*NSEC_PER_USEC);
     /*
      * Check even after a timeout because this function should not require
      * the AC'97 interrupt to be enabled.
@@ -1825,7 +1825,8 @@ bool XonarAudioEngine::interruptFilter(OSObject *owner, IOFilterInterruptEventSo
     }
     
     if (status & OXYGEN_INT_AC97) {
-          //thread_wakeup_prim((event_t)({ status |= oxygen_read8(chip, OXYGEN_AC97_INTERRUPT_STATUS);status & chip->ac97_maskval;}),1,chip->ac97_result);
+          unsigned int maskval = chip->ac97_maskval;
+          thread_wakeup_prim((event_t)({ status |= oxygen_read8(chip, OXYGEN_AC97_INTERRUPT_STATUS);status & maskval;}),0,THREAD_AWAKENED);
 //        pthread_mutex_lock(&chip->ac97_mutex);
 //        pthread_cond_signal(&chip->ac97_condition);
 //        pthread_mutex_unlock(&chip->ac97_mutex);
