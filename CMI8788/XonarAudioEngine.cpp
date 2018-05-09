@@ -579,7 +579,7 @@ static int oxygen_ac97_wait(struct oxygen *chip, unsigned int mask)
     //   (event_t),1);
     //pthread_mutex_lock(&chip->ac97_mutex);
     //if(({ status |= oxygen_read8(chip, OXYGEN_AC97_INTERRUPT_STATUS);status & mask;}))
-        //pthread_cond_timedwait(&chip->ac97_condition,&chip->ac97_mutex,&chip->ac97_timeout);
+    //pthread_cond_timedwait(&chip->ac97_condition,&chip->ac97_mutex,&chip->ac97_timeout);
     //pthread_mutex_unlock(&chip->ac97_mutex);
     chip->ac97_result = assert_wait_timeout((event_t)({ status |= oxygen_read8(chip, OXYGEN_AC97_INTERRUPT_STATUS);status & mask;}),0,1,1000*NSEC_PER_USEC);
     /*
@@ -1289,66 +1289,25 @@ bool XonarAudioEngine::initHardware(IOService *provider)
      * since each submodel is somewhat unique in terms of its IOAudioStream
      * objects. thus i think we can leave this method empty, return true, and then
      * move all of this stuff to each submodel's initHardware method.
-     * 
+     *
      * the important part is that XonarAudioEngine "holds" the main
      interrupthandler, since each submodel uses it. */
     
     bool result = false;
-    /*
-    IOAudioSampleRate initialSampleRate;
     IOAudioStream *audioStream;
-    IOWorkLoop *workLoop;
-    */
+    /*
+     IOAudioSampleRate initialSampleRate;
+     IOWorkLoop *workLoop;
+     */
+    
     printf("XonarAudioEngine[%p]::initHardware(%p)\n", this, provider);
     
     if (!super::initHardware(provider)) {
         goto Done;
     }
-    /*
-    // Setup the initial sample rate for the audio engine
-    initialSampleRate.whole = INITIAL_SAMPLE_RATE;
-    initialSampleRate.fraction = 0;
-    
-    setDescription("Sample PCI Audio Engine");
-    
-    setSampleRate(&initialSampleRate);
-    
-    // Set the number of sample frames in each buffer
-    setNumSampleFramesPerBuffer(NUM_SAMPLE_FRAMES);
-    
-    workLoop = getWorkLoop();
-    if (!workLoop) {
-        goto Done;
-    }
-    */
-    // Create an interrupt event source through which to receive interrupt callbacks
-    // In this case, we only want to do work at primary interrupt time, so
-    // we create an IOFilterInterruptEventSource which makes a filtering call
-    // from the primary interrupt interrupt who's purpose is to determine if
-    // our secondary interrupt handler is to be called.  In our case, we
-    // can do the work in the filter routine and then return false to
-    // indicate that we do not want our secondary handler called
-    /*
-    interruptEventSource_main = IOFilterInterruptEventSource::filterInterruptEventSource(this,
-                                                                                         XonarAudioEngine::interruptHandler,
-                                                                                         XonarAudioEngine::interruptFilter,                                                                                                                                                                       audioDevice->getProvider());
-
-    if (!interruptEventSource_main) { //|| !gpioEventSource || !spdifEventSource) { <- (see comment in header file)
-        goto Done;
-    }
-    */
-    // In order to allow the interrupts to be received, the interrupt event source must be
-    // added to the IOWorkLoop
-    // Additionally, interrupts will not be firing until the interrupt event source is
-    // enabled by calling interruptEventSource->enable() - this probably doesn't need to
-    // be done until performAudioEngineStart() is called, and can probably be disabled
-    // when performAudioEngineStop() is called and the audio engine is no longer running
-    // Although this really depends on the specific hardware
-    // workLoop->addEventSource(interruptEventSource_main);
     
     // Allocate our input and output buffers - a real driver will likely need to allocate its buffers
     // differently
-    /*
     outputBuffer = (SInt16 *)IOMalloc(DEFAULT_BUFFER_BYTES);
     if (!outputBuffer) {
         goto Done;
@@ -1359,29 +1318,196 @@ bool XonarAudioEngine::initHardware(IOService *provider)
         goto Done;
     }
     
-    // Create an IOAudioStream for each buffer and add it to this audio engine
-    audioStream = createNewAudioStream(kIOAudioStreamDirectionOutput, outputBuffer, DEFAULT_BUFFER_BYTES);
-    if (!audioStream) {
-        goto Done;
+    
+    //begin oxygen_pcm_init
+    struct snd_pcm *pcm;
+    int outs, ins;
+    int err;
+    
+    outs = !!(chipData->model.device_config & PLAYBACK_0_TO_I2S);
+    ins = !!(chipData->model.device_config & (CAPTURE_0_FROM_I2S_1 |
+                                              CAPTURE_0_FROM_I2S_2));
+    if (outs | ins) {
+        //err = snd_pcm_new(chip->card, "Multichannel",
+        //                  0, outs, ins, &pcm);
+        if (err < 0)
+            return err;
+        if (outs) {
+            // add multich_ops fns
+            audioStream = createAudioStream(kIOAudioStreamDirectionOutput, outputBuffer, DEFAULT_BUFFER_BYTES);
+            if (!audioStream) {
+                goto Done;
+            }
+            addAudioStream(audioStream);
+            audioStream->release();
+        }
+        if (chipData->model.device_config & CAPTURE_0_FROM_I2S_1) {
+            //add rec_a_ops fns
+            audioStream = createAudioStream(kIOAudioStreamDirectionInput, inputBuffer, DEFAULT_BUFFER_BYTES);
+            if (!audioStream) {
+                goto Done;
+            }
+            addAudioStream(audioStream);
+            audioStream->release();
+        }
+        else if (chipData->model.device_config & CAPTURE_0_FROM_I2S_2) {
+            //add rec_b_ops fns
+            audioStream = createAudioStream(kIOAudioStreamDirectionInput, inputBuffer, DEFAULT_BUFFER_BYTES);
+            if (!audioStream) {
+                goto Done;
+            }
+            addAudioStream(audioStream);
+            audioStream->release();
+        }
+        //        pcm->private_data = chip;
+        //        strcpy(pcm->name, "Multichannel");
+        //        if (outs)
+        //            snd_pcm_lib_preallocate_pages(pcm->streams[SNDRV_PCM_STREAM_PLAYBACK].substream,
+        //                                          SNDRV_DMA_TYPE_DEV,
+        //                                          snd_dma_pci_data(chip->pci),
+        //                                          DEFAULT_BUFFER_BYTES_MULTICH,
+        //                                          BUFFER_BYTES_MAX_MULTICH);
+        //        if (ins)
+        //            snd_pcm_lib_preallocate_pages(pcm->streams[SNDRV_PCM_STREAM_CAPTURE].substream,
+        //                                          SNDRV_DMA_TYPE_DEV,
+        //                                          snd_dma_pci_data(chip->pci),
+        //                                          DEFAULT_BUFFER_BYTES,
+        //                                          BUFFER_BYTES_MAX);
     }
     
-    addAudioStream(audioStream);
-    audioStream->release();
-    
-    audioStream = createNewAudioStream(kIOAudioStreamDirectionInput, inputBuffer, DEFAULT_BUFFER_BYTES);
-    if (!audioStream) {
-        goto Done;
+    outs = !!(chipData->model.device_config & PLAYBACK_1_TO_SPDIF);
+    ins = !!(chipData->model.device_config & CAPTURE_1_FROM_SPDIF);
+    if (outs | ins) {
+        //err = snd_pcm_new(chip->card, "Digital", 1, outs, ins, &pcm);
+        if (err < 0)
+            return err;
+        if (outs) {
+            //add spdif_ops fns
+            audioStream = createAudioStream(kIOAudioStreamDirectionOutput, outputBuffer, DEFAULT_BUFFER_BYTES);
+            if (!audioStream) {
+                goto Done;
+            }
+            addAudioStream(audioStream);
+            audioStream->release();
+        }
+        if (ins) {
+            //add rc_c_ops fns
+            audioStream = createAudioStream(kIOAudioStreamDirectionInput, inputBuffer, DEFAULT_BUFFER_BYTES);
+            if (!audioStream) {
+                goto Done;
+            }
+            addAudioStream(audioStream);
+            audioStream->release();
+        }
+        //        pcm->private_data = chip;
+        //        strcpy(pcm->name, "Digital");
+        //        snd_pcm_lib_preallocate_pages_for_all(pcm, SNDRV_DMA_TYPE_DEV,
+        //                                              snd_dma_pci_data(chipData->pci),
+        //                                              DEFAULT_BUFFER_BYTES,
+        //                                              BUFFER_BYTES_MAX);
     }
     
-    addAudioStream(audioStream);
-    audioStream->release();
-    */
+    if (chipData->has_ac97_1) {
+        outs = !!(chipData->model.device_config & PLAYBACK_2_TO_AC97_1);
+        ins = !!(chipData->model.device_config & CAPTURE_2_FROM_AC97_1);
+    } else {
+        outs = 0;
+        ins = !!(chipData->model.device_config & CAPTURE_2_FROM_I2S_2);
+    }
+    
+    if (outs | ins) {
+        //        err = snd_pcm_new(chip->card, outs ? "AC97" : "Analog2",
+        //                          2, outs, ins, &pcm);
+        if (err < 0)
+            return err;
+        if (outs) {
+            //add ac97_ops fns
+            audioStream = createAudioStream(kIOAudioStreamDirectionOutput, outputBuffer, DEFAULT_BUFFER_BYTES);
+            if (!audioStream) {
+                goto Done;
+            }
+            addAudioStream(audioStream);
+            audioStream->release();
+            oxygen_write8_masked(chipData, OXYGEN_REC_ROUTING,
+                                 OXYGEN_REC_B_ROUTE_AC97_1,
+                                 OXYGEN_REC_B_ROUTE_MASK);
+        }
+        if (ins) {
+            //add rec_b_ops fns
+            audioStream = createAudioStream(kIOAudioStreamDirectionInput, inputBuffer, DEFAULT_BUFFER_BYTES);
+            if (!audioStream) {
+                goto Done;
+            }
+            addAudioStream(audioStream);
+            audioStream->release();
+        }
+        //        pcm->private_data = chip;
+        //        strcpy(pcm->name, outs ? "Front Panel" : "Analog 2");
+        
+        ins = !!(chipData->model.device_config & CAPTURE_3_FROM_I2S_3);
+        if (ins) {
+            //            err = snd_pcm_new(chip->card, "Analog3", 3, 0, ins, &pcm);
+            if (err < 0)
+                return err;
+            //add rec_c fns
+            audioStream = createAudioStream(kIOAudioStreamDirectionInput, inputBuffer, DEFAULT_BUFFER_BYTES);
+            if (!audioStream) {
+                goto Done;
+            }
+            addAudioStream(audioStream);
+            audioStream->release();
+            oxygen_write8_masked(chipData, OXYGEN_REC_ROUTING,
+                                 OXYGEN_REC_C_ROUTE_I2S_ADC_3,
+                                 OXYGEN_REC_C_ROUTE_MASK);
+            //            pcm->private_data = chip;
+            //            strcpy(pcm->name, "Analog 3");
+            //            snd_pcm_lib_preallocate_pages_for_all(pcm, SNDRV_DMA_TYPE_DEV,
+            //                                                  snd_dma_pci_data(chip->pci),
+            //                                                  DEFAULT_BUFFER_BYTES,
+            //                                                  BUFFER_BYTES_MAX);
+        }
+    }
+    /*
+     // Setup the initial sample rate for the audio engine
+     initialSampleRate.whole = INITIAL_SAMPLE_RATE;
+     initialSampleRate.fraction = 0;
+     
+     setDescription("Sample PCI Audio Engine");
+     
+     setSampleRate(&initialSampleRate);
+     
+     // Set the number of sample frames in each buffer
+     setNumSampleFramesPerBuffer(NUM_SAMPLE_FRAMES);
+     
+     workLoop = getWorkLoop();
+     if (!workLoop) {
+     goto Done;
+     }
+     */
+    // Create an interrupt event source through which to receive interrupt callbacks
+    // In this case, we only want to do work at primary interrupt time, so
+    // we create an IOFilterInterruptEventSource which makes a filtering call
+    // from the primary interrupt interrupt who's purpose is to determine if
+    // our secondary interrupt handler is to be called.  In our case, we
+    // can do the work in the filter routine and then return false to
+    // indicate that we do not want our secondary handler called
+    /*
+     interruptEventSource_main = IOFilterInterruptEventSource::filterInterruptEventSource(this,
+     XonarAudioEngine::interruptHandler,
+     XonarAudioEngine::interruptFilter,                                                                                                                                                                       audioDevice->getProvider());
+     
+     if (!interruptEventSource_main) { //|| !gpioEventSource || !spdifEventSource) { <- (see comment in header file)
+     goto Done;
+     }
+     */
     result = true;
     
 Done:
     
     return result;
+    
 }
+
 
 void XonarAudioEngine::free()
 {
@@ -1487,7 +1613,7 @@ IOReturn XonarAudioEngine::convertInputSamples(const void *sampleBuf,
     return kIOReturnSuccess;
 }
 
-IOAudioStream *XonarAudioEngine::createNewAudioStream(IOAudioStreamDirection direction, void *sampleBuffer, UInt32 sampleBufferSize)
+IOAudioStream *XonarAudioEngine::createAudioStream(IOAudioStreamDirection direction, void *sampleBuffer, UInt32 sampleBufferSize)
 {
     IOAudioStream *audioStream;
     
@@ -1505,11 +1631,10 @@ IOAudioStream *XonarAudioEngine::createNewAudioStream(IOAudioStreamDirection dir
                 BIT_DEPTH,										// bit depth
                 BIT_DEPTH,										// bit width
                 kIOAudioStreamAlignmentHighByte,				// high byte aligned - unused because bit depth == bit width
-                kIOAudioStreamByteOrderBigEndian,				// big endian
+                kIOAudioStreamByteOrderLittleEndian,				// little endian
                 true,											// format is mixable
                 0												// driver-defined tag - unused by this driver
             };
-            
             // As part of creating a new IOAudioStream, its sample buffer needs to be set
             // It will automatically create a mix buffer should it be needed
             audioStream->setSampleBuffer(sampleBuffer, sampleBufferSize);
@@ -1541,6 +1666,7 @@ IOAudioStream *XonarAudioEngine::createNewAudioStream(IOAudioStreamDirection dir
     
     return audioStream;
 }
+
 
 void XonarAudioEngine::stop(IOService *provider)
 {
@@ -1836,11 +1962,11 @@ bool XonarAudioEngine::interruptFilter(OSObject *owner, IOFilterInterruptEventSo
     }
     
     if (status & OXYGEN_INT_AC97) {
-          unsigned int maskval = chip->ac97_maskval;
-          thread_wakeup_prim((event_t)({ status |= oxygen_read8(chip, OXYGEN_AC97_INTERRUPT_STATUS);status & maskval;}),0,THREAD_AWAKENED);
-//        pthread_mutex_lock(&chip->ac97_mutex);
-//        pthread_cond_signal(&chip->ac97_condition);
-//        pthread_mutex_unlock(&chip->ac97_mutex);
+        unsigned int maskval = chip->ac97_maskval;
+        thread_wakeup_prim((event_t)({ status |= oxygen_read8(chip, OXYGEN_AC97_INTERRUPT_STATUS);status & maskval;}),0,THREAD_AWAKENED);
+        //        pthread_mutex_lock(&chip->ac97_mutex);
+        //        pthread_cond_signal(&chip->ac97_condition);
+        //        pthread_mutex_unlock(&chip->ac97_mutex);
     }
     
     return true;

@@ -199,9 +199,9 @@ public:
     virtual bool initHardware(IOService *provider);
     virtual void stop(IOService *provider);
     
-    virtual IOAudioStream *createNewAudioStream(IOAudioStreamDirection direction, void *sampleBuffer,
+    virtual IOAudioStream *createAudioStream(IOAudioStreamDirection direction, void *sampleBuffer,
                                                 UInt32 sampleBufferSize);
-    
+
     virtual IOReturn performAudioEngineStart();
     virtual IOReturn performAudioEngineStop();
     
