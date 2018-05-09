@@ -489,7 +489,7 @@ bool XonarSTAudioEngine::initHardware(IOService *provider)
     // Set the number of sample frames in each buffer
     setNumSampleFramesPerBuffer(NUM_SAMPLE_FRAMES);
     
-    workLoop = getWorkLoop();
+    workLoop = engineInstance->getWorkLoop();
     if (!workLoop) {
         goto Done;
     }

@@ -1284,17 +1284,27 @@ Done:
 
 bool XonarAudioEngine::initHardware(IOService *provider)
 {
+    /* Comments by Broly:
+     * not sure if we need the initHardware method to contain anything,
+     * since each submodel is somewhat unique in terms of its IOAudioStream
+     * objects. thus i think we can leave this method empty, return true, and then
+     * move all of this stuff to each submodel's initHardware method.
+     * 
+     * the important part is that XonarAudioEngine "holds" the main
+     interrupthandler, since each submodel uses it. */
+    
     bool result = false;
+    /*
     IOAudioSampleRate initialSampleRate;
     IOAudioStream *audioStream;
     IOWorkLoop *workLoop;
-    
+    */
     printf("XonarAudioEngine[%p]::initHardware(%p)\n", this, provider);
     
     if (!super::initHardware(provider)) {
         goto Done;
     }
-    
+    /*
     // Setup the initial sample rate for the audio engine
     initialSampleRate.whole = INITIAL_SAMPLE_RATE;
     initialSampleRate.fraction = 0;
@@ -1310,7 +1320,7 @@ bool XonarAudioEngine::initHardware(IOService *provider)
     if (!workLoop) {
         goto Done;
     }
-    
+    */
     // Create an interrupt event source through which to receive interrupt callbacks
     // In this case, we only want to do work at primary interrupt time, so
     // we create an IOFilterInterruptEventSource which makes a filtering call
@@ -1318,6 +1328,7 @@ bool XonarAudioEngine::initHardware(IOService *provider)
     // our secondary interrupt handler is to be called.  In our case, we
     // can do the work in the filter routine and then return false to
     // indicate that we do not want our secondary handler called
+    /*
     interruptEventSource_main = IOFilterInterruptEventSource::filterInterruptEventSource(this,
                                                                                          XonarAudioEngine::interruptHandler,
                                                                                          XonarAudioEngine::interruptFilter,                                                                                                                                                                       audioDevice->getProvider());
@@ -1325,7 +1336,7 @@ bool XonarAudioEngine::initHardware(IOService *provider)
     if (!interruptEventSource_main) { //|| !gpioEventSource || !spdifEventSource) { <- (see comment in header file)
         goto Done;
     }
-    
+    */
     // In order to allow the interrupts to be received, the interrupt event source must be
     // added to the IOWorkLoop
     // Additionally, interrupts will not be firing until the interrupt event source is
@@ -1333,11 +1344,11 @@ bool XonarAudioEngine::initHardware(IOService *provider)
     // be done until performAudioEngineStart() is called, and can probably be disabled
     // when performAudioEngineStop() is called and the audio engine is no longer running
     // Although this really depends on the specific hardware
-    workLoop->addEventSource(interruptEventSource_main);
+    // workLoop->addEventSource(interruptEventSource_main);
     
     // Allocate our input and output buffers - a real driver will likely need to allocate its buffers
     // differently
-    
+    /*
     outputBuffer = (SInt16 *)IOMalloc(DEFAULT_BUFFER_BYTES);
     if (!outputBuffer) {
         goto Done;
@@ -1364,7 +1375,7 @@ bool XonarAudioEngine::initHardware(IOService *provider)
     
     addAudioStream(audioStream);
     audioStream->release();
-    
+    */
     result = true;
     
 Done:
