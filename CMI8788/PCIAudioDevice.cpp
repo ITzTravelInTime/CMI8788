@@ -133,8 +133,8 @@ bool PCIAudioDevice::initHardware(IOService *provider)
 {
 
     bool result = false;
-    XonarAudioEngine *audioEngineInstance = NULL;
-    audioEngineInstance = new XonarAudioEngine;
+    //XonarAudioEngine *audioEngineInstance = NULL;
+    this->accessibleEngineInstance = new XonarAudioEngine;
     printf("SamplePCIAudioDevice[%p]::initHardware(%p)\n", this, provider);
     
     if (!super::initHardware(provider)) {
@@ -187,21 +187,12 @@ bool PCIAudioDevice::initHardware(IOService *provider)
     setDeviceShortName("CMI8788");
     setManufacturerName("CMedia");
     oxygen_restore_eeprom(pciDevice,deviceRegisters);
-    
-    
-    
-    if (!audioEngineInstance->init(deviceRegisters,subdev_id))
-        goto Done;
-    this->accessibleEngineInstance = audioEngineInstance;
-    
-    //see comments in createAudioEngine to follow rest of oxygen_pci_probe
-    //(chip->model.init() and onwards)
+
    
-    if (!createAudioEngine(audioEngineInstance)) {
+    if (!createAudioEngine()) {
         goto Done;
     }
     
-    this->accessibleEngineInstance = audioEngineInstance;
     result = true;
     
 Done:
@@ -225,12 +216,12 @@ void PCIAudioDevice::free()
         deviceMap->release();
         deviceMap = NULL;
     }
-    this->accessibleEngineInstance->free();
     this->submodelInstance->free();
+    this->accessibleEngineInstance->free();
     super::free();
 }
 
-bool PCIAudioDevice::createAudioEngine(XonarAudioEngine *audioEngineInstance)
+bool PCIAudioDevice::createAudioEngine()
 {
     IOAudioControl *control;
     //At this point, we should be at the chip->model.init() part of the oxygen_pci_probe function.
@@ -238,50 +229,50 @@ bool PCIAudioDevice::createAudioEngine(XonarAudioEngine *audioEngineInstance)
     //that is: XonarHDAVAudioEngine::init() contains the code for xonar_hdav_init, etc.
     printf("SamplePCIAudioDevice[%p]::createAudioEngine()\n", this);
     bool result = false;
-    IOAudioEngine *audioEngine = NULL;
+    
     
     if(subdev_id == HDAV_MODEL)
-        audioEngine = new XonarHDAVAudioEngine;
+        this->submodelInstance = new XonarHDAVAudioEngine;
     else if (subdev_id == ST_MODEL || subdev_id == STX_MODEL || subdev_id == XENSE_MODEL)
-        audioEngine = new XonarSTAudioEngine;
+        this->submodelInstance = new XonarSTAudioEngine;
     else if (subdev_id == D2_MODEL || subdev_id == D2X_MODEL)
-        audioEngine = new XonarD2XAudioEngine;
+        this->submodelInstance = new XonarD2XAudioEngine;
     else if (subdev_id == DX_MODEL || subdev_id == CS4XX_MODEL || subdev_id== D1_MODEL)
-        audioEngine = new XonarCS43XXAudioEngine;
+        this->submodelInstance = new XonarCS43XXAudioEngine;
     else if (subdev_id == DS_MODEL || subdev_id == DSX_MODEL || subdev_id == HDAV_SLIM)
-        audioEngine = new XonarWM87x6AudioEngine;
-    if (!audioEngine)
+        this->submodelInstance = new XonarWM87x6AudioEngine;
+    if (!this->submodelInstance)
         goto Done;
-    
     //printf("Created ")
     //calling chip->model.init()-equivalent directly below
     // Init the new audio engine with the device registers so it can access them if necessary
     // The audio engine subclass could be defined to take any number of parameters for its
     // initialization - use it like a constructor
-//    if(subdev_id == HDAV_MODEL) {
-//        if (!((XonarHDAVAudioEngine*)audioEngine)->init(audioEngineInstance,deviceRegisters))
-//            goto Done;
-//    }
-//    else if (subdev_id == ST_MODEL || subdev_id == STX_MODEL || subdev_id == XENSE_MODEL) {
-//        if (!((XonarSTAudioEngine*)audioEngine)->init(audioEngineInstance,deviceRegisters,subdev_id))
-//            goto Done;
-//    }
-//    else if (subdev_id == D2_MODEL || subdev_id == D2X_MODEL) {
-//        if (!((XonarD2XAudioEngine*)audioEngine)->init(audioEngineInstance,deviceRegisters,subdev_id))
-//            goto Done;
-//        
-//    }
-//    else if( subdev_id == DX_MODEL || subdev_id == CS4XX_MODEL || subdev_id== D1_MODEL) {
-//        if (!((XonarCS43XXAudioEngine*)audioEngine)->init(audioEngineInstance,deviceRegisters,subdev_id))
-//            goto Done;
-//        
-//    }
-//    else if (subdev_id == DS_MODEL || subdev_id == DSX_MODEL || subdev_id == HDAV_SLIM) {
-//        if (!((XonarWM87x6AudioEngine*)audioEngine)->init(audioEngineInstance,deviceRegisters,subdev_id))
-//            goto Done;
-//
-//    }
-    this->submodelInstance = audioEngine;
+    if(subdev_id == HDAV_MODEL) {
+        if (!((XonarHDAVAudioEngine*)this->submodelInstance)->init(this->accessibleEngineInstance,deviceRegisters))
+            goto Done;
+        
+    }
+    else if (subdev_id == ST_MODEL || subdev_id == STX_MODEL || subdev_id == XENSE_MODEL) {
+        if (!((XonarSTAudioEngine*)this->submodelInstance)->init(this->accessibleEngineInstance,deviceRegisters,subdev_id))
+            goto Done;
+    }
+    else if (subdev_id == D2_MODEL || subdev_id == D2X_MODEL) {
+        if (!((XonarD2XAudioEngine*)this->submodelInstance)->init(this->accessibleEngineInstance,deviceRegisters,subdev_id))
+            goto Done;
+        
+    }
+    else if( subdev_id == DX_MODEL || subdev_id == CS4XX_MODEL || subdev_id== D1_MODEL) {
+        if (!((XonarCS43XXAudioEngine*)this->submodelInstance)->init(this->accessibleEngineInstance,deviceRegisters,subdev_id))
+            goto Done;
+        
+    }
+    else if (subdev_id == DS_MODEL || subdev_id == DSX_MODEL || subdev_id == HDAV_SLIM) {
+        if (!((XonarWM87x6AudioEngine*)this->submodelInstance)->init(this->accessibleEngineInstance,deviceRegisters,subdev_id))
+            goto Done;
+
+    }
+
     /* The remaining portions of oxygen_pci_probe focus on initialising PCM and the mixer.
      * from what i can gather, these portions of the init from the Linux Driver are handled
      * radically differently from OSX, and so this is where OSX-specific/new code will need to
@@ -404,8 +395,8 @@ bool PCIAudioDevice::createAudioEngine(XonarAudioEngine *audioEngineInstance)
     
 Done:
     
-    if (!result && (audioEngine != NULL)) {
-        audioEngine->release();
+    if (!result && (this->submodelInstance != NULL)) {
+        this->submodelInstance->release();
     }
     
     return result;

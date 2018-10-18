@@ -361,7 +361,7 @@ class PCIAudioDevice : public IOAudioDevice
     struct oxygen               *deviceRegisters;
     
     virtual bool initHardware(IOService *provider);
-    virtual bool createAudioEngine(XonarAudioEngine *instance);
+    virtual bool createAudioEngine();//(XonarAudioEngine *instance);
     virtual void free();
     
     static IOReturn volumeChangeHandler(IOService *target, IOAudioControl *volumeControl, SInt32 oldValue, SInt32 newValue);

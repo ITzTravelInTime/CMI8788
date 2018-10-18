@@ -1327,146 +1327,146 @@ bool XonarAudioEngine::initHardware(IOService *provider)
     outs = !!(chipData->model.device_config & PLAYBACK_0_TO_I2S);
     ins = !!(chipData->model.device_config & (CAPTURE_0_FROM_I2S_1 |
                                               CAPTURE_0_FROM_I2S_2));
-//    if (outs | ins) {
-//        //err = snd_pcm_new(chip->card, "Multichannel",
-//        //                  0, outs, ins, &pcm);
-//        if (err < 0)
-//            return err;
-//        if (outs) {
-//            // add multich_ops fns
-//            audioStream = createAudioStream(kIOAudioStreamDirectionOutput, outputBuffer, DEFAULT_BUFFER_BYTES);
-//            if (!audioStream) {
-//                goto Done;
-//            }
-//            addAudioStream(audioStream);
-//            audioStream->release();
-//        }
-//        if (chipData->model.device_config & CAPTURE_0_FROM_I2S_1) {
-//            //add rec_a_ops fns
-//            audioStream = createAudioStream(kIOAudioStreamDirectionInput, inputBuffer, DEFAULT_BUFFER_BYTES);
-//            if (!audioStream) {
-//                goto Done;
-//            }
-//            addAudioStream(audioStream);
-//            audioStream->release();
-//        }
-//        else if (chipData->model.device_config & CAPTURE_0_FROM_I2S_2) {
-//            //add rec_b_ops fns
-//            audioStream = createAudioStream(kIOAudioStreamDirectionInput, inputBuffer, DEFAULT_BUFFER_BYTES);
-//            if (!audioStream) {
-//                goto Done;
-//            }
-//            addAudioStream(audioStream);
-//            audioStream->release();
-//        }
-//        //        pcm->private_data = chip;
-//        //        strcpy(pcm->name, "Multichannel");
-//        //        if (outs)
-//        //            snd_pcm_lib_preallocate_pages(pcm->streams[SNDRV_PCM_STREAM_PLAYBACK].substream,
-//        //                                          SNDRV_DMA_TYPE_DEV,
-//        //                                          snd_dma_pci_data(chip->pci),
-//        //                                          DEFAULT_BUFFER_BYTES_MULTICH,
-//        //                                          BUFFER_BYTES_MAX_MULTICH);
-//        //        if (ins)
-//        //            snd_pcm_lib_preallocate_pages(pcm->streams[SNDRV_PCM_STREAM_CAPTURE].substream,
-//        //                                          SNDRV_DMA_TYPE_DEV,
-//        //                                          snd_dma_pci_data(chip->pci),
-//        //                                          DEFAULT_BUFFER_BYTES,
-//        //                                          BUFFER_BYTES_MAX);
-//    }
-//    
-//    outs = !!(chipData->model.device_config & PLAYBACK_1_TO_SPDIF);
-//    ins = !!(chipData->model.device_config & CAPTURE_1_FROM_SPDIF);
-//    if (outs | ins) {
-//        //err = snd_pcm_new(chip->card, "Digital", 1, outs, ins, &pcm);
-//        if (err < 0)
-//            return err;
-//        if (outs) {
-//            //add spdif_ops fns
-//            audioStream = createAudioStream(kIOAudioStreamDirectionOutput, outputBuffer, DEFAULT_BUFFER_BYTES);
-//            if (!audioStream) {
-//                goto Done;
-//            }
-//            addAudioStream(audioStream);
-//            audioStream->release();
-//        }
-//        if (ins) {
-//            //add rc_c_ops fns
-//            audioStream = createAudioStream(kIOAudioStreamDirectionInput, inputBuffer, DEFAULT_BUFFER_BYTES);
-//            if (!audioStream) {
-//                goto Done;
-//            }
-//            addAudioStream(audioStream);
-//            audioStream->release();
-//        }
-//        //        pcm->private_data = chip;
-//        //        strcpy(pcm->name, "Digital");
-//        //        snd_pcm_lib_preallocate_pages_for_all(pcm, SNDRV_DMA_TYPE_DEV,
-//        //                                              snd_dma_pci_data(chipData->pci),
-//        //                                              DEFAULT_BUFFER_BYTES,
-//        //                                              BUFFER_BYTES_MAX);
-//    }
-//    
-//    if (chipData->has_ac97_1) {
-//        outs = !!(chipData->model.device_config & PLAYBACK_2_TO_AC97_1);
-//        ins = !!(chipData->model.device_config & CAPTURE_2_FROM_AC97_1);
-//    } else {
-//        outs = 0;
-//        ins = !!(chipData->model.device_config & CAPTURE_2_FROM_I2S_2);
-//    }
-//    
-//    if (outs | ins) {
-//        //        err = snd_pcm_new(chip->card, outs ? "AC97" : "Analog2",
-//        //                          2, outs, ins, &pcm);
-//        if (err < 0)
-//            return err;
-//        if (outs) {
-//            //add ac97_ops fns
-//            audioStream = createAudioStream(kIOAudioStreamDirectionOutput, outputBuffer, DEFAULT_BUFFER_BYTES);
-//            if (!audioStream) {
-//                goto Done;
-//            }
-//            addAudioStream(audioStream);
-//            audioStream->release();
-//            oxygen_write8_masked(chipData, OXYGEN_REC_ROUTING,
-//                                 OXYGEN_REC_B_ROUTE_AC97_1,
-//                                 OXYGEN_REC_B_ROUTE_MASK);
-//        }
-//        if (ins) {
-//            //add rec_b_ops fns
-//            audioStream = createAudioStream(kIOAudioStreamDirectionInput, inputBuffer, DEFAULT_BUFFER_BYTES);
-//            if (!audioStream) {
-//                goto Done;
-//            }
-//            addAudioStream(audioStream);
-//            audioStream->release();
-//        }
-//        //        pcm->private_data = chip;
-//        //        strcpy(pcm->name, outs ? "Front Panel" : "Analog 2");
-//        
-//        ins = !!(chipData->model.device_config & CAPTURE_3_FROM_I2S_3);
-//        if (ins) {
-//            //            err = snd_pcm_new(chip->card, "Analog3", 3, 0, ins, &pcm);
-//            if (err < 0)
-//                return err;
-//            //add rec_c fns
-//            audioStream = createAudioStream(kIOAudioStreamDirectionInput, inputBuffer, DEFAULT_BUFFER_BYTES);
-//            if (!audioStream) {
-//                goto Done;
-//            }
-//            addAudioStream(audioStream);
-//            audioStream->release();
-//            oxygen_write8_masked(chipData, OXYGEN_REC_ROUTING,
-//                                 OXYGEN_REC_C_ROUTE_I2S_ADC_3,
-//                                 OXYGEN_REC_C_ROUTE_MASK);
-//            //            pcm->private_data = chip;
-//            //            strcpy(pcm->name, "Analog 3");
-//            //            snd_pcm_lib_preallocate_pages_for_all(pcm, SNDRV_DMA_TYPE_DEV,
-//            //                                                  snd_dma_pci_data(chip->pci),
-//            //                                                  DEFAULT_BUFFER_BYTES,
-//            //                                                  BUFFER_BYTES_MAX);
-//        }
-//    }
+    if (outs | ins) {
+        //err = snd_pcm_new(chip->card, "Multichannel",
+        //                  0, outs, ins, &pcm);
+        if (err < 0)
+            return err;
+        if (outs) {
+            // add multich_ops fns
+            audioStream = createAudioStream(kIOAudioStreamDirectionOutput, outputBuffer, DEFAULT_BUFFER_BYTES);
+            if (!audioStream) {
+                goto Done;
+            }
+            addAudioStream(audioStream);
+            audioStream->release();
+        }
+        if (chipData->model.device_config & CAPTURE_0_FROM_I2S_1) {
+            //add rec_a_ops fns
+            audioStream = createAudioStream(kIOAudioStreamDirectionInput, inputBuffer, DEFAULT_BUFFER_BYTES);
+            if (!audioStream) {
+                goto Done;
+            }
+            addAudioStream(audioStream);
+            audioStream->release();
+        }
+        else if (chipData->model.device_config & CAPTURE_0_FROM_I2S_2) {
+            //add rec_b_ops fns
+            audioStream = createAudioStream(kIOAudioStreamDirectionInput, inputBuffer, DEFAULT_BUFFER_BYTES);
+            if (!audioStream) {
+                goto Done;
+            }
+            addAudioStream(audioStream);
+            audioStream->release();
+        }
+        //        pcm->private_data = chip;
+        //        strcpy(pcm->name, "Multichannel");
+        //        if (outs)
+        //            snd_pcm_lib_preallocate_pages(pcm->streams[SNDRV_PCM_STREAM_PLAYBACK].substream,
+        //                                          SNDRV_DMA_TYPE_DEV,
+        //                                          snd_dma_pci_data(chip->pci),
+        //                                          DEFAULT_BUFFER_BYTES_MULTICH,
+        //                                          BUFFER_BYTES_MAX_MULTICH);
+        //        if (ins)
+        //            snd_pcm_lib_preallocate_pages(pcm->streams[SNDRV_PCM_STREAM_CAPTURE].substream,
+        //                                          SNDRV_DMA_TYPE_DEV,
+        //                                          snd_dma_pci_data(chip->pci),
+        //                                          DEFAULT_BUFFER_BYTES,
+        //                                          BUFFER_BYTES_MAX);
+    }
+    
+    outs = !!(chipData->model.device_config & PLAYBACK_1_TO_SPDIF);
+    ins = !!(chipData->model.device_config & CAPTURE_1_FROM_SPDIF);
+    if (outs | ins) {
+        //err = snd_pcm_new(chip->card, "Digital", 1, outs, ins, &pcm);
+        if (err < 0)
+            return err;
+        if (outs) {
+            //add spdif_ops fns
+            audioStream = createAudioStream(kIOAudioStreamDirectionOutput, outputBuffer, DEFAULT_BUFFER_BYTES);
+            if (!audioStream) {
+                goto Done;
+            }
+            addAudioStream(audioStream);
+            audioStream->release();
+        }
+        if (ins) {
+            //add rc_c_ops fns
+            audioStream = createAudioStream(kIOAudioStreamDirectionInput, inputBuffer, DEFAULT_BUFFER_BYTES);
+            if (!audioStream) {
+                goto Done;
+            }
+            addAudioStream(audioStream);
+            audioStream->release();
+        }
+        //        pcm->private_data = chip;
+        //        strcpy(pcm->name, "Digital");
+        //        snd_pcm_lib_preallocate_pages_for_all(pcm, SNDRV_DMA_TYPE_DEV,
+        //                                              snd_dma_pci_data(chipData->pci),
+        //                                              DEFAULT_BUFFER_BYTES,
+        //                                              BUFFER_BYTES_MAX);
+    }
+    
+    if (chipData->has_ac97_1) {
+        outs = !!(chipData->model.device_config & PLAYBACK_2_TO_AC97_1);
+        ins = !!(chipData->model.device_config & CAPTURE_2_FROM_AC97_1);
+    } else {
+        outs = 0;
+        ins = !!(chipData->model.device_config & CAPTURE_2_FROM_I2S_2);
+    }
+    
+    if (outs | ins) {
+        //        err = snd_pcm_new(chip->card, outs ? "AC97" : "Analog2",
+        //                          2, outs, ins, &pcm);
+        if (err < 0)
+            return err;
+        if (outs) {
+            //add ac97_ops fns
+            audioStream = createAudioStream(kIOAudioStreamDirectionOutput, outputBuffer, DEFAULT_BUFFER_BYTES);
+            if (!audioStream) {
+                goto Done;
+            }
+            addAudioStream(audioStream);
+            audioStream->release();
+            oxygen_write8_masked(chipData, OXYGEN_REC_ROUTING,
+                                 OXYGEN_REC_B_ROUTE_AC97_1,
+                                 OXYGEN_REC_B_ROUTE_MASK);
+        }
+        if (ins) {
+            //add rec_b_ops fns
+            audioStream = createAudioStream(kIOAudioStreamDirectionInput, inputBuffer, DEFAULT_BUFFER_BYTES);
+            if (!audioStream) {
+                goto Done;
+            }
+            addAudioStream(audioStream);
+            audioStream->release();
+        }
+        //        pcm->private_data = chip;
+        //        strcpy(pcm->name, outs ? "Front Panel" : "Analog 2");
+        
+        ins = !!(chipData->model.device_config & CAPTURE_3_FROM_I2S_3);
+        if (ins) {
+            //            err = snd_pcm_new(chip->card, "Analog3", 3, 0, ins, &pcm);
+            if (err < 0)
+                return err;
+            //add rec_c fns
+            audioStream = createAudioStream(kIOAudioStreamDirectionInput, inputBuffer, DEFAULT_BUFFER_BYTES);
+            if (!audioStream) {
+                goto Done;
+            }
+            addAudioStream(audioStream);
+            audioStream->release();
+            oxygen_write8_masked(chipData, OXYGEN_REC_ROUTING,
+                                 OXYGEN_REC_C_ROUTE_I2S_ADC_3,
+                                 OXYGEN_REC_C_ROUTE_MASK);
+            //            pcm->private_data = chip;
+            //            strcpy(pcm->name, "Analog 3");
+            //            snd_pcm_lib_preallocate_pages_for_all(pcm, SNDRV_DMA_TYPE_DEV,
+            //                                                  snd_dma_pci_data(chip->pci),
+            //                                                  DEFAULT_BUFFER_BYTES,
+            //                                                  BUFFER_BYTES_MAX);
+        }
+    }
     /*
      // Setup the initial sample rate for the audio engine
      initialSampleRate.whole = INITIAL_SAMPLE_RATE;

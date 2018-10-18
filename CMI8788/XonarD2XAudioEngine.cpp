@@ -135,7 +135,7 @@ bool XonarD2XAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip, UI
 {
     bool result = false;
     chip->model_data = IOMalloc(chip->model.model_data_size);
-    struct xonar_pcm179x *data = (struct xonar_pcm179x*)chip->model_data;
+    deviceRegisters = (struct xonar_pcm179x*)chip->model_data;
     printf("XonarD2XAudioEngine[%p]::init(%p)\n", this, chip);
     
     if (!chip) {
@@ -149,17 +149,15 @@ bool XonarD2XAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip, UI
     if(submodel == D2_MODEL)
         xonar_d2_init(chip, engine);
     else if(submodel == D2X_MODEL) {
-        data->generic.ext_power_reg = OXYGEN_GPIO_DATA;
-        data->generic.ext_power_int_reg = OXYGEN_GPIO_INTERRUPT_MASK;
-        data->generic.ext_power_bit = GPIO_D2X_EXT_POWER;
+        deviceRegisters->generic.ext_power_reg = OXYGEN_GPIO_DATA;
+        deviceRegisters->generic.ext_power_int_reg = OXYGEN_GPIO_INTERRUPT_MASK;
+        deviceRegisters->generic.ext_power_bit = GPIO_D2X_EXT_POWER;
         oxygen_clear_bits16(chip, OXYGEN_GPIO_CONTROL, GPIO_D2X_EXT_POWER);
         engine->xonar_init_ext_power(chip);
         xonar_d2_init(chip, engine);
     }
     else
         goto Done;
-      
-    deviceRegisters = data;
     
     //set the pointer to XonarAudioEngine.
     this->engineInstance = engine;

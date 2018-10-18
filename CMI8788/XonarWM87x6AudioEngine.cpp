@@ -430,7 +430,7 @@ bool XonarWM87x6AudioEngine::init(XonarAudioEngine *audioEngine, struct oxygen *
     
     printf("SamplePCIAudioEngine[%p]::init(%p)\n", this, chip);
     chip->model_data = IOMalloc(chip->model.model_data_size);
-    struct xonar_wm87x6 *data = (struct xonar_wm87x6 *) chip->model_data;
+    deviceRegisters = (struct xonar_wm87x6 *) chip->model_data;
     if (!chip) {
         goto Done;
     }
@@ -459,8 +459,8 @@ bool XonarWM87x6AudioEngine::init(XonarAudioEngine *audioEngine, struct oxygen *
         //chip->model.dac_tlv = wm87x6_dac_db_scale;
         
         /* begin ds_init */
-        data->generic.anti_pop_delay = 300;
-        data->generic.output_enable_bit = GPIO_DS_OUTPUT_ENABLE;
+        deviceRegisters->generic.anti_pop_delay = 300;
+        deviceRegisters->generic.output_enable_bit = GPIO_DS_OUTPUT_ENABLE;
         
         wm8776_init(chip, audioEngine);
         wm8766_init(chip, audioEngine);
@@ -520,7 +520,6 @@ bool XonarWM87x6AudioEngine::init(XonarAudioEngine *audioEngine, struct oxygen *
     
     
     //set registers/engine and finish APPUL sampleaudioengine init
-    deviceRegisters = (struct xonar_wm87x6*) data;
     this->engineInstance = audioEngine;
     result = true;
     

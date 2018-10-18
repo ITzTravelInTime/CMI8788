@@ -233,15 +233,15 @@ bool XonarCS43XXAudioEngine::init(XonarAudioEngine *audioEngine, struct oxygen *
     
     printf("SamplePCIAudioEngine[%p]::init(%p)\n", this, chip);
     chip->model_data = IOMalloc(chip->model.model_data_size);
-    struct xonar_cs43xx *data = (struct xonar_cs43xx *) chip->model_data;
+    deviceRegisters = (struct xonar_cs43xx *) chip->model_data;
+    
     if (!chip) {
         goto Done;
     }
     
-    if (!super::init(NULL)) {
+    if (!audioEngine->init(chip, model)) {
         goto Done;
     }
-    
     
     //end APPUL portion of sampleaudioengine::init
     
@@ -264,35 +264,35 @@ bool XonarCS43XXAudioEngine::init(XonarAudioEngine *audioEngine, struct oxygen *
     if(model == DX_MODEL || model == CS4XX_MODEL || model== D1_MODEL) {
         if(model == DX_MODEL) {
             //DX model is the same as D1, so just set the three params
-            data->generic.ext_power_reg = OXYGEN_GPI_DATA;
-            data->generic.ext_power_int_reg = OXYGEN_GPI_INTERRUPT_MASK;
-            data->generic.ext_power_bit = GPI_EXT_POWER;
+            deviceRegisters->generic.ext_power_reg = OXYGEN_GPI_DATA;
+            deviceRegisters->generic.ext_power_int_reg = OXYGEN_GPI_INTERRUPT_MASK;
+            deviceRegisters->generic.ext_power_bit = GPI_EXT_POWER;
             engineInstance->xonar_init_ext_power(chip);
         }
         
         //d1_init is required for all CS4XXX cards.
 
-        data->generic.anti_pop_delay = 800;
-        data->generic.output_enable_bit = GPIO_D1_OUTPUT_ENABLE;
-        data->cs4398_regs[2] =
+        deviceRegisters->generic.anti_pop_delay = 800;
+        deviceRegisters->generic.output_enable_bit = GPIO_D1_OUTPUT_ENABLE;
+        deviceRegisters->cs4398_regs[2] =
         CS4398_FM_SINGLE | CS4398_DEM_NONE | CS4398_DIF_LJUST;
-        data->cs4398_regs[4] = CS4398_MUTEP_LOW |
+        deviceRegisters->cs4398_regs[4] = CS4398_MUTEP_LOW |
         CS4398_MUTE_B | CS4398_MUTE_A | CS4398_PAMUTE;
-        data->cs4398_regs[5] = 60 * 2;
-        data->cs4398_regs[6] = 60 * 2;
-        data->cs4398_regs[7] = CS4398_RMP_DN | CS4398_RMP_UP |
+        deviceRegisters->cs4398_regs[5] = 60 * 2;
+        deviceRegisters->cs4398_regs[6] = 60 * 2;
+        deviceRegisters->cs4398_regs[7] = CS4398_RMP_DN | CS4398_RMP_UP |
         CS4398_ZERO_CROSS | CS4398_SOFT_RAMP;
-        data->cs4362a_regs[4] = CS4362A_RMP_DN | CS4362A_DEM_NONE;
-        data->cs4362a_regs[6] = CS4362A_FM_SINGLE |
+        deviceRegisters->cs4362a_regs[4] = CS4362A_RMP_DN | CS4362A_DEM_NONE;
+        deviceRegisters->cs4362a_regs[6] = CS4362A_FM_SINGLE |
         CS4362A_ATAPI_B_R | CS4362A_ATAPI_A_L;
-        data->cs4362a_regs[7] = 60 | CS4362A_MUTE;
-        data->cs4362a_regs[8] = 60 | CS4362A_MUTE;
-        data->cs4362a_regs[9] = data->cs4362a_regs[6];
-        data->cs4362a_regs[10] = 60 | CS4362A_MUTE;
-        data->cs4362a_regs[11] = 60 | CS4362A_MUTE;
-        data->cs4362a_regs[12] = data->cs4362a_regs[6];
-        data->cs4362a_regs[13] = 60 | CS4362A_MUTE;
-        data->cs4362a_regs[14] = 60 | CS4362A_MUTE;
+        deviceRegisters->cs4362a_regs[7] = 60 | CS4362A_MUTE;
+        deviceRegisters->cs4362a_regs[8] = 60 | CS4362A_MUTE;
+        deviceRegisters->cs4362a_regs[9] = deviceRegisters->cs4362a_regs[6];
+        deviceRegisters->cs4362a_regs[10] = 60 | CS4362A_MUTE;
+        deviceRegisters->cs4362a_regs[11] = 60 | CS4362A_MUTE;
+        deviceRegisters->cs4362a_regs[12] = deviceRegisters->cs4362a_regs[6];
+        deviceRegisters->cs4362a_regs[13] = 60 | CS4362A_MUTE;
+        deviceRegisters->cs4362a_regs[14] = 60 | CS4362A_MUTE;
         
         oxygen_write16(chip, OXYGEN_2WIRE_BUS_STATUS,
                        OXYGEN_2WIRE_LENGTH_8 |
@@ -315,7 +315,6 @@ bool XonarCS43XXAudioEngine::init(XonarAudioEngine *audioEngine, struct oxygen *
         goto Done;
     
     //set registers/engine and finish APPUL sampleaudioengine init
-    deviceRegisters = (struct xonar_cs43xx*) data;
     this->engineInstance = audioEngine;
     result = true;
     

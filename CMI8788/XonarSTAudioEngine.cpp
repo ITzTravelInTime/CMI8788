@@ -361,30 +361,30 @@ bool XonarSTAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip, UIn
     /* sample driver init code (from SamplePCIAudioEngine.cpp's ::init) */
     bool result = false;
     chip->model_data = IOMalloc(chip->model.model_data_size);
-    struct xonar_pcm179x *data = (struct xonar_pcm179x*)chip->model_data;
+    deviceRegisters = (struct xonar_pcm179x*)chip->model_data;
     printf("XonarSTAudioEngine[%p]::init(%p)\n", this, chip);
     
     if (!chip) {
         goto Done;
     }
     
-    if (!super::init(NULL)) {
+    if (!engine->init(chip, model)) {
         goto Done;
     }
     /* sample driver init code (from SamplePCIAudioEngine.cpp's ::init) */
     
     
     if(model == ST_MODEL) {
-        data->generic.anti_pop_delay = 100;
-        data->h6 = chip->model.dac_channels_mixer > 2;
-        data->has_cs2000 = 1;
-        data->cs2000_regs[CS2000_FUN_CFG_1] = CS2000_REF_CLK_DIV_1;
-        data->broken_i2c = true;
+        deviceRegisters->generic.anti_pop_delay = 100;
+        deviceRegisters->h6 = chip->model.dac_channels_mixer > 2;
+        deviceRegisters->has_cs2000 = 1;
+        deviceRegisters->cs2000_regs[CS2000_FUN_CFG_1] = CS2000_REF_CLK_DIV_1;
+        deviceRegisters->broken_i2c = true;
         
         oxygen_write16(chip, OXYGEN_I2S_A_FORMAT,
                        OXYGEN_RATE_48000 |
                        OXYGEN_I2S_FORMAT_I2S |
-                       OXYGEN_I2S_MCLK(data->h6 ? MCLK_256 : MCLK_512) |
+                       OXYGEN_I2S_MCLK(deviceRegisters->h6 ? MCLK_256 : MCLK_512) |
                        OXYGEN_I2S_BITS_16 |
                        OXYGEN_I2S_MASTER |
                        OXYGEN_I2S_BCLK_64);
@@ -397,23 +397,23 @@ bool XonarSTAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip, UIn
     }
     else if(model == STX_MODEL || model == STX2_MODEL) {
         xonar_st_init_i2c(chip,engine);
-        data->generic.anti_pop_delay = 800;
-        data->generic.ext_power_reg = OXYGEN_GPI_DATA;
-        data->generic.ext_power_int_reg = OXYGEN_GPI_INTERRUPT_MASK;
-        data->generic.ext_power_bit = GPI_EXT_POWER;
+        deviceRegisters->generic.anti_pop_delay = 800;
+        deviceRegisters->generic.ext_power_reg = OXYGEN_GPI_DATA;
+        deviceRegisters->generic.ext_power_int_reg = OXYGEN_GPI_INTERRUPT_MASK;
+        deviceRegisters->generic.ext_power_bit = GPI_EXT_POWER;
         engine->xonar_init_ext_power(chip);
         xonar_st_init_common(chip,engine);
         chip->model.set_dac_params = engine->set_pcm1796_params;
     }
     else if(model == XENSE_MODEL) {
-        data->generic.ext_power_reg = OXYGEN_GPI_DATA;
-        data->generic.ext_power_int_reg = OXYGEN_GPI_INTERRUPT_MASK;
-        data->generic.ext_power_bit = GPI_EXT_POWER;
+        deviceRegisters->generic.ext_power_reg = OXYGEN_GPI_DATA;
+        deviceRegisters->generic.ext_power_int_reg = OXYGEN_GPI_INTERRUPT_MASK;
+        deviceRegisters->generic.ext_power_bit = GPI_EXT_POWER;
         engine->xonar_init_ext_power(chip);
         
-        data->generic.anti_pop_delay = 100;
-        data->has_cs2000 = 1;
-        data->cs2000_regs[CS2000_FUN_CFG_1] = CS2000_REF_CLK_DIV_1;
+        deviceRegisters->generic.anti_pop_delay = 100;
+        deviceRegisters->has_cs2000 = 1;
+        deviceRegisters->cs2000_regs[CS2000_FUN_CFG_1] = CS2000_REF_CLK_DIV_1;
         
         oxygen_write16(chip, OXYGEN_I2S_A_FORMAT,
                        OXYGEN_RATE_48000 |
@@ -426,9 +426,9 @@ bool XonarSTAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip, UIn
         this->xonar_st_init_i2c(chip,engine);
         engine->cs2000_registers_init(chip);
         
-        data->generic.output_enable_bit = GPIO_XENSE_OUTPUT_ENABLE;
-        data->dacs = 1;
-        data->hp_gain_offset = 2*-18;
+        deviceRegisters->generic.output_enable_bit = GPIO_XENSE_OUTPUT_ENABLE;
+        deviceRegisters->dacs = 1;
+        deviceRegisters->hp_gain_offset = 2*-18;
         
         engine->pcm1796_init(chip);
         
@@ -452,9 +452,7 @@ bool XonarSTAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip, UIn
     chip->model.cleanup = this->xonar_st_cleanup;
     chip->model.suspend = this->xonar_st_suspend;
     chip->model.resume = this->xonar_st_resume;
-    
-    deviceRegisters = (struct xonar_pcm179x*)chip->model_data;
-    
+        
     //set the pointer to XonarAudioEngine.
     this->engineInstance = engine;
     
