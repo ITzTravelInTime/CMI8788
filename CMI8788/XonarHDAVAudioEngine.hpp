@@ -105,8 +105,6 @@ public:
     virtual int xonar_hdav_mixer_init(struct oxygen *chip, XonarAudioEngine *engineInstance);
     /* HDMI helper functions */
 
-    
-    
 };
 
 #endif /* _SAMPLEPCIAUDIOENGINE_H */

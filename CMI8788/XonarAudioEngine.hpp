@@ -145,7 +145,7 @@ struct xonar_wm87x6 {
 #define D2_MODEL                    0x8269
 #define D2X_MODEL                   0x82b7
 #define XENSE_MODEL                 0x8428
-#define XONAR_GENERIC 7
+#define XONAR_GENERIC               7
 
 #define D1_MODEL                    0x834F
 #define CS4XX_MODEL                 0x8275
