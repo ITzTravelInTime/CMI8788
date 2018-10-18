@@ -22,26 +22,23 @@ http://www.newosxbook.com (forum is here: http://newosxbook.com/forum/)
 
 also want to thank Siguza on the newosxbook forum for his timely, insightful, helpful, kind, and honest remarks; it is because of him the driver now kernel panics ("successful") instead of failing to link. 
 
-update (18/10/2018 19:08GMT): i've managed to get the driver/kext to load/unload properly, even when a submodel class is chosen dynamically (according to the PCI vendor/submodel IDs!). log below:
+update (18/10/2018 22:39GMT): i've managed to get the driver/kext to load/unload properly, even when a submodel class is chosen dynamically (according to the PCI vendor/submodel IDs!). 
 
-Oct 18, 2018, 12:06:03 PM kernel[0]: SamplePCIAudioDevice[0xffffff8114bd0c00]::initHardware(0xffffff810c529a00)
+-the driver can only load/unload once. if you try a second time, it will fail to unload and you will have to restart (i am looking at this issue, which is much more mild than having this problem on the first load/unload attempt) 
 
-Oct 18, 2018, 12:06:03 PM kernel[0]: Xonar Vendor ID:0x13f6, Device ID:0x8788, SubDevice ID:0x8314, Physical Address:16384
+latest log:
 
-Oct 18, 2018, 12:06:03 PM kernel[0]: CMI8788: EEPROM write timeout
+Oct 18, 2018, 3:38:45 PM kernel[0]: SamplePCIAudioDevice[0xffffff8111192c00]::initHardware(0xffffff81084a4a00)
+Oct 18, 2018, 3:38:45 PM kernel[0]: Xonar Vendor ID:0x13f6, Device ID:0x8788, SubDevice ID:0x8314, Physical Address:16384
+Oct 18, 2018, 3:38:45 PM kernel[0]: CMI8788: EEPROM write timeout
+Oct 18, 2018, 3:38:45 PM kernel[0]: CMI8788: EEPROM write timeout
+Oct 18, 2018, 3:38:45 PM kernel[0]: PCIAudioDevice[0xffffff8111192c00]::oxygen_restore_eeprom EEPROM ID restored
+Oct 18, 2018, 3:38:45 PM kernel[0]: SamplePCIAudioDevice[0xffffff8111192c00]::createAudioEngine()
+Oct 18, 2018, 3:38:45 PM kernel[0]: XonarHDAVAudioEngine[0xffffff8111194c00]::init(0xffffff8e31975000)
+Oct 18, 2018, 3:38:45 PM kernel[0]: XonarAudioEngine[0xffffff8111192600]::init(0xffffff8e31975000)
+Oct 18, 2018, 3:38:45 PM kernel[0]: SamplePCIAudioDevice[0xffffff8111192c00]::free()
+Oct 18, 2018, 3:38:45 PM kernel[0]: XonarHDAVAudioEngine[0xffffff8111194c00]::free()
+Oct 18, 2018, 3:38:45 PM kernel[0]: XonarAudioEngine[0xffffff8111192600]::free()
 
-Oct 18, 2018, 12:06:03 PM kernel[0]: CMI8788: EEPROM write timeout
-
-Oct 18, 2018, 12:06:03 PM kernel[0]: PCIAudioDevice[0xffffff8114bd0c00]::oxygen_restore_eeprom EEPROM ID restored
-
-Oct 18, 2018, 12:06:03 PM kernel[0]: XonarAudioEngine[0xffffff811a75ac00]::init(0xffffff8e36505000)
-
-Oct 18, 2018, 12:06:03 PM kernel[0]: SamplePCIAudioDevice[0xffffff8114bd0c00]::createAudioEngine()
-
-Oct 18, 2018, 12:06:03 PM kernel[0]: SamplePCIAudioDevice[0xffffff8114bd0c00]::free()
-
-Oct 18, 2018, 12:06:03 PM kernel[0]: XonarAudioEngine[0xffffff811a75ac00]::free()
-
-Oct 18, 2018, 12:06:03 PM kernel[0]: XonarHDAVAudioEngine[0xffffff8111d15e00]::free()
 
 

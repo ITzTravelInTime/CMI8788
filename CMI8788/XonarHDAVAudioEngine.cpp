@@ -105,7 +105,6 @@ int XonarHDAVAudioEngine::xonar_hdav_mixer_init(struct oxygen *chip, XonarAudioE
 }
 
 
-
 bool XonarHDAVAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip)
 {
     
