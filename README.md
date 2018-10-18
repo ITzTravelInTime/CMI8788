@@ -21,3 +21,18 @@ http://www.osxbook.com
 http://www.newosxbook.com (forum is here: http://newosxbook.com/forum/)
 
 also want to thank Siguza on the newosxbook forum for his timely, insightful, helpful, kind, and honest remarks; it is because of him the driver now kernel panics ("successful") instead of failing to link. 
+
+update (18/10/2018 19:08GMT): i've managed to get the driver/kext to load/unload properly, even when a submodel class is chosen dynamically (according to the PCI vendor/submodel IDs!). log below:
+
+Oct 18, 2018, 12:06:03 PM kernel[0]: SamplePCIAudioDevice[0xffffff8114bd0c00]::initHardware(0xffffff810c529a00)
+Oct 18, 2018, 12:06:03 PM kernel[0]: Xonar Vendor ID:0x13f6, Device ID:0x8788, SubDevice ID:0x8314, Physical Address:16384
+Oct 18, 2018, 12:06:03 PM kernel[0]: CMI8788: EEPROM write timeout
+Oct 18, 2018, 12:06:03 PM kernel[0]: CMI8788: EEPROM write timeout
+Oct 18, 2018, 12:06:03 PM kernel[0]: PCIAudioDevice[0xffffff8114bd0c00]::oxygen_restore_eeprom EEPROM ID restored
+Oct 18, 2018, 12:06:03 PM kernel[0]: XonarAudioEngine[0xffffff811a75ac00]::init(0xffffff8e36505000)
+Oct 18, 2018, 12:06:03 PM kernel[0]: SamplePCIAudioDevice[0xffffff8114bd0c00]::createAudioEngine()
+Oct 18, 2018, 12:06:03 PM kernel[0]: SamplePCIAudioDevice[0xffffff8114bd0c00]::free()
+Oct 18, 2018, 12:06:03 PM kernel[0]: XonarAudioEngine[0xffffff811a75ac00]::free()
+Oct 18, 2018, 12:06:03 PM kernel[0]: XonarHDAVAudioEngine[0xffffff8111d15e00]::free()
+
+

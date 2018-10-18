@@ -1515,6 +1515,7 @@ void XonarAudioEngine::free()
     
     // We need to free our resources when we're going away
     
+    
     if (interruptEventSource_main) {
         interruptEventSource_main->release();
         interruptEventSource_main = NULL;
@@ -1529,7 +1530,7 @@ void XonarAudioEngine::free()
         IOFree(inputBuffer, DEFAULT_BUFFER_BYTES);
         inputBuffer = NULL;
     }
-    
+    //submodelInstance->free();
     super::free();
 }
 

@@ -181,6 +181,7 @@ class XonarAudioEngine : public IOAudioEngine
     IOAudioStream                   *inputs[4];
     SInt16							*outputBuffer;
     SInt16							*inputBuffer;
+    
     //IOWorkLoop                      *workLoop;
     IOFilterInterruptEventSource	*interruptEventSource_main;
     //IOFilterInterruptEventSource	*gpioEventSource; unused (if runAction works in the interrupthandler, which is all we need)
@@ -190,9 +191,7 @@ class XonarAudioEngine : public IOAudioEngine
     
 public:
     struct oxygen* chipData;// = (struct oxygen*) dev_id;
-    
-    
-    
+
     virtual bool init(struct oxygen *regs, int model);
     virtual void free();
     
