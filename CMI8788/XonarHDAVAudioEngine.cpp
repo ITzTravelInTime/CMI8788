@@ -44,7 +44,7 @@
 #import <sys/errno.h>
 #import <i386/limits.h>
 #import </usr/include/libkern/OSAtomic.h>
-
+#import </usr/include/string.h>
 
 #import <IOKit/IOLib.h>
 #import <IOKit/IOFilterInterruptEventSource.h>
@@ -121,12 +121,11 @@ bool XonarHDAVAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip)
         goto Done;
     }
     /* end sample driver template */
-
     chip->model_data = IOMalloc(chip->model.model_data_size);
+    printf("chip model data size:%d\n",chip->model.model_data_size);
     deviceRegisters = (struct xonar_hdav*) chip->model_data;
     this->engineInstance = engine;
-   
-
+    
     /* begin ALSA xonar_hdav_init */
     oxygen_write16(chip, OXYGEN_2WIRE_BUS_STATUS,
                    OXYGEN_2WIRE_LENGTH_8 |
@@ -140,24 +139,27 @@ bool XonarHDAVAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip)
     deviceRegisters->pcm179x.generic.ext_power_bit = GPI_EXT_POWER;
     deviceRegisters->pcm179x.dacs = chip->model.dac_channels_mixer / 2;
     deviceRegisters->pcm179x.h6 = chip->model.dac_channels_mixer > 2;
-//    //assign fn ptr uart_input to xonar_hdmi_uart_input
+    // assign fn ptr uart_input to xonar_hdmi_uart_input
     chip->model.resume = xonar_hdav_resume;
     chip->model.cleanup = xonar_hdav_cleanup;
-//    engine->pcm1796_init(chip);
-//    
+    printf("deviceRegisters->pcm179x.dacs:%d\n", deviceRegisters->pcm179x.dacs);
+
+
+    engine->pcm1796_init(chip);
+    //
     oxygen_set_bits16(chip, OXYGEN_GPIO_CONTROL,
                       GPIO_HDAV_MAGIC | GPIO_INPUT_ROUTE);
-    oxygen_clear_bits16(chip, OXYGEN_GPIO_DATA, GPIO_INPUT_ROUTE);    
-//    engine->xonar_init_cs53x1(chip);
-//    engine->xonar_init_ext_power(chip);
-//    engine->xonar_hdmi_init(chip, &deviceRegisters->hdmi);
-//    engine->xonar_enable_output(chip);
-//    
-//    
-//    
-//    /* end hdav_init, begin last bit of SamplePCIAudioEngine.cpp's init
-//     */
-//    
+    oxygen_clear_bits16(chip, OXYGEN_GPIO_DATA, GPIO_INPUT_ROUTE);
+    //    engine->xonar_init_cs53x1(chip);
+    //    engine->xonar_init_ext_power(chip);
+    //    engine->xonar_hdmi_init(chip, &deviceRegisters->hdmi);
+    //    engine->xonar_enable_output(chip);
+    //
+    //
+    //
+    /* end hdav_init, begin last bit of SamplePCIAudioEngine.cpp's init
+     */
+   
     result = true;
     
     goto Done;
@@ -371,7 +373,7 @@ IOReturn XonarHDAVAudioEngine::performAudioEngineStart()
     
     // Add audio - I/O start code here
     
-//#error performAudioEngineStart() - driver will not work until audio engine start code is added
+    //#error performAudioEngineStart() - driver will not work until audio engine start code is added
     
     return kIOReturnSuccess;
 }
@@ -386,7 +388,7 @@ IOReturn XonarHDAVAudioEngine::performAudioEngineStop()
     
     // Add audio - I/O stop code here
     
-//#error performAudioEngineStop() - driver will not work until audio engine stop code is added
+    //#error performAudioEngineStop() - driver will not work until audio engine stop code is added
     
     return kIOReturnSuccess;
 }
@@ -402,7 +404,7 @@ UInt32 XonarHDAVAudioEngine::getCurrentSampleFrame()
     // frame returned by this function.  If it is too large a value, sound data that hasn't been played will be
     // erased.
     
-//#error getCurrentSampleFrame() - driver will not work until correct sample frame is returned
+    //#error getCurrentSampleFrame() - driver will not work until correct sample frame is returned
     
     // Change to return the real value
     return 0;

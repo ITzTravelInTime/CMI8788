@@ -301,7 +301,11 @@ inline void XonarAudioEngine::pcm1796_write_i2c(struct oxygen *chip, unsigned in
 void XonarAudioEngine::pcm1796_write(struct oxygen *chip, unsigned int codec,
                                      UInt8 reg, UInt8 value)
 {
-    struct xonar_pcm179x *data = (struct xonar_pcm179x*)chip->model_data;
+    struct xonar_pcm179x *data;
+    if(chip->card_model == HDAV_MODEL)
+        data = (struct xonar_pcm179x*) &((struct xonar_hdav*) &chip->model_data)->pcm179x;
+    else
+        data = (struct xonar_pcm179x*) chip->model_data;
     
     if ((chip->model.function_flags & OXYGEN_FUNCTION_2WIRE_SPI_MASK) ==
         OXYGEN_FUNCTION_SPI)
@@ -324,7 +328,12 @@ void XonarAudioEngine::pcm1796_write_cached(struct oxygen *chip, unsigned int co
 
 void XonarAudioEngine::pcm1796_registers_init(struct oxygen *chip)
 {
-    struct xonar_pcm179x *data = (struct xonar_pcm179x*)chip->model_data;
+    struct xonar_pcm179x *data;
+    if(chip->card_model == HDAV_MODEL)
+        data = (struct xonar_pcm179x*) &((struct xonar_hdav*) &chip->model_data)->pcm179x;
+    else
+        data = (struct xonar_pcm179x*) chip->model_data;
+    
     unsigned int i;
     SInt8 gain_offset;
     
@@ -349,7 +358,13 @@ void XonarAudioEngine::pcm1796_registers_init(struct oxygen *chip)
 
 void XonarAudioEngine::pcm1796_init(struct oxygen *chip)
 {
-    struct xonar_pcm179x *data =(struct xonar_pcm179x*) chip->model_data;
+    struct xonar_pcm179x *data;
+    if(chip->card_model == HDAV_MODEL)
+        data = (struct xonar_pcm179x*) &((struct xonar_hdav*) &chip->model_data)->pcm179x;
+    else
+        data = (struct xonar_pcm179x*) chip->model_data;
+    
+    //struct xonar_pcm179x *data =(struct xonar_pcm179x*) chip->model_data;
     
     data->pcm1796_regs[0][18 - PCM1796_REG_BASE] =
     PCM1796_DMF_DISABLED | PCM1796_FMT_24_I2S | PCM1796_ATLD;
@@ -359,7 +374,7 @@ void XonarAudioEngine::pcm1796_init(struct oxygen *chip)
     PCM1796_FLT_SHARP | PCM1796_ATS_1;
     data->pcm1796_regs[0][20 - PCM1796_REG_BASE] =
     data->h6 ? PCM1796_OS_64 : PCM1796_OS_128;
-    pcm1796_registers_init(chip);
+    //pcm1796_registers_init(chip);
     data->current_rate->whole = 48000;
 }
 
@@ -828,7 +843,6 @@ bool XonarAudioEngine::init(struct oxygen *chip, int model)
     if (!super::init(NULL)) {
         goto Done;
     }
-    
     //compare the subdevice id with known models'
     if(model == HDAV_MODEL) {
         //code from get_xonar_pcm179x_model portions (case 0x8314)
@@ -1271,10 +1285,11 @@ bool XonarAudioEngine::init(struct oxygen *chip, int model)
         oxygen_ac97_set_bits(chip, 1, 0x6a, 0x0040);
     }
     // end oxygen_init
-    
+    chip->card_model = model;
     this->dev_id = chip;
     //save ptr to oxygen struct from PCIDriver into private class var dev_id for interrupthandler
     chipData = (struct oxygen*) this->dev_id;
+
     result = true;
     
 Done:

@@ -194,6 +194,7 @@ struct oxygen {
 //    struct pci_dev *pci;
 //    struct snd_rawmidi *midi;
     int irq;
+    UInt16 card_model;
     void *model_data;
     unsigned int interrupt_mask;
     UInt8 dac_volume[8];

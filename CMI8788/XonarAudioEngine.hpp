@@ -188,10 +188,9 @@ class XonarAudioEngine : public IOAudioEngine
     //IOFilterInterruptEventSource	*spdifEventSource; unused (see above line)
     //need this for the interrupt handler, as the filterInterrupt OS call doesn't allow us to pass parameters.
     void                            *dev_id;
-    
 public:
     struct oxygen* chipData;// = (struct oxygen*) dev_id;
-
+   
     virtual bool init(struct oxygen *regs, int model);
     virtual void free();
     

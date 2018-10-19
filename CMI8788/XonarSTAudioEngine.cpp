@@ -87,7 +87,7 @@ void XonarSTAudioEngine::xonar_st_init_common(struct oxygen *chip, XonarAudioEng
     data->dacs = chip->model.dac_channels_mixer / 2;
     data->h6 = chip->model.dac_channels_mixer > 2;
     data->hp_gain_offset = 2*-18;
-    
+
     engineInstance->pcm1796_init(chip);
     
     oxygen_set_bits16(chip, OXYGEN_GPIO_CONTROL,
@@ -429,6 +429,12 @@ bool XonarSTAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip, UIn
         deviceRegisters->generic.output_enable_bit = GPIO_XENSE_OUTPUT_ENABLE;
         deviceRegisters->dacs = 1;
         deviceRegisters->hp_gain_offset = 2*-18;
+        
+        /* D2(X),ST(X)(II)+XENSE and HDAV call pcm1796x_init. given the difference in their
+         data structures, passing the model variable is necessary. however, pcm179x_init
+         behaves the same for D2(X)/ST(X)(II)+XENSE since they do not nest the pcm179x struct
+         inside their "main" struct like the hdav model, and thus
+         it doesn't matter which model value we pass *here* as long as it is *not* hdav */
         
         engine->pcm1796_init(chip);
         
