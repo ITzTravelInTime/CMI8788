@@ -121,8 +121,7 @@ bool XonarHDAVAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip)
         goto Done;
     }
     /* end sample driver template */
-    //chip->model_data = IOMalloc(chip->model.model_data_size);
-    printf("chip model data size:%d\n",chip->model.model_data_size);
+    chip->model_data = IOMalloc(chip->model.model_data_size);
     deviceRegisters = (struct xonar_hdav*) chip->model_data;
     this->engineInstance = engine;
     
@@ -142,8 +141,6 @@ bool XonarHDAVAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip)
     // assign fn ptr uart_input to xonar_hdmi_uart_input
     chip->model.resume = xonar_hdav_resume;
     chip->model.cleanup = xonar_hdav_cleanup;
-    printf("deviceRegisters->pcm179x.dacs:%d\n", deviceRegisters->pcm179x.dacs);
-
 
     engine->pcm1796_init(chip);
     //
