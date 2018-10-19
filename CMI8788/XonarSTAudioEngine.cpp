@@ -361,7 +361,7 @@ bool XonarSTAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip, UIn
     /* sample driver init code (from SamplePCIAudioEngine.cpp's ::init) */
     bool result = false;
     chip->model_data = IOMalloc(chip->model.model_data_size);
-    deviceRegisters = (struct xonar_pcm179x*)chip->model_data;
+    deviceRegisters = (struct xonar_pcm179x*) &chip->model_data;
     printf("XonarSTAudioEngine[%p]::init(%p)\n", this, chip);
     
     if (!chip) {

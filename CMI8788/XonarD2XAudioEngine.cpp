@@ -112,7 +112,7 @@ int XonarD2XAudioEngine::xonar_d2_mixer_init(struct oxygen *chip, XonarAudioEngi
 
 void XonarD2XAudioEngine::xonar_d2_init(struct oxygen *chip, XonarAudioEngine *engineInstance) {
     
-    struct xonar_pcm179x *data = (struct xonar_pcm179x*)chip->model_data;
+    struct xonar_pcm179x *data = (struct xonar_pcm179x*) &chip->model_data;
     data->generic.anti_pop_delay = 300;
     data->generic.output_enable_bit = GPIO_D2_OUTPUT_ENABLE;
     data->dacs = 4;

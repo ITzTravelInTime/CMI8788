@@ -374,8 +374,7 @@ void XonarAudioEngine::pcm1796_init(struct oxygen *chip)
     PCM1796_FLT_SHARP | PCM1796_ATS_1;
     data->pcm1796_regs[0][20 - PCM1796_REG_BASE] =
     data->h6 ? PCM1796_OS_64 : PCM1796_OS_128;
-    printf("data->generic.anti_pop_delay:%d\n", data->generic.anti_pop_delay);
-    //pcm1796_registers_init(chip);
+    pcm1796_registers_init(chip);
     data->current_rate->whole = 48000;
 }
 

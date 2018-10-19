@@ -122,7 +122,7 @@ bool XonarHDAVAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip)
     }
     /* end sample driver template */
     chip->model_data = IOMalloc(chip->model.model_data_size);
-    deviceRegisters = (struct xonar_hdav*) chip->model_data;
+    deviceRegisters = (struct xonar_hdav*) &chip->model_data;
     this->engineInstance = engine;
     
     /* begin ALSA xonar_hdav_init */
@@ -143,7 +143,7 @@ bool XonarHDAVAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip)
     chip->model.cleanup = xonar_hdav_cleanup;
 
     engine->pcm1796_init(chip);
-    //
+  
     oxygen_set_bits16(chip, OXYGEN_GPIO_CONTROL,
                       GPIO_HDAV_MAGIC | GPIO_INPUT_ROUTE);
     oxygen_clear_bits16(chip, OXYGEN_GPIO_DATA, GPIO_INPUT_ROUTE);
