@@ -141,7 +141,7 @@ bool XonarD2XAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip, UI
 {
     bool result = false;
     chip->model_data = IOMalloc(chip->model.model_data_size);
-    deviceRegisters = (struct xonar_pcm179x*)chip->model_data;
+    deviceRegisters = (struct xonar_pcm179x*) &chip->model_data;
     printf("XonarD2XAudioEngine[%p]::init(%p)\n", this, chip);
     
     if (!chip) {

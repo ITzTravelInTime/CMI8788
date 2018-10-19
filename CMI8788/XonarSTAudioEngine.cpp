@@ -81,7 +81,7 @@ void XonarSTAudioEngine::xonar_st_init_i2c(struct oxygen *chip, XonarAudioEngine
 
 void XonarSTAudioEngine::xonar_st_init_common(struct oxygen *chip, XonarAudioEngine *engineInstance)
 {
-    struct xonar_pcm179x *data = (struct xonar_pcm179x*) chip->model_data;
+    struct xonar_pcm179x *data = (struct xonar_pcm179x*) &chip->model_data;
     
     data->generic.output_enable_bit = GPIO_ST_OUTPUT_ENABLE;
     data->dacs = chip->model.dac_channels_mixer / 2;

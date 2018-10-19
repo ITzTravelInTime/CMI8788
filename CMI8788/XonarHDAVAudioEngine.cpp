@@ -141,22 +141,22 @@ bool XonarHDAVAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip)
     // assign fn ptr uart_input to xonar_hdmi_uart_input
     chip->model.resume = xonar_hdav_resume;
     chip->model.cleanup = xonar_hdav_cleanup;
-
+    
     engine->pcm1796_init(chip);
-  
+    
     oxygen_set_bits16(chip, OXYGEN_GPIO_CONTROL,
                       GPIO_HDAV_MAGIC | GPIO_INPUT_ROUTE);
     oxygen_clear_bits16(chip, OXYGEN_GPIO_DATA, GPIO_INPUT_ROUTE);
-    //    engine->xonar_init_cs53x1(chip);
-    //    engine->xonar_init_ext_power(chip);
-    //    engine->xonar_hdmi_init(chip, &deviceRegisters->hdmi);
-    //    engine->xonar_enable_output(chip);
-    //
-    //
-    //
+    engine->xonar_init_cs53x1(chip);
+    engine->xonar_init_ext_power(chip);
+    engine->xonar_hdmi_init(chip, &deviceRegisters->hdmi);
+    engine->xonar_enable_output(chip);
+    
+    
+    
     /* end hdav_init, begin last bit of SamplePCIAudioEngine.cpp's init
      */
-   
+    
     result = true;
     
     goto Done;

@@ -78,7 +78,7 @@ static inline unsigned long msecs_to_jiffies(const unsigned int m)
 
 void XonarAudioEngine::xonar_enable_output(struct oxygen *chip)
 {
-    struct xonar_generic *data =(struct xonar_generic*)   chip->model_data;
+    struct xonar_generic *data =(struct xonar_generic*) &chip->model_data;
     
     oxygen_set_bits16(chip, OXYGEN_GPIO_CONTROL, data->output_enable_bit);
     IODelay(data->anti_pop_delay*1000);
@@ -87,14 +87,14 @@ void XonarAudioEngine::xonar_enable_output(struct oxygen *chip)
 
 void XonarAudioEngine::xonar_disable_output(struct oxygen *chip)
 {
-    struct xonar_generic *data = (struct xonar_generic*)  chip->model_data;
+    struct xonar_generic *data = (struct xonar_generic*)  &chip->model_data;
     
     oxygen_clear_bits16(chip, OXYGEN_GPIO_DATA, data->output_enable_bit);
 }
 
 static void xonar_ext_power_gpio_changed(struct oxygen *chip)
 {
-    struct xonar_generic *data = (struct xonar_generic*) chip->model_data;
+    struct xonar_generic *data = (struct xonar_generic*) &chip->model_data;
     UInt8 has_power;
     
     has_power = !!(oxygen_read8(chip, data->ext_power_reg)
@@ -112,7 +112,7 @@ static void xonar_ext_power_gpio_changed(struct oxygen *chip)
 
 void XonarAudioEngine::xonar_init_ext_power(struct oxygen *chip)
 {
-    struct xonar_generic *data = (struct xonar_generic*) chip->model_data;
+    struct xonar_generic *data = (struct xonar_generic*) &chip->model_data;
     
     oxygen_set_bits8(chip, data->ext_power_int_reg,
                      data->ext_power_bit);
@@ -305,7 +305,7 @@ void XonarAudioEngine::pcm1796_write(struct oxygen *chip, unsigned int codec,
     if(chip->card_model == HDAV_MODEL)
         data = (struct xonar_pcm179x*) &((struct xonar_hdav*) &chip->model_data)->pcm179x;
     else
-        data = (struct xonar_pcm179x*) chip->model_data;
+        data = (struct xonar_pcm179x*) &chip->model_data;
     
     if ((chip->model.function_flags & OXYGEN_FUNCTION_2WIRE_SPI_MASK) ==
         OXYGEN_FUNCTION_SPI)
@@ -332,7 +332,7 @@ void XonarAudioEngine::pcm1796_registers_init(struct oxygen *chip)
     if(chip->card_model == HDAV_MODEL)
         data = (struct xonar_pcm179x*) &((struct xonar_hdav*) &chip->model_data)->pcm179x;
     else
-        data = (struct xonar_pcm179x*) chip->model_data;
+        data = (struct xonar_pcm179x*) &chip->model_data;
     
     unsigned int i;
     SInt8 gain_offset;
@@ -362,9 +362,9 @@ void XonarAudioEngine::pcm1796_init(struct oxygen *chip)
     if(chip->card_model == HDAV_MODEL)
         data = (struct xonar_pcm179x*) &((struct xonar_hdav*) &chip->model_data)->pcm179x;
     else
-        data = (struct xonar_pcm179x*) chip->model_data;
+        data = (struct xonar_pcm179x*) &chip->model_data;
     
-    //struct xonar_pcm179x *data =(struct xonar_pcm179x*) chip->model_data;
+    //struct xonar_pcm179x *data =(struct xonar_pcm179x*) &chip->model_data;
     
     data->pcm1796_regs[0][18 - PCM1796_REG_BASE] =
     PCM1796_DMF_DISABLED | PCM1796_FMT_24_I2S | PCM1796_ATLD;
@@ -396,7 +396,7 @@ void XonarAudioEngine::cs2000_write_cached(struct oxygen *chip, UInt8 reg, UInt8
 
 void XonarAudioEngine::cs2000_registers_init(struct oxygen *chip)
 {
-    struct xonar_pcm179x *data = (struct xonar_pcm179x*) chip->model_data;
+    struct xonar_pcm179x *data = (struct xonar_pcm179x*) &chip->model_data;
     
     cs2000_write(chip, CS2000_GLOBAL_CFG, CS2000_FREEZE);
     cs2000_write(chip, CS2000_DEV_CTRL, 0);
@@ -422,7 +422,7 @@ void XonarAudioEngine::cs2000_registers_init(struct oxygen *chip)
 
 void XonarAudioEngine::update_pcm1796_oversampling(struct oxygen *chip)
 {
-    struct xonar_pcm179x *data = (struct xonar_pcm179x*) chip->model_data;
+    struct xonar_pcm179x *data = (struct xonar_pcm179x*) &chip->model_data;
     unsigned int i;
     UInt8 reg;
     
@@ -436,7 +436,7 @@ void XonarAudioEngine::update_pcm1796_oversampling(struct oxygen *chip)
 
 void XonarAudioEngine::set_pcm1796_params(struct oxygen *chip, XonarAudioEngine *instance)
 {
-    struct xonar_pcm179x *data = (struct xonar_pcm179x*) chip->model_data;
+    struct xonar_pcm179x *data = (struct xonar_pcm179x*) &chip->model_data;
     
     IODelay(1*1000);
     //hopefully OSX getSampleRate() for IOAudioEngine objects has
@@ -448,7 +448,7 @@ void XonarAudioEngine::set_pcm1796_params(struct oxygen *chip, XonarAudioEngine 
 
 void XonarAudioEngine::update_pcm1796_volume(struct oxygen *chip, XonarAudioEngine *audioEngine)
 {
-    struct xonar_pcm179x *data = (struct xonar_pcm179x*) chip->model_data;
+    struct xonar_pcm179x *data = (struct xonar_pcm179x*) &chip->model_data;
     unsigned int i;
     SInt8 gain_offset;
     
@@ -464,7 +464,7 @@ void XonarAudioEngine::update_pcm1796_volume(struct oxygen *chip, XonarAudioEngi
 
 void XonarAudioEngine::update_pcm1796_mute(struct oxygen *chip, XonarAudioEngine *audioEngine)
 {
-    struct xonar_pcm179x *data = (struct xonar_pcm179x*) chip->model_data;
+    struct xonar_pcm179x *data = (struct xonar_pcm179x*) &chip->model_data;
     unsigned int i;
     UInt8 value;
     
@@ -478,7 +478,7 @@ void XonarAudioEngine::update_pcm1796_mute(struct oxygen *chip, XonarAudioEngine
 
 void XonarAudioEngine::update_cs2000_rate(struct oxygen *chip, unsigned int rate)
 {
-    struct xonar_pcm179x *data = (struct xonar_pcm179x*) chip->model_data;
+    struct xonar_pcm179x *data = (struct xonar_pcm179x*) &chip->model_data;
     UInt8 rate_mclk, reg;
     
     switch (rate) {
@@ -537,7 +537,7 @@ void XonarAudioEngine::update_cs2000_rate(struct oxygen *chip, unsigned int rate
 //                       struct snd_ctl_elem_value *value)
 //{
 //    struct oxygen *chip = ctl->private_data;
-//    struct xonar_pcm179x *data = chip->model_data;
+//    struct xonar_pcm179x *data = &chip->model_data;
 //
 //    value->value.enumerated.item[0] =
 //    (data->pcm1796_regs[0][19 - PCM1796_REG_BASE] &
@@ -549,7 +549,7 @@ void XonarAudioEngine::update_cs2000_rate(struct oxygen *chip, unsigned int rate
 //                       struct snd_ctl_elem_value *value)
 //{
 //    struct oxygen *chip = ctl->private_data;
-//    struct xonar_pcm179x *data = chip->model_data;
+//    struct xonar_pcm179x *data = &chip->model_data;
 //    unsigned int i;
 //    int changed;
 //    UInt8 reg;
@@ -704,7 +704,7 @@ void XonarAudioEngine::xonar_line_mic_ac97_switch(struct oxygen *chip,
 
 int XonarAudioEngine::add_pcm1796_controls(struct oxygen *chip)
 {
-    struct xonar_pcm179x *data = (struct xonar_pcm179x*)chip->model_data;
+    struct xonar_pcm179x *data = (struct xonar_pcm179x*) &chip->model_data;
     int err;
     
     /*if (!data->broken_i2c) {
