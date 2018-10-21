@@ -249,26 +249,26 @@ bool PCIAudioDevice::createAudioEngine()
     // The audio engine subclass could be defined to take any number of parameters for its
     // initialization - use it like a constructor
     if(subdev_id == HDAV_MODEL) {
-        if (!((XonarHDAVAudioEngine*)this->submodelInstance)->init(this->accessibleEngineInstance,deviceRegisters))
+        if (!((XonarHDAVAudioEngine*)this->submodelInstance)->init(this->accessibleEngineInstance,this->deviceRegisters))
             goto Done;
         
     }
     else if (subdev_id == ST_MODEL || subdev_id == STX_MODEL || subdev_id == XENSE_MODEL) {
-        if (!((XonarSTAudioEngine*)this->submodelInstance)->init(this->accessibleEngineInstance,deviceRegisters,subdev_id))
+        if (!((XonarSTAudioEngine*)this->submodelInstance)->init(this->accessibleEngineInstance,this->deviceRegisters,this->subdev_id))
             goto Done;
     }
     else if (subdev_id == D2_MODEL || subdev_id == D2X_MODEL) {
-        if (!((XonarD2XAudioEngine*)this->submodelInstance)->init(this->accessibleEngineInstance,deviceRegisters,subdev_id))
+        if (!((XonarD2XAudioEngine*)this->submodelInstance)->init(this->accessibleEngineInstance,this->deviceRegisters,this->subdev_id))
             goto Done;
         
     }
     else if( subdev_id == DX_MODEL || subdev_id == CS4XX_MODEL || subdev_id== D1_MODEL) {
-        if (!((XonarCS43XXAudioEngine*)this->submodelInstance)->init(this->accessibleEngineInstance,deviceRegisters,subdev_id))
+        if (!((XonarCS43XXAudioEngine*)this->submodelInstance)->init(this->accessibleEngineInstance,this->deviceRegisters,this->subdev_id))
             goto Done;
         
     }
     else if (subdev_id == DS_MODEL || subdev_id == DSX_MODEL || subdev_id == HDAV_SLIM) {
-        if (!((XonarWM87x6AudioEngine*)this->submodelInstance)->init(this->accessibleEngineInstance,deviceRegisters,subdev_id))
+        if (!((XonarWM87x6AudioEngine*)this->submodelInstance)->init(this->accessibleEngineInstance,this->deviceRegisters,this->subdev_id))
             goto Done;
 
     }

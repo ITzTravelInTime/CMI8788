@@ -1545,7 +1545,6 @@ void XonarAudioEngine::free()
         IOFree(inputBuffer, DEFAULT_BUFFER_BYTES);
         inputBuffer = NULL;
     }
-    //submodelInstance->free();
     super::free();
 }
 

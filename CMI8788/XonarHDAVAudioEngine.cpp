@@ -280,6 +280,8 @@ void XonarHDAVAudioEngine::free()
         IOFree(inputBuffer, DEFAULT_BUFFER_BYTES);
         inputBuffer = NULL;
     }
+    
+    //this->engineInstance->free();
     super::free();
 }
 
