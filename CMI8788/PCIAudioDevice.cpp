@@ -283,120 +283,120 @@ bool PCIAudioDevice::createAudioEngine()
     // Create a left & right output volume control with an int range from 0 to 65535
     // and a db range from -22.5 to 0.0
     // Once each control is added to the audio engine, they should be released
-//    // so that when the audio engine is done with them, they get freed properly
-//    control = IOAudioLevelControl::createVolumeControl((deviceRegisters->model.dac_volume_max+deviceRegisters->model.dac_volume_min)/2,	// Initial value
-//                                                       deviceRegisters->model.dac_volume_min,		// min value
-//                                                       deviceRegisters->model.dac_volume_max,	// max value
-//                                                       -6000,	// taken from xonar_pcm179x.c:986 DECLARE_TLV_DB_SCALE(pcm1796_db_scale,-6000,50))
-//                                                       0,		// max 0.0 in IOFixed
-//                                                       kIOAudioControlChannelIDDefaultLeft,
-//                                                       kIOAudioControlChannelNameLeft,
-//                                                       0,		// control ID - driver-defined
-//                                                       kIOAudioControlUsageOutput);
-//    if (!control) {
-//        goto Done;
-//    }
-//    
-//    control->setValueChangeHandler((IOAudioControl::IntValueChangeHandler)volumeChangeHandler, this);
-//    audioEngine->addDefaultAudioControl(control);
-//    control->release();
-//    
-//    control = IOAudioLevelControl::createVolumeControl((deviceRegisters->model.dac_volume_max+deviceRegisters->model.dac_volume_min)/2,	// Initial value
-//                                                       deviceRegisters->model.dac_volume_min,		// min value
-//                                                       deviceRegisters->model.dac_volume_max,	// max value
-//                                                       -6000,	// min -22.5 in IOFixed (16.16)
-//                                                       0,		// max 0.0 in IOFixed
-//                                                       kIOAudioControlChannelIDDefaultRight,	// Affects right channel
-//                                                       kIOAudioControlChannelNameRight,
-//                                                       0,		// control ID - driver-defined
-//                                                       kIOAudioControlUsageOutput);
-//    if (!control) {
-//        goto Done;
-//    }
-//    
-//    control->setValueChangeHandler((IOAudioControl::IntValueChangeHandler)volumeChangeHandler, this);
-//    audioEngine->addDefaultAudioControl(control);
-//    control->release();
-//    
-//    // Create an output mute control
-//    control = IOAudioToggleControl::createMuteControl(false,	// initial state - unmuted
-//                                                      kIOAudioControlChannelIDAll,	// Affects all channels
-//                                                      kIOAudioControlChannelNameAll,
-//                                                      0,		// control ID - driver-defined
-//                                                      kIOAudioControlUsageOutput);
-//    
-//    if (!control) {
-//        goto Done;
-//    }
-//    
-//    control->setValueChangeHandler((IOAudioControl::IntValueChangeHandler)outputMuteChangeHandler, this);
-//    audioEngine->addDefaultAudioControl(control);
-//    control->release();
-//    
-//    // Create a left & right input gain control with an int range from 0 to 65535
-//    // and a db range from 0 to 22.5
-//    control = IOAudioLevelControl::createVolumeControl(65535,	// Initial value
-//                                                       0,		// min value
-//                                                       65535,	// max value
-//                                                       0,		// min 0.0 in IOFixed
-//                                                       (22 << 16) + (32768),	// 22.5 in IOFixed (16.16)
-//                                                       kIOAudioControlChannelIDDefaultLeft,
-//                                                       kIOAudioControlChannelNameLeft,
-//                                                       0,		// control ID - driver-defined
-//                                                       kIOAudioControlUsageInput);
-//    if (!control) {
-//        goto Done;
-//    }
-//    
-//    control->setValueChangeHandler((IOAudioControl::IntValueChangeHandler)gainChangeHandler, this);
-//    audioEngine->addDefaultAudioControl(control);
-//    control->release();
-//    
-//    control = IOAudioLevelControl::createVolumeControl(65535,	// Initial value
-//                                                       0,		// min value
-//                                                       65535,	// max value
-//                                                       0,		// min 0.0 in IOFixed
-//                                                       (22 << 16) + (32768),	// max 22.5 in IOFixed (16.16)
-//                                                       kIOAudioControlChannelIDDefaultRight,	// Affects right channel
-//                                                       kIOAudioControlChannelNameRight,
-//                                                       0,		// control ID - driver-defined
-//                                                       kIOAudioControlUsageInput);
-//    if (!control) {
-//        goto Done;
-//    }
-//    
-//    control->setValueChangeHandler((IOAudioControl::IntValueChangeHandler)gainChangeHandler, this);
-//    audioEngine->addDefaultAudioControl(control);
-//    control->release();
-//    
-//    // Create an input mute control
-//    control = IOAudioToggleControl::createMuteControl(false,	// initial state - unmuted
-//                                                      kIOAudioControlChannelIDAll,	// Affects all channels
-//                                                      kIOAudioControlChannelNameAll,
-//                                                      0,		// control ID - driver-defined
-//                                                      kIOAudioControlUsageInput);
-//    
-//    if (!control) {
-//        goto Done;
-//    }
-//    
-//    control->setValueChangeHandler((IOAudioControl::IntValueChangeHandler)inputMuteChangeHandler, this);
-//    audioEngine->addDefaultAudioControl(control);
-//    control->release();
-//    
-//    // Active the audio engine - this will cause the audio engine to have start() and initHardware() called on it
-//    // After this function returns, that audio engine should be ready to begin vending audio services to the system
-//    activateAudioEngine(audioEngine);
-//    // Once the audio engine has been activated, release it so that when the driver gets terminated,
-//    // it gets freed
-//    audioEngine->release();
+    // so that when the audio engine is done with them, they get freed properly
+    control = IOAudioLevelControl::createVolumeControl((deviceRegisters->model.dac_volume_max+deviceRegisters->model.dac_volume_min)/2,	// Initial value
+                                                       deviceRegisters->model.dac_volume_min,		// min value
+                                                       deviceRegisters->model.dac_volume_max,	// max value
+                                                       -6000,	// taken from xonar_pcm179x.c:986 DECLARE_TLV_DB_SCALE(pcm1796_db_scale,-6000,50))
+                                                       0,		// max 0.0 in IOFixed
+                                                       kIOAudioControlChannelIDDefaultLeft,
+                                                       kIOAudioControlChannelNameLeft,
+                                                       0,		// control ID - driver-defined
+                                                       kIOAudioControlUsageOutput);
+    if (!control) {
+        goto Done;
+    }
+    
+    control->setValueChangeHandler((IOAudioControl::IntValueChangeHandler)volumeChangeHandler, this);
+    accessibleEngineInstance->addDefaultAudioControl(control);
+    control->release();
+    
+    control = IOAudioLevelControl::createVolumeControl((deviceRegisters->model.dac_volume_max+deviceRegisters->model.dac_volume_min)/2,	// Initial value
+                                                       deviceRegisters->model.dac_volume_min,		// min value
+                                                       deviceRegisters->model.dac_volume_max,	// max value
+                                                       -6000,	// min -22.5 in IOFixed (16.16)
+                                                       0,		// max 0.0 in IOFixed
+                                                       kIOAudioControlChannelIDDefaultRight,	// Affects right channel
+                                                       kIOAudioControlChannelNameRight,
+                                                       0,		// control ID - driver-defined
+                                                       kIOAudioControlUsageOutput);
+    if (!control) {
+        goto Done;
+    }
+    
+    control->setValueChangeHandler((IOAudioControl::IntValueChangeHandler)volumeChangeHandler, this);
+    accessibleEngineInstance->addDefaultAudioControl(control);
+    control->release();
+    
+    // Create an output mute control
+    control = IOAudioToggleControl::createMuteControl(false,	// initial state - unmuted
+                                                      kIOAudioControlChannelIDAll,	// Affects all channels
+                                                      kIOAudioControlChannelNameAll,
+                                                      0,		// control ID - driver-defined
+                                                      kIOAudioControlUsageOutput);
+    
+    if (!control) {
+        goto Done;
+    }
+    
+    control->setValueChangeHandler((IOAudioControl::IntValueChangeHandler)outputMuteChangeHandler, this);
+    accessibleEngineInstance->addDefaultAudioControl(control);
+    control->release();
+    
+    // Create a left & right input gain control with an int range from 0 to 65535
+    // and a db range from 0 to 22.5
+    control = IOAudioLevelControl::createVolumeControl(65535,	// Initial value
+                                                       0,		// min value
+                                                       65535,	// max value
+                                                       0,		// min 0.0 in IOFixed
+                                                       (22 << 16) + (32768),	// 22.5 in IOFixed (16.16)
+                                                       kIOAudioControlChannelIDDefaultLeft,
+                                                       kIOAudioControlChannelNameLeft,
+                                                       0,		// control ID - driver-defined
+                                                       kIOAudioControlUsageInput);
+    if (!control) {
+        goto Done;
+    }
+    
+    control->setValueChangeHandler((IOAudioControl::IntValueChangeHandler)gainChangeHandler, this);
+    accessibleEngineInstance->addDefaultAudioControl(control);
+    control->release();
+    
+    control = IOAudioLevelControl::createVolumeControl(65535,	// Initial value
+                                                       0,		// min value
+                                                       65535,	// max value
+                                                       0,		// min 0.0 in IOFixed
+                                                       (22 << 16) + (32768),	// max 22.5 in IOFixed (16.16)
+                                                       kIOAudioControlChannelIDDefaultRight,	// Affects right channel
+                                                       kIOAudioControlChannelNameRight,
+                                                       0,		// control ID - driver-defined
+                                                       kIOAudioControlUsageInput);
+    if (!control) {
+        goto Done;
+    }
+    
+    control->setValueChangeHandler((IOAudioControl::IntValueChangeHandler)gainChangeHandler, this);
+    accessibleEngineInstance->addDefaultAudioControl(control);
+    control->release();
+    
+    // Create an input mute control
+    control = IOAudioToggleControl::createMuteControl(false,	// initial state - unmuted
+                                                      kIOAudioControlChannelIDAll,	// Affects all channels
+                                                      kIOAudioControlChannelNameAll,
+                                                      0,		// control ID - driver-defined
+                                                      kIOAudioControlUsageInput);
+    
+    if (!control) {
+        goto Done;
+    }
+    
+    control->setValueChangeHandler((IOAudioControl::IntValueChangeHandler)inputMuteChangeHandler, this);
+    accessibleEngineInstance->addDefaultAudioControl(control);
+    control->release();
+    
+    // Active the audio engine - this will cause the audio engine to have start() and initHardware() called on it
+    // After this function returns, that audio engine should be ready to begin vending audio services to the system
+    activateAudioEngine(accessibleEngineInstance);
+    // Once the audio engine has been activated, release it so that when the driver gets terminated,
+    // it gets freed
+    accessibleEngineInstance->release();
     
     result = true;
     
 Done:
     
-    if (!result && (this->submodelInstance != NULL)) {
-        this->submodelInstance->release();
+    if (!result && (submodelInstance != NULL)) {
+        submodelInstance->release();
     }
     
     return result;
