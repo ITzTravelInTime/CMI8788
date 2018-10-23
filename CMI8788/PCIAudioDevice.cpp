@@ -243,32 +243,32 @@ bool PCIAudioDevice::createAudioEngine()
         submodelInstance = new XonarWM87x6AudioEngine;
     if (!submodelInstance)
         goto Done;
-    //printf("Created ")
+
     //calling chip->model.init()-equivalent directly below
     // Init the new audio engine with the device registers so it can access them if necessary
     // The audio engine subclass could be defined to take any number of parameters for its
     // initialization - use it like a constructor
     if(subdev_id == HDAV_MODEL) {
-        if (!((XonarHDAVAudioEngine*)submodelInstance)->init(accessibleEngineInstance,deviceRegisters))
+        if (!( (XonarHDAVAudioEngine*) submodelInstance)->init(accessibleEngineInstance,deviceRegisters))
             goto Done;
         
     }
     else if (subdev_id == ST_MODEL || subdev_id == STX_MODEL || subdev_id == XENSE_MODEL) {
-        if (!((XonarSTAudioEngine*)submodelInstance)->init(accessibleEngineInstance,deviceRegisters,subdev_id))
+        if (!( (XonarSTAudioEngine*) submodelInstance)->init(accessibleEngineInstance,deviceRegisters,subdev_id))
             goto Done;
     }
     else if (subdev_id == D2_MODEL || subdev_id == D2X_MODEL) {
-        if (!((XonarD2XAudioEngine*)submodelInstance)->init(accessibleEngineInstance,deviceRegisters,subdev_id))
+        if (!( (XonarD2XAudioEngine*) submodelInstance)->init(accessibleEngineInstance,deviceRegisters,subdev_id))
             goto Done;
         
     }
     else if( subdev_id == DX_MODEL || subdev_id == CS4XX_MODEL || subdev_id== D1_MODEL) {
-        if (!((XonarCS43XXAudioEngine*)submodelInstance)->init(accessibleEngineInstance,deviceRegisters,subdev_id))
+        if (!( (XonarCS43XXAudioEngine*) submodelInstance)->init(accessibleEngineInstance,deviceRegisters,subdev_id))
             goto Done;
         
     }
     else if (subdev_id == DS_MODEL || subdev_id == DSX_MODEL || subdev_id == HDAV_SLIM) {
-        if (!((XonarWM87x6AudioEngine*)submodelInstance)->init(accessibleEngineInstance,deviceRegisters,subdev_id))
+        if (!( (XonarWM87x6AudioEngine*) submodelInstance)->init(accessibleEngineInstance,deviceRegisters,subdev_id))
             goto Done;
 
     }
