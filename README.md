@@ -28,19 +28,28 @@ update (23/10/2018 01:52GMT): i've managed to get the driver/kext to load/unload
 
 latest log:
 
-Oct 22, 2018, 7:16:19 PM kernel[0]: SamplePCIAudioDevice[0xffffff81109f7800]::initHardware(0xffffff80f2da2a00) 
-Oct 22, 2018, 7:16:19 PM kernel[0]: Xonar Vendor ID:0x13f6, Device ID:0x8788, SubDevice ID:0x8314, Physical Address:16384 
+Oct 22, 2018, 7:16:19 PM kernel[0]: SamplePCIAudioDevice[0xffffff81109f7800]::initHardware(0xffffff80f2da2a00)
+
+Oct 22, 2018, 7:16:19 PM kernel[0]: Xonar Vendor ID:0x13f6, Device ID:0x8788, SubDevice ID:0x8314, Physical Address:16384
+
 Oct 22, 2018, 7:16:19 PM kernel[0]: CMI8788: EEPROM write timeout 
+
 Oct 22, 2018, 7:16:19 PM kernel[0]: CMI8788: EEPROM write timeout 
+
 Oct 22, 2018, 7:16:19 PM kernel[0]: PCIAudioDevice[0xffffff81109f7800]::oxygen_restore_eeprom EEPROM ID restored 
+
 Oct 22, 2018, 7:16:19 PM kernel[0]: SamplePCIAudioDevice[0xffffff81109f7800]::createAudioEngine() 
+
 Oct 22, 2018, 7:16:19 PM kernel[0]: XonarHDAVAudioEngine[0xffffff80fd6b4200]::init(0xffffff8e209f1000) 
+
 Oct 22, 2018, 7:16:19 PM kernel[0]: XonarAudioEngine[0xffffff8102b4cc00]::init(0xffffff8e209f1000) 
+
 Oct 22, 2018, 7:16:19 PM kernel[0]: Can't unload kext com.CMedia.CMI8788.PCIAudioDriver; classes have instances: 
+
 Oct 22, 2018, 7:16:19 PM kernel[0]: Kext com.CMedia.CMI8788.PCIAudioDriver class com_CMedia_CMI8788_XonarHDAVAudioEngine has 1 instance. 
+
 Oct 22, 2018, 7:16:19 PM kernel[0]: Kext com.CMedia.CMI8788.PCIAudioDriver class com_CMedia_CMI8788_PCIAudioDevice has 1 instance. 
+
 Oct 22, 2018, 7:16:19 PM kernel[0]: Kext com.CMedia.CMI8788.PCIAudioDriver class com_CMedia_CMI8788_XonarAudioEngine has 1 instance.  
-Oct 22, 2018, 7:16:19 PM kernel[0]: com_CMedia_CMI8788_PCIAudioDevice: not registry member at registerService() 
 
-
-
+Oct 22, 2018, 7:16:19 PM kernel[0]: com_CMedia_CMI8788_PCIAudioDevice: not registry member at registerService()
