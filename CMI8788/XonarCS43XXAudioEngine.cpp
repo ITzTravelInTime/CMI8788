@@ -221,7 +221,7 @@ void XonarCS43XXAudioEngine::xonar_d1_line_mic_ac97_switch(struct oxygen *chip,
         oxygen_write16_masked(chip, OXYGEN_GPIO_DATA,
                               mute ? GPIO_D1_INPUT_ROUTE : 0,
                               GPIO_D1_INPUT_ROUTE);
-        OSSpinLockUnlock(&chip->reg_lock);
+        pthread_mutex_unlock(&chip->reg_lock);
     }
 }
 
