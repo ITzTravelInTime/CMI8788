@@ -58,7 +58,6 @@
 #import <machine/limits.h>
 //#import <kern/waitq.h>
 #import "oxygen_regs.h"
-#define OSSpinLockLock(lck) do {} while(!OSSpinLockTry(lck))
 #import "XonarAudioEngine.hpp"
 #define dev_err(dev, format, args...) do {printf("CMI8788: " format, ##args);} while (0)
 
