@@ -588,7 +588,7 @@ void XonarAudioEngine::update_cs2000_rate(struct oxygen *chip, unsigned int rate
 
 //
 //}
-
+ 
 static int oxygen_ac97_wait(struct oxygen *chip, unsigned int mask)
 {
     chip->ac97_statusbits = 0;
