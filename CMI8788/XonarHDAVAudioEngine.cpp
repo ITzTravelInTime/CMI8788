@@ -43,8 +43,8 @@
 #import <libkern/OSByteOrder.h>
 #import <sys/errno.h>
 #import <i386/limits.h>
-#import </usr/include/libkern/OSAtomic.h>
-#import </usr/include/string.h>
+#import <libkern/OSAtomic.h>
+#import <string.h>
 
 #import <IOKit/IOLib.h>
 #import <IOKit/IOFilterInterruptEventSource.h>

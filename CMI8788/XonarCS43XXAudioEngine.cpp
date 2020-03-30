@@ -1,7 +1,7 @@
 #import <libkern/OSByteOrder.h>
 #import <sys/errno.h>
 #import <i386/limits.h>
-#import </usr/include/libkern/OSAtomic.h>
+#import <libkern/OSAtomic.h>
 #import <IOKit/IOLib.h>
 #import <IOKit/IOFilterInterruptEventSource.h>
 #import "XonarCS43XXAudioEngine.hpp"
@@ -217,7 +217,7 @@ void XonarCS43XXAudioEngine::xonar_d1_line_mic_ac97_switch(struct oxygen *chip,
                                                            unsigned int reg, unsigned int mute)
 {
     if (reg == AC97_LINE) {
-        OSSpinLockLock(&chip->reg_lock);
+        pthread_mutex_lock(&chip->reg_lock);
         oxygen_write16_masked(chip, OXYGEN_GPIO_DATA,
                               mute ? GPIO_D1_INPUT_ROUTE : 0,
                               GPIO_D1_INPUT_ROUTE);

@@ -43,9 +43,10 @@
 
 #ifndef _SAMPLEPCIAUDIODEVICE_H
 #define _SAMPLEPCIAUDIODEVICE_H
-//#define _POSIX_C_SOURCE
-#import </usr/include/libkern/OSAtomic.h>
-//#import <pthread.h>
+#define _DARWIN_C_SOURCE
+#include <pthread.h>
+#import <libkern/OSAtomic.h>
+
 // to remove conflict with mach_port_t (happens when you use pthreads)
 #import <IOKit/audio/IOAudioDevice.h>
 #import <IOKit/IOWorkLoop.h>
@@ -188,8 +189,8 @@ struct oxygen_model {
 
 struct oxygen {
     unsigned long addr;
-    OSSpinLock reg_lock;
-    IOLock *mutex;
+    pthread_mutex_t reg_lock;
+    pthread_mutex_t mutex;
 //    struct snd_card *card;
 //    struct pci_dev *pci;
 //    struct snd_rawmidi *midi;
@@ -213,10 +214,10 @@ struct oxygen {
     //IOWorkLoop spdif_input_bits_work;
     //IOWorkLoop gpio_work;
     //wait_queue_t ac97_waitqueue;
-    //pthread_cond_t  ac97_condition;
+    pthread_cond_t  ac97_condition;
     kern_return_t ac97_statusbits;
-    IOLock *ac97_mutex;
-    //struct timespec ac97_timeout = {0, (long)1e6};
+    pthread_mutex_t ac97_mutex;
+    struct timespec ac97_timeout = {0, (long)1e6};
     wait_result_t ac97_result;
     unsigned int ac97_maskval;
     union {// have to swap these ... remember.

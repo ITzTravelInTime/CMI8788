@@ -41,13 +41,10 @@
  */
 
 
-//#import "ak4396.h"
-//#import "wm8785.h"
+
 #import <libkern/OSByteOrder.h>
 #import <sys/errno.h>
 #import <i386/limits.h>
-#import </usr/include/libkern/OSAtomic.h>
-
 
 #import <IOKit/IOLib.h>
 #import <IOKit/IOFilterInterruptEventSource.h>
