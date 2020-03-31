@@ -43,9 +43,10 @@
 
 #ifndef _SAMPLEPCIAUDIODEVICE_H
 #define _SAMPLEPCIAUDIODEVICE_H
-#define _DARWIN_C_SOURCE
-#include <pthread.h>
-#import <libkern/OSAtomic.h>
+#define _POSIX_C_SOURCE
+#define _MACH_PORT_T
+#import <pthread.h>
+//#import <libkern/OSAtomic.h>
 
 // to remove conflict with mach_port_t (happens when you use pthreads)
 #import <IOKit/audio/IOAudioDevice.h>
