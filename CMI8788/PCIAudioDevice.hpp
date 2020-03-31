@@ -191,7 +191,7 @@ struct oxygen_model {
 
 struct oxygen {
     unsigned long addr;
-    pthread_mutex_t reg_lock;
+    lck_spin_t *reg_lock;
     pthread_mutex_t mutex;
 //    struct snd_card *card;
 //    struct pci_dev *pci;

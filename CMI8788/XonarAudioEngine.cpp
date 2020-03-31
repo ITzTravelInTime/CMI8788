@@ -55,7 +55,7 @@
 #include "ac97.h"
 #include <IOKit/IOLib.h>
 #include <IOKit/IOFilterInterruptEventSource.h>
-
+#include <libkern/OSAtomic.h>
 #define INITIAL_SAMPLE_RATE	44100
 #define NUM_SAMPLE_FRAMES	16384
 #define NUM_CHANNELS		2
@@ -697,11 +697,11 @@ void XonarAudioEngine::xonar_line_mic_ac97_switch(struct oxygen *chip,
                                                   unsigned int reg, unsigned int mute)
 {
     if (reg == AC97_LINE) {
-        pthread_mutex_lock(&chip->reg_lock);
+        lck_spin_lock(chip->reg_lock);
         oxygen_write16_masked(chip, OXYGEN_GPIO_DATA,
                               mute ? GPIO_INPUT_ROUTE : 0,
                               GPIO_INPUT_ROUTE);
-        pthread_mutex_unlock(&chip->reg_lock);
+        lck_spin_unlock(chip->reg_lock);
     }
 }
 
@@ -1082,7 +1082,7 @@ bool XonarAudioEngine::init(struct oxygen *chip, int model)
     }
     pthread_mutex_init(&chip->mutex,NULL);
     pthread_mutex_init(&chip->ac97_mutex,NULL);
-    pthread_mutex_init(&chip->reg_lock, NULL);
+    lck_spin_init(chip->reg_lock, NULL, NULL);
     pthread_cond_init(&chip->ac97_condition,NULL);
 
     //begin oxygen_init
@@ -1829,7 +1829,7 @@ void XonarAudioEngine::oxygen_spdif_input_bits_changed(struct oxygen* chip)
      * changes.
      */
     IODelay(1000);
-    pthread_mutex_lock(&chip->reg_lock);
+    lck_spin_lock(chip->reg_lock);
     reg = oxygen_read32(chip, OXYGEN_SPDIF_CONTROL);
     if ((reg & (OXYGEN_SPDIF_SENSE_STATUS |
                 OXYGEN_SPDIF_LOCK_STATUS))
@@ -1840,9 +1840,9 @@ void XonarAudioEngine::oxygen_spdif_input_bits_changed(struct oxygen* chip)
          */
         reg ^= OXYGEN_SPDIF_IN_CLOCK_MASK;
         oxygen_write32(chip, OXYGEN_SPDIF_CONTROL, reg);
-        pthread_mutex_lock(&chip->reg_lock);
+        lck_spin_unlock(chip->reg_lock);
         IODelay(1000);
-        pthread_mutex_unlock(&chip->reg_lock);
+        lck_spin_lock(chip->reg_lock);
         reg = oxygen_read32(chip, OXYGEN_SPDIF_CONTROL);
         if ((reg & (OXYGEN_SPDIF_SENSE_STATUS |
                     OXYGEN_SPDIF_LOCK_STATUS))
@@ -1860,14 +1860,14 @@ void XonarAudioEngine::oxygen_spdif_input_bits_changed(struct oxygen* chip)
             }
         }
     }
-    pthread_mutex_unlock(&chip->reg_lock);
+    lck_spin_unlock(chip->reg_lock);
     /*
      if (chip->controls[CONTROL_SPDIF_INPUT_BITS]) {
-     OSSpinLockLock(&chip->reg_lock);
+     lck_spin_lock(chip->reg_lock);
      chip->interrupt_mask |= OXYGEN_INT_SPDIF_IN_DETECT;
      oxygen_write16(chip, OXYGEN_INTERRUPT_MASK,
      chip->interrupt_mask);
-     OSSpinLockUnlock(&chip->reg_lock);
+     lck_spin_unlock(chip->reg_lock);
      
      
      // We don't actually know that any channel status bits have
@@ -1899,7 +1899,7 @@ bool XonarAudioEngine::interruptFilter(OSObject *owner, IOFilterInterruptEventSo
     if (!status)
         return false;
     
-    pthread_mutex_lock(&chip->reg_lock);
+    lck_spin_lock(chip->reg_lock);
     
     clear = status & (OXYGEN_CHANNEL_A |
                       OXYGEN_CHANNEL_B |
@@ -1921,7 +1921,7 @@ bool XonarAudioEngine::interruptFilter(OSObject *owner, IOFilterInterruptEventSo
     
     elapsed_streams = status & chip->pcm_running;
     
-    pthread_mutex_unlock(&chip->reg_lock);
+    lck_spin_unlock(chip->reg_lock);
     /* Not sure if we need this loop since OSX handles PCM very differently
      *from Linux/ALSA. commenting out for now since there is no equivalent of
      *snd_pcm_period_elapsed (updates the position and tells us if we've run over
@@ -1933,7 +1933,7 @@ bool XonarAudioEngine::interruptFilter(OSObject *owner, IOFilterInterruptEventSo
         //         snd_pcm_period_elapsed(chip->streams[i]);
         
         if (status & OXYGEN_INT_SPDIF_IN_DETECT) {
-            pthread_mutex_lock(&chip->reg_lock);
+            lck_spin_lock(chip->reg_lock);
             i = oxygen_read32(chip, OXYGEN_SPDIF_CONTROL);
             if (i & (OXYGEN_SPDIF_SENSE_INT | OXYGEN_SPDIF_LOCK_INT |
                      OXYGEN_SPDIF_RATE_INT)) {
@@ -1948,7 +1948,7 @@ bool XonarAudioEngine::interruptFilter(OSObject *owner, IOFilterInterruptEventSo
                  * the work. in this case, checking the spdif bits*/
                 callingInstance->workLoop->runAction((Action)callingInstance->oxygen_spdif_input_bits_changed, callingInstance, callingInstance->dev_id);
             }
-            pthread_mutex_unlock(&chip->reg_lock);
+            lck_spin_unlock(chip->reg_lock);
         }
     
     if (status & OXYGEN_INT_GPIO)
@@ -1980,11 +1980,11 @@ bool XonarAudioEngine::interruptFilter(OSObject *owner, IOFilterInterruptEventSo
     }
     
     if (status & OXYGEN_INT_AC97) {
-        //unsigned int maskval = chip->ac97_maskval;
-         thread_wakeup_prim((event_t)chip->ac97_statusbits,0,THREAD_AWAKENED);
-        //        pthread_mutex_lock(&chip->ac97_mutex);
-        //        pthread_cond_signal(&chip->ac97_condition);
-        //        pthread_mutex_unlock(&chip->ac97_mutex);
+        unsigned int maskval = chip->ac97_maskval;
+        // thread_wakeup_prim((event_t)chip->ac97_statusbits,0,THREAD_AWAKENED);
+                pthread_mutex_lock(&chip->ac97_mutex);
+                pthread_cond_signal(&chip->ac97_condition);
+                pthread_mutex_unlock(&chip->ac97_mutex);
     }
     
     return true;
