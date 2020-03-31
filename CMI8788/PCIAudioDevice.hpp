@@ -54,6 +54,7 @@
 #include <machine/limits.h>
 
 #include <IOKit/audio/IOAudioDevice.h>
+#define _MACH_PORT_T
 #include <pthread.h>
 
 #include <IOKit/IOWorkLoop.h>
