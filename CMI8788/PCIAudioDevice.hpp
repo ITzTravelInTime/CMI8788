@@ -216,7 +216,7 @@ struct oxygen {
     //IOWorkLoop spdif_input_bits_work;
     //IOWorkLoop gpio_work;
     //wait_queue_t ac97_waitqueue;
-    pthread_cond_t  ac97_condition;
+    pthread_cond_t  ac97_condition = PTHREAD_COND_INITIALIZER;
     kern_return_t ac97_statusbits;
     pthread_mutex_t ac97_mutex;
     struct timespec ac97_timeout = {0, (long)1e6};
