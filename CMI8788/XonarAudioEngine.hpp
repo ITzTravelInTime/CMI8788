@@ -43,9 +43,9 @@
 
 #ifndef _XONARAUDIOENGINE_H
 #define _XONARAUDIOENGINE_H
-#import <IOKit/audio/IOAudioEngine.h>
 
-#import "PCIAudioDevice.hpp"
+#include "PCIAudioDevice.hpp"
+#include <IOKit/audio/IOAudioEngine.h>
 
 #define XonarAudioEngine com_CMedia_CMI8788_XonarAudioEngine
 #define XonarHDAVAudioEngine com_CMedia_CMI8788_XonarHDAVAudioEngine

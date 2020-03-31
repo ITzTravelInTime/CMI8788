@@ -1,13 +1,14 @@
-#import <libkern/OSByteOrder.h>
-#import <sys/errno.h>
-#import <i386/limits.h>
-#import <IOKit/IOLib.h>
-#import <IOKit/IOFilterInterruptEventSource.h>
-#import "XonarWM87x6AudioEngine.hpp"
-#import "cm9780.h"
-#import "cs4398.h"
-#import "cs4362a.h"
-#import "ac97.h"
+
+#include "XonarWM87x6AudioEngine.hpp"
+#include "cm9780.h"
+#include "cs4398.h"
+#include "cs4362a.h"
+#include "ac97.h"
+#include <libkern/OSByteOrder.h>
+#include <sys/errno.h>
+#include <i386/limits.h>
+#include <IOKit/IOLib.h>
+#include <IOKit/IOFilterInterruptEventSource.h>
 
 #define INITIAL_SAMPLE_RATE	44100
 #define NUM_SAMPLE_FRAMES	16384
@@ -81,8 +82,8 @@ OSDefineMetaClassAndStructors(XonarWM87x6AudioEngine, IOAudioEngine)
  *   input 2 <- aux
  */
 
-#import "wm8776.h"
-#import "wm8766.h"
+#include "wm8776.h"
+#include "wm8766.h"
 
 #define GPIO_DS_HP_DETECT	0x0010
 #define GPIO_DS_INPUT_ROUTE	0x0040

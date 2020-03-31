@@ -1,14 +1,14 @@
-#import <libkern/OSByteOrder.h>
-#import <sys/errno.h>
-#import <i386/limits.h>
-#import <libkern/OSAtomic.h>
-#import <IOKit/IOLib.h>
-#import <IOKit/IOFilterInterruptEventSource.h>
-#import "XonarCS43XXAudioEngine.hpp"
-#import "cm9780.h"
-#import "cs4398.h"
-#import "cs4362a.h"
-#import "ac97.h"
+#include "XonarCS43XXAudioEngine.hpp"
+#include "cm9780.h"
+#include "cs4398.h"
+#include "cs4362a.h"
+#include "ac97.h"
+#include <libkern/OSByteOrder.h>
+#include <sys/errno.h>
+#include <i386/limits.h>
+#include <libkern/OSAtomic.h>
+#include <IOKit/IOLib.h>
+#include <IOKit/IOFilterInterruptEventSource.h>
 
 #define INITIAL_SAMPLE_RATE	44100
 #define NUM_SAMPLE_FRAMES	16384

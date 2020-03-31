@@ -40,19 +40,20 @@
  
  */
 
-#import <libkern/OSByteOrder.h>
-#import <sys/errno.h>
-#import <i386/limits.h>
-#import <libkern/OSAtomic.h>
-#import <string.h>
 
-#import <IOKit/IOLib.h>
-#import <IOKit/IOFilterInterruptEventSource.h>
-#import "XonarHDAVAudioEngine.hpp"
-#import "pcm1796.h"
-#import "cm9780.h"
-#import "cs2000.h"
-#import "ac97.h"
+#include "XonarHDAVAudioEngine.hpp"
+#include "pcm1796.h"
+#include "cm9780.h"
+#include "cs2000.h"
+#include "ac97.h"
+ #include <libkern/OSByteOrder.h>
+ #include <sys/errno.h>
+ #include <i386/limits.h>
+ #include <libkern/OSAtomic.h>
+ #include <string.h>
+ 
+ #include <IOKit/IOLib.h>
+ #include <IOKit/IOFilterInterruptEventSource.h>
 
 #define INITIAL_SAMPLE_RATE	44100
 #define NUM_SAMPLE_FRAMES	16384

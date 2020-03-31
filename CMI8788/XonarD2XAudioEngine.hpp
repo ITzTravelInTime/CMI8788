@@ -44,11 +44,11 @@
 #ifndef _XonarD2XAUDIOENGINE_H
 #define _XonarD2XAUDIOENGINE_H
 
-#import <IOKit/audio/IOAudioEngine.h>
 
-#import "PCIAudioDevice.hpp"
-#import "XonarAudioEngine.hpp"
-#import "XonarSTAudioEngine.hpp"
+#include "XonarAudioEngine.hpp"
+#include "XonarSTAudioEngine.hpp"
+//#include <IOKit/audio/IOAudioEngine.h>
+
 #define XonarD2XAudioEngine com_CMedia_CMI8788_XonarD2XAudioEngine
 
 

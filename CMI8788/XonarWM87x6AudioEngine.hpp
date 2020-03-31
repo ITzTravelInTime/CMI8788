@@ -1,10 +1,8 @@
 #ifndef XonarWM87x6AudioEngine_hpp
 #define XonarWM87x6AudioEngine_hpp
 
-#import <IOKit/audio/IOAudioEngine.h>
 
-#import "PCIAudioDevice.hpp"
-#import "XonarAudioEngine.hpp"
+#include "XonarAudioEngine.hpp"
 
 
 #define GPI_EXT_POWER		0x01

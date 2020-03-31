@@ -43,14 +43,8 @@
 
 #include "ak4396.h"
 //#include "wm8785.h"
-#include <libkern/OSByteOrder.h>
-#include <sys/errno.h>
-#include <i386/limits.h>
 
-
-#include <IOKit/IOLib.h>
-#include <IOKit/IOFilterInterruptEventSource.h>
-#include <libkern/locks.h>
+//#include <libkern/locks.h>
 //#include <architecture/i386/pio.h>
 #include "XonarAudioEngine.hpp"
 #include "pcm1796.h"
@@ -59,6 +53,9 @@
 #include "cs4398.h"
 #include "cs4362a.h"
 #include "ac97.h"
+#include <IOKit/IOLib.h>
+#include <IOKit/IOFilterInterruptEventSource.h>
+
 #define INITIAL_SAMPLE_RATE	44100
 #define NUM_SAMPLE_FRAMES	16384
 #define NUM_CHANNELS		2
