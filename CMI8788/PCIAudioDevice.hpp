@@ -43,18 +43,13 @@
 
 #ifndef _SAMPLEPCIAUDIODEVICE_H
 #define _SAMPLEPCIAUDIODEVICE_H
-
-// to remove conflict with mach_port_t (happens when you use pthreads)
-
-//#include <kern/waitq.h>
-//#include "XonarAudioEngine.hpp"
-//#include <sys/types.h>
 #include <architecture/i386/pio.h>
 #include <sys/errno.h>
 #include <machine/limits.h>
+#include <string.h>
 
 #include <IOKit/audio/IOAudioDevice.h>
-#define _MACH_PORT_T
+#define _MACH_PORT_T // to remove conflict with mach_port_t (happens when you use pthreads)
 #include <pthread.h>
 
 #include <IOKit/IOWorkLoop.h>

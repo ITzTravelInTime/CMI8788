@@ -42,9 +42,6 @@
 
 
 #include "XonarSTAudioEngine.hpp"
-#include <libkern/OSByteOrder.h>
-#include <sys/errno.h>
-#include <i386/limits.h>
 
 #include <IOKit/IOLib.h>
 #include <IOKit/IOFilterInterruptEventSource.h>

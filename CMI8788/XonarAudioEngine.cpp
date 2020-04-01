@@ -53,9 +53,9 @@
 #include "cs4398.h"
 #include "cs4362a.h"
 #include "ac97.h"
+
 #include <IOKit/IOLib.h>
 #include <IOKit/IOFilterInterruptEventSource.h>
-#include <libkern/OSAtomic.h>
 #define INITIAL_SAMPLE_RATE	44100
 #define NUM_SAMPLE_FRAMES	16384
 #define NUM_CHANNELS		2

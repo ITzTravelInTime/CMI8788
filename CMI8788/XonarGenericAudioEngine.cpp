@@ -1,10 +1,8 @@
 #include "ak4396.h"
 #include "wm8785.h"
 #include "XonarGenericAudioEngine.hpp"
-#include <libkern/OSByteOrder.h>
-#include <sys/errno.h>
-#include <i386/limits.h>
-#include <libkern/OSAtomic.h>
+
+
 #include <IOKit/IOLib.h>
 #include <IOKit/IOFilterInterruptEventSource.h>
 

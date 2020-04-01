@@ -46,14 +46,10 @@
 #include "cm9780.h"
 #include "cs2000.h"
 #include "ac97.h"
- #include <libkern/OSByteOrder.h>
- #include <sys/errno.h>
- #include <i386/limits.h>
- #include <libkern/OSAtomic.h>
- #include <string.h>
+
  
- #include <IOKit/IOLib.h>
- #include <IOKit/IOFilterInterruptEventSource.h>
+#include <IOKit/IOLib.h>
+#include <IOKit/IOFilterInterruptEventSource.h>
 
 #define INITIAL_SAMPLE_RATE	44100
 #define NUM_SAMPLE_FRAMES	16384

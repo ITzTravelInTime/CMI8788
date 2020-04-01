@@ -1,12 +1,10 @@
-
-#include "XonarWM87x6AudioEngine.hpp"
 #include "cm9780.h"
 #include "cs4398.h"
 #include "cs4362a.h"
 #include "ac97.h"
-#include <libkern/OSByteOrder.h>
-#include <sys/errno.h>
-#include <i386/limits.h>
+#include "XonarWM87x6AudioEngine.hpp"
+
+
 #include <IOKit/IOLib.h>
 #include <IOKit/IOFilterInterruptEventSource.h>
 
