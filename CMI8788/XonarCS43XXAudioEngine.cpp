@@ -214,11 +214,11 @@ void XonarCS43XXAudioEngine::xonar_d1_line_mic_ac97_switch(struct oxygen *chip,
                                                            unsigned int reg, unsigned int mute)
 {
     if (reg == AC97_LINE) {
-        lck_spin_lock(chip->reg_lock);
+        os_unfair_lock_lock(chip->reg_lock);
         oxygen_write16_masked(chip, OXYGEN_GPIO_DATA,
                               mute ? GPIO_D1_INPUT_ROUTE : 0,
                               GPIO_D1_INPUT_ROUTE);
-        lck_spin_unlock(chip->reg_lock);
+        os_unfair_lock_unlock(chip->reg_lock);
     }
 }
 
@@ -671,7 +671,7 @@ void XonarCS43XXAudioEngine::filterInterrupt(int index)
  int changed;
  UInt8 reg;
  
- mutex_lock(&chip->mutex);
+ IOLockLock(&chip->mutex);
  reg = data->cs4398_regs[7];
  if (value->value.enumerated.item[0])
  reg |= CS4398_FILT_SEL;
@@ -686,7 +686,7 @@ void XonarCS43XXAudioEngine::filterInterrupt(int index)
  reg = data->cs4362a_regs[0x04] & ~CS4362A_FILT_SEL;
  cs4362a_write(chip, 0x04, reg);
  }
- mutex_unlock(&chip->mutex);
+ IOLockUnlock(&chip->mutex);
  return changed;
  }assert_wait_timeout
  

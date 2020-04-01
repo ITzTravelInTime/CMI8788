@@ -47,7 +47,7 @@
 #include <sys/errno.h>
 #include <machine/limits.h>
 #include <string.h>
-
+#include <os/lock.h>
 #include <IOKit/audio/IOAudioDevice.h>
 #define _MACH_PORT_T // to remove conflict with mach_port_t (happens when you use pthreads)
 #include <pthread.h>
@@ -186,8 +186,8 @@ struct oxygen_model {
 
 struct oxygen {
     unsigned long addr;
-    lck_spin_t *reg_lock;
-    pthread_mutex_t mutex;
+    os_unfair_lock_t reg_lock;
+    IOLock *mutex;
 //    struct snd_card *card;
 //    struct pci_dev *pci;
 //    struct snd_rawmidi *midi;

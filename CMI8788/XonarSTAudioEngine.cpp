@@ -189,7 +189,7 @@ void XonarSTAudioEngine::set_st_params(struct oxygen *chip,
 //    struct xonar_pcm179x *data = chip->model_data;
 //    UInt16 gpio_old, gpio;
 //
-//    mutex_lock(&chip->mutex);
+//    IOLockLock(&chip->mutex);
 //    gpio_old = oxygen_read16(chip, OXYGEN_GPIO_DATA);
 //    gpio = gpio_old;
 //    switch (value->value.enumerated.item[0]) {
@@ -206,7 +206,7 @@ void XonarSTAudioEngine::set_st_params(struct oxygen *chip,
 //    oxygen_write16(chip, OXYGEN_GPIO_DATA, gpio);
 //    data->hp_active = gpio & GPIO_ST_HP;
 //    update_pcm1796_volume(chip);
-//    mutex_unlock(&chip->mutex);
+//    IOLockUnlock(&chip->mutex);
 //    return gpio != gpio_old;
 //}
 //
@@ -226,7 +226,7 @@ void XonarSTAudioEngine::set_st_params(struct oxygen *chip,
 //    struct oxygen *chip = ctl->private_data;
 //    struct xonar_pcm179x *data = chip->model_data;
 //
-//    mutex_lock(&chip->mutex);
+//    IOLockLock(&chip->mutex);
 //    if (data->hp_gain_offset < 2*-12)
 //        value->value.enumerated.item[0] = 0;
 //    else if (data->hp_gain_offset < 2*-6)
@@ -235,7 +235,7 @@ void XonarSTAudioEngine::set_st_params(struct oxygen *chip,
 //        value->value.enumerated.item[0] = 2;
 //    else
 //        value->value.enumerated.item[0] = 3;
-//    mutex_unlock(&chip->mutex);
+//    IOLockUnlock(&chip->mutex);
 //    return 0;
 //}
 //
@@ -252,13 +252,13 @@ void XonarSTAudioEngine::set_st_params(struct oxygen *chip,
 //    if (value->value.enumerated.item[0] > 3)
 //        return -EINVAL;
 //    offset = offsets[value->value.enumerated.item[0]];
-//    mutex_lock(&chip->mutex);
+//    IOLockLock(&chip->mutex);
 //    changed = offset != data->hp_gain_offset;
 //    if (changed) {
 //        data->hp_gain_offset = offset;
 //        update_pcm1796_volume(chip);
 //    }
-//    mutex_unlock(&chip->mutex);
+//    IOLockUnlock(&chip->mutex);
 //    return changed;
 //}
 //
@@ -310,7 +310,7 @@ void XonarSTAudioEngine::set_st_params(struct oxygen *chip,
  struct xonar_pcm179x *data = chip->model_data;
  UInt16 gpio_old, gpio;
  
- mutex_lock(&chip->mutex);
+ IOLockLock(&chip->mutex);
  gpio_old = oxygen_read16(chip, OXYGEN_GPIO_DATA);
  gpio = gpio_old;
  switch (value->value.enumerated.item[0]) {
@@ -327,7 +327,7 @@ void XonarSTAudioEngine::set_st_params(struct oxygen *chip,
  oxygen_write16(chip, OXYGEN_GPIO_DATA, gpio);
  data->hp_active = !(gpio & GPIO_XENSE_SPEAKERS);
  update_pcm1796_volume(chip);
- mutex_unlock(&chip->mutex);
+ IOLockUnlock(&chip->mutex);
  return gpio != gpio_old;
  }
  

@@ -247,7 +247,7 @@ void XonarWM87x6AudioEngine::xonar_ds_handle_hp_jack(struct oxygen *chip, XonarA
     bool hp_plugged;
     unsigned int reg;
     
-    pthread_mutex_lock(&chip->mutex);
+    IOLockLock(chip->mutex);
     
     hp_plugged = !(oxygen_read16(chip, OXYGEN_GPIO_DATA) &
                    GPIO_DS_HP_DETECT);
@@ -262,7 +262,7 @@ void XonarWM87x6AudioEngine::xonar_ds_handle_hp_jack(struct oxygen *chip, XonarA
     wm8766_write_cached(chip, WM8766_DAC_CTRL, reg, audioEngine);
     
    // snd_jack_report(data->hp_jack, hp_plugged ? SND_JACK_HEADPHONE : 0);
-    pthread_mutex_unlock(&chip->mutex);
+    IOLockUnlock(chip->mutex);
 }
 
 
@@ -891,14 +891,14 @@ void XonarWM87x6AudioEngine::filterInterrupt(int index)
  bool invert = (ctl->private_value >> 24) & 1;
  int changed;
  
- mutex_lock(&chip->mutex);
+ IOLockLock(&chip->mutex);
  reg_value = data->wm8776_regs[reg_index] & ~bit;
  if (value->value.integer.value[0] ^ invert)
  reg_value |= bit;
  changed = reg_value != data->wm8776_regs[reg_index];
  if (changed)
  wm8776_write(chip, reg_index, reg_value);
- mutex_unlock(&chip->mutex);
+ IOLockUnlock(&chip->mutex);
  return changed;
  }
  
@@ -1018,13 +1018,13 @@ void XonarWM87x6AudioEngine::filterInterrupt(int index)
  max = (ctl->private_value >> 12) & 0xf;
  if (value < min || value > max)
  return -EINVAL;
- mutex_lock(&chip->mutex);
+ IOLockLock(&chip->mutex);
  changed = value != (ctl->private_value & 0xf);
  if (changed) {
  ctl->private_value = (ctl->private_value & ~0xf) | value;
  wm8776_field_set_from_ctl(ctl);
  }
- mutex_unlock(&chip->mutex);
+ IOLockUnlock(&chip->mutex);
  return changed;
  }
  
@@ -1070,12 +1070,12 @@ void XonarWM87x6AudioEngine::filterInterrupt(int index)
  struct oxygen *chip = ctl->private_data;
  struct xonar_wm87x6 *data = chip->model_data;
  
- mutex_lock(&chip->mutex);
+ IOLockLock(&chip->mutex);
  value->value.integer.value[0] =
  data->wm8776_regs[WM8776_HPLVOL] & WM8776_HPATT_MASK;
  value->value.integer.value[1] =
  data->wm8776_regs[WM8776_HPRVOL] & WM8776_HPATT_MASK;
- mutex_unlock(&chip->mutex);
+ IOLockUnlock(&chip->mutex);
  return 0;
  }
  
@@ -1086,7 +1086,7 @@ void XonarWM87x6AudioEngine::filterInterrupt(int index)
  struct xonar_wm87x6 *data = chip->model_data;
  u8 to_update;
  
- mutex_lock(&chip->mutex);
+ IOLockLock(&chip->mutex);
  to_update = (value->value.integer.value[0] !=
  (data->wm8776_regs[WM8776_HPLVOL] & WM8776_HPATT_MASK))
  << 0;
@@ -1114,7 +1114,7 @@ void XonarWM87x6AudioEngine::filterInterrupt(int index)
  value->value.integer.value[1] |
  WM8776_HPZCEN | WM8776_UPDATE);
  }
- mutex_unlock(&chip->mutex);
+ IOLockUnlock(&chip->mutex);
  return to_update != 0;
  }
  
@@ -1140,7 +1140,7 @@ void XonarWM87x6AudioEngine::filterInterrupt(int index)
  u16 reg;
  int changed;
  
- mutex_lock(&chip->mutex);
+ IOLockLock(&chip->mutex);
  reg = data->wm8776_regs[WM8776_ADCMUX];
  if (value->value.integer.value[0]) {
  reg |= mux_bit;
@@ -1164,7 +1164,7 @@ void XonarWM87x6AudioEngine::filterInterrupt(int index)
  GPIO_DS_INPUT_ROUTE);
  wm8776_write(chip, WM8776_ADCMUX, reg);
  }
- mutex_unlock(&chip->mutex);
+ IOLockUnlock(&chip->mutex);
  return changed;
  }
  
@@ -1184,12 +1184,12 @@ void XonarWM87x6AudioEngine::filterInterrupt(int index)
  struct oxygen *chip = ctl->private_data;
  struct xonar_wm87x6 *data = chip->model_data;
  
- mutex_lock(&chip->mutex);
+ IOLockLock(&chip->mutex);
  value->value.integer.value[0] =
  data->wm8776_regs[WM8776_ADCLVOL] & WM8776_AGMASK;
  value->value.integer.value[1] =
  data->wm8776_regs[WM8776_ADCRVOL] & WM8776_AGMASK;
- mutex_unlock(&chip->mutex);
+ IOLockUnlock(&chip->mutex);
  return 0;
  }
  
@@ -1200,7 +1200,7 @@ void XonarWM87x6AudioEngine::filterInterrupt(int index)
  struct xonar_wm87x6 *data = chip->model_data;
  int changed = 0;
  
- mutex_lock(&chip->mutex);
+ IOLockLock(&chip->mutex);
  changed = (value->value.integer.value[0] !=
  (data->wm8776_regs[WM8776_ADCLVOL] & WM8776_AGMASK)) ||
  (value->value.integer.value[1] !=
@@ -1209,7 +1209,7 @@ void XonarWM87x6AudioEngine::filterInterrupt(int index)
  value->value.integer.value[0] | WM8776_ZCA);
  wm8776_write_cached(chip, WM8776_ADCRVOL,
  value->value.integer.value[1] | WM8776_ZCA);
- mutex_unlock(&chip->mutex);
+ IOLockUnlock(&chip->mutex);
  return changed;
  }
  
@@ -1265,7 +1265,7 @@ void XonarWM87x6AudioEngine::filterInterrupt(int index)
  
  if (value->value.enumerated.item[0] >= 3)
  return -EINVAL;
- mutex_lock(&chip->mutex);
+ IOLockLock(&chip->mutex);
  changed = value->value.enumerated.item[0] != ctl->private_value;
  if (changed) {
  ctl->private_value = value->value.enumerated.item[0];
@@ -1296,7 +1296,7 @@ void XonarWM87x6AudioEngine::filterInterrupt(int index)
  for (i = 0; i < ARRAY_SIZE(data->lc_controls); ++i)
  activate_control(chip, data->lc_controls[i], mode);
  }
- mutex_unlock(&chip->mutex);
+ IOLockUnlock(&chip->mutex);
  return changed;
  }
  
@@ -1326,14 +1326,14 @@ void XonarWM87x6AudioEngine::filterInterrupt(int index)
  unsigned int reg;
  int changed;
  
- mutex_lock(&chip->mutex);
+ IOLockLock(&chip->mutex);
  reg = data->wm8776_regs[WM8776_ADCIFCTRL] & ~WM8776_ADCHPD;
  if (!value->value.enumerated.item[0])
  reg |= WM8776_ADCHPD;
  changed = reg != data->wm8776_regs[WM8776_ADCIFCTRL];
  if (changed)
  wm8776_write(chip, WM8776_ADCIFCTRL, reg);
- mutex_unlock(&chip->mutex);
+ IOLockUnlock(&chip->mutex);
  return changed;
  }
  

@@ -430,7 +430,7 @@ IOReturn PCIAudioDevice::volumeChanged(IOAudioControl *volumeControl, XonarAudio
     int changed;
     
     changed = 0;
-    pthread_mutex_lock(&chip->mutex);
+    IOLockLock(chip->mutex);
     /* not sure if i keep dac_volume[i] or use "oldValue", but
      * i figure it's a good idea to use the hardware reading
      * at least once for this sort of comparison, as it determines
@@ -444,7 +444,7 @@ IOReturn PCIAudioDevice::volumeChanged(IOAudioControl *volumeControl, XonarAudio
     }
     if (changed)
         chip->model.update_dac_volume(chip,engine);
-    pthread_mutex_unlock(&chip->mutex);
+    IOLockUnlock(chip->mutex);
     return changed;
     
     
@@ -472,13 +472,13 @@ IOReturn PCIAudioDevice::outputMuteChanged(IOAudioControl *muteControl, XonarAud
     struct oxygen *chip = engine->chipData;
     int changed;
     
-    pthread_mutex_lock(&chip->mutex);
+    IOLockLock(chip->mutex);
     changed = (!newValue) != chip->dac_mute;
     if (changed) {
         chip->dac_mute = !newValue;
         chip->model.update_dac_mute(chip, engine);
     }
-    pthread_mutex_unlock(&chip->mutex);
+    IOLockUnlock(chip->mutex);
     return changed;
     
     
