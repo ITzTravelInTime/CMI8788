@@ -30,6 +30,8 @@
 		CEBCDDC0208FC7220036FE29 /* XonarCS43XXAudioEngine.hpp in Headers */ = {isa = PBXBuildFile; fileRef = CEBCDDBF208FC7220036FE29 /* XonarCS43XXAudioEngine.hpp */; };
 		CEBCDDC4208FE0540036FE29 /* XonarWM87x6AudioEngine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEBCDDC3208FE0540036FE29 /* XonarWM87x6AudioEngine.cpp */; };
 		CEBCDDC6208FE0BD0036FE29 /* XonarWM87x6AudioEngine.hpp in Headers */ = {isa = PBXBuildFile; fileRef = CEBCDDC5208FE0BD0036FE29 /* XonarWM87x6AudioEngine.hpp */; };
+		CEE7506E243414C900E22C81 /* libpthread.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = CEE7506A2434121100E22C81 /* libpthread.tbd */; settings = {ATTRIBUTES = (Required, ); }; };
+		CEE7506F2434150400E22C81 /* libsystem_pthread.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = CEE7506C2434124600E22C81 /* libsystem_pthread.tbd */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -63,6 +65,8 @@
 		CEBCDDC5208FE0BD0036FE29 /* XonarWM87x6AudioEngine.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = XonarWM87x6AudioEngine.hpp; sourceTree = "<group>"; };
 		CEBCDDC7208FE3590036FE29 /* wm8776.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = wm8776.h; sourceTree = "<group>"; };
 		CEBCDDC8208FE3850036FE29 /* wm8766.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = wm8766.h; sourceTree = "<group>"; };
+		CEE7506A2434121100E22C81 /* libpthread.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libpthread.tbd; path = usr/lib/libpthread.tbd; sourceTree = SDKROOT; };
+		CEE7506C2434124600E22C81 /* libsystem_pthread.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsystem_pthread.tbd; path = usr/lib/system/libsystem_pthread.tbd; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -70,6 +74,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CEE7506F2434150400E22C81 /* libsystem_pthread.tbd in Frameworks */,
+				CEE7506E243414C900E22C81 /* libpthread.tbd in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -81,6 +87,7 @@
 			children = (
 				CE235F9E207DBA0600AF3203 /* PCIAudioDriver */,
 				CE235F9D207DBA0600AF3203 /* Products */,
+				CEE750692434121100E22C81 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -127,6 +134,15 @@
 			);
 			name = PCIAudioDriver;
 			path = CMI8788;
+			sourceTree = "<group>";
+		};
+		CEE750692434121100E22C81 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				CEE7506C2434124600E22C81 /* libsystem_pthread.tbd */,
+				CEE7506A2434121100E22C81 /* libpthread.tbd */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -295,6 +311,11 @@
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = (
+					"-lpthread",
+					"-lsystem_pthread",
+				);
+				OTHER_LIBTOOLFLAGS = "-lpthread -lsystem_pthread -pthread";
 				PRECOMPS_INCLUDE_HEADERS_FROM_BUILT_PRODUCTS_DIR = YES;
 				SCAN_ALL_SOURCE_FILES_FOR_INCLUDES = YES;
 				SDKROOT = macosx;
@@ -356,6 +377,11 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = (
+					"-lpthread",
+					"-lsystem_pthread",
+				);
+				OTHER_LIBTOOLFLAGS = "-lpthread -lsystem_pthread -pthread";
 				PRECOMPS_INCLUDE_HEADERS_FROM_BUILT_PRODUCTS_DIR = YES;
 				SCAN_ALL_SOURCE_FILES_FOR_INCLUDES = YES;
 				SDKROOT = macosx;
@@ -401,7 +427,7 @@
 				MODULE_VERSION = 1.0.0d1;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = NO;
-				OTHER_CFLAGS = "";
+				OTHER_CFLAGS = "-pthread";
 				PRECOMPS_INCLUDE_HEADERS_FROM_BUILT_PRODUCTS_DIR = NO;
 				PRODUCT_BUNDLE_IDENTIFIER = com.CMedia.CMI8788.PCIAudioDriver;
 				PRODUCT_NAME = PCIAudioDriver;
@@ -453,7 +479,7 @@
 				MODULE_NAME = PCIAudioDriver;
 				MODULE_VERSION = 1.0.0d1;
 				ONLY_ACTIVE_ARCH = NO;
-				OTHER_CFLAGS = "";
+				OTHER_CFLAGS = "-pthread";
 				PRECOMPS_INCLUDE_HEADERS_FROM_BUILT_PRODUCTS_DIR = NO;
 				PRODUCT_BUNDLE_IDENTIFIER = com.CMedia.CMI8788.PCIAudioDriver;
 				PRODUCT_NAME = PCIAudioDriver;

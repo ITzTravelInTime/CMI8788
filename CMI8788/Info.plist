@@ -34,6 +34,8 @@
 	<string>Copyright © 2018 CMedia. All rights reserved.</string>
 	<key>OSBundleLibraries</key>
 	<dict>
+		<key>com.apple.kec.pthread</key>
+		<string>11.2</string>
 		<key>com.apple.iokit.IOAudioFamily</key>
 		<string>203.3</string>
 		<key>com.apple.iokit.IOPCIFamily</key>
