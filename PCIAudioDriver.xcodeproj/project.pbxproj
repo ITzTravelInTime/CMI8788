@@ -30,8 +30,6 @@
 		CEBCDDC0208FC7220036FE29 /* XonarCS43XXAudioEngine.hpp in Headers */ = {isa = PBXBuildFile; fileRef = CEBCDDBF208FC7220036FE29 /* XonarCS43XXAudioEngine.hpp */; };
 		CEBCDDC4208FE0540036FE29 /* XonarWM87x6AudioEngine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEBCDDC3208FE0540036FE29 /* XonarWM87x6AudioEngine.cpp */; };
 		CEBCDDC6208FE0BD0036FE29 /* XonarWM87x6AudioEngine.hpp in Headers */ = {isa = PBXBuildFile; fileRef = CEBCDDC5208FE0BD0036FE29 /* XonarWM87x6AudioEngine.hpp */; };
-		CEE7506E243414C900E22C81 /* libpthread.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = CEE7506A2434121100E22C81 /* libpthread.tbd */; settings = {ATTRIBUTES = (Required, ); }; };
-		CEE7506F2434150400E22C81 /* libsystem_pthread.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = CEE7506C2434124600E22C81 /* libsystem_pthread.tbd */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -65,8 +63,6 @@
 		CEBCDDC5208FE0BD0036FE29 /* XonarWM87x6AudioEngine.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = XonarWM87x6AudioEngine.hpp; sourceTree = "<group>"; };
 		CEBCDDC7208FE3590036FE29 /* wm8776.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = wm8776.h; sourceTree = "<group>"; };
 		CEBCDDC8208FE3850036FE29 /* wm8766.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = wm8766.h; sourceTree = "<group>"; };
-		CEE7506A2434121100E22C81 /* libpthread.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libpthread.tbd; path = usr/lib/libpthread.tbd; sourceTree = SDKROOT; };
-		CEE7506C2434124600E22C81 /* libsystem_pthread.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsystem_pthread.tbd; path = usr/lib/system/libsystem_pthread.tbd; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -74,8 +70,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CEE7506F2434150400E22C81 /* libsystem_pthread.tbd in Frameworks */,
-				CEE7506E243414C900E22C81 /* libpthread.tbd in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -139,8 +133,6 @@
 		CEE750692434121100E22C81 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				CEE7506C2434124600E22C81 /* libsystem_pthread.tbd */,
-				CEE7506A2434121100E22C81 /* libpthread.tbd */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -281,7 +273,7 @@
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_IDENTITY = "Mac Developer";
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_NS_ASSERTIONS = YES;
@@ -292,7 +284,7 @@
 				GCC_ENABLE_CPP_RTTI = NO;
 				GCC_ENABLE_FLOATING_POINT_LIBRARY_CALLS = YES;
 				GCC_ENABLE_KERNEL_DEVELOPMENT = YES;
-				GCC_INPUT_FILETYPE = sourcecode.c.c;
+				GCC_INPUT_FILETYPE = automatic;
 				GCC_NO_COMMON_BLOCKS = NO;
 				GCC_OPTIMIZATION_LEVEL = s;
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -305,21 +297,20 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = NO;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = NO;
-				LD_NO_PIE = YES;
+				LD_NO_PIE = NO;
 				MACH_O_TYPE = mh_execute;
-				MACOSX_DEPLOYMENT_TARGET = 10.13;
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = "";
-				OTHER_LDFLAGS = (
-					"-lpthread",
-					"-lsystem_pthread",
-				);
-				OTHER_LIBTOOLFLAGS = "-lpthread -lsystem_pthread -pthread";
+				OTHER_LDFLAGS = "";
+				OTHER_LIBTOOLFLAGS = "";
 				PRECOMPS_INCLUDE_HEADERS_FROM_BUILT_PRODUCTS_DIR = YES;
+				PRELINK_FLAGS = "";
 				SCAN_ALL_SOURCE_FILES_FOR_INCLUDES = YES;
 				SDKROOT = macosx;
-				STRIP_STYLE = debugging;
+				STRIP_STYLE = all;
+				VALIDATE_PRODUCT = NO;
 			};
 			name = Debug;
 		};
@@ -351,7 +342,7 @@
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_IDENTITY = "Mac Developer";
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_NS_ASSERTIONS = YES;
@@ -362,7 +353,7 @@
 				GCC_ENABLE_CPP_RTTI = NO;
 				GCC_ENABLE_FLOATING_POINT_LIBRARY_CALLS = YES;
 				GCC_ENABLE_KERNEL_DEVELOPMENT = YES;
-				GCC_INPUT_FILETYPE = sourcecode.c.c;
+				GCC_INPUT_FILETYPE = automatic;
 				GCC_NO_COMMON_BLOCKS = NO;
 				GCC_OPTIMIZATION_LEVEL = s;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -371,21 +362,20 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = NO;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = NO;
-				LD_NO_PIE = YES;
+				LD_NO_PIE = NO;
 				MACH_O_TYPE = mh_execute;
-				MACOSX_DEPLOYMENT_TARGET = 10.13;
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = "";
-				OTHER_LDFLAGS = (
-					"-lpthread",
-					"-lsystem_pthread",
-				);
-				OTHER_LIBTOOLFLAGS = "-lpthread -lsystem_pthread -pthread";
+				OTHER_LDFLAGS = "";
+				OTHER_LIBTOOLFLAGS = "";
 				PRECOMPS_INCLUDE_HEADERS_FROM_BUILT_PRODUCTS_DIR = YES;
+				PRELINK_FLAGS = "";
 				SCAN_ALL_SOURCE_FILES_FOR_INCLUDES = YES;
 				SDKROOT = macosx;
-				STRIP_STYLE = debugging;
+				STRIP_STYLE = all;
+				VALIDATE_PRODUCT = NO;
 			};
 			name = Release;
 		};
@@ -402,6 +392,7 @@
 				COPY_HEADERS_RUN_UNIFDEF = YES;
 				CURRENT_PROJECT_VERSION = 1.0.0d1;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 7C2JP6CU5D;
 				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = "compiler-default";
 				GCC_ENABLE_CPP_RTTI = YES;
@@ -409,12 +400,12 @@
 				GCC_PREPROCESSOR_DEFINITIONS = "";
 				GCC_THREADSAFE_STATICS = YES;
 				GCC_USE_STANDARD_INCLUDE_SEARCHING = YES;
-				GENERATE_MASTER_OBJECT_FILE = NO;
+				GENERATE_MASTER_OBJECT_FILE = YES;
 				HEADER_SEARCH_PATHS = /usr/include;
 				INFOPLIST_FILE = CMI8788/Info.plist;
 				INFOPLIST_PREPROCESS = NO;
 				KEEP_PRIVATE_EXTERNS = YES;
-				LD_NO_PIE = YES;
+				LD_NO_PIE = NO;
 				LD_QUOTE_LINKER_ARGUMENTS_FOR_COMPILER_DRIVER = YES;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
@@ -427,7 +418,8 @@
 				MODULE_VERSION = 1.0.0d1;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = NO;
-				OTHER_CFLAGS = "-pthread";
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = "";
 				PRECOMPS_INCLUDE_HEADERS_FROM_BUILT_PRODUCTS_DIR = NO;
 				PRODUCT_BUNDLE_IDENTIFIER = com.CMedia.CMI8788.PCIAudioDriver;
 				PRODUCT_NAME = PCIAudioDriver;
@@ -455,6 +447,7 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_HEADERS_RUN_UNIFDEF = YES;
 				CURRENT_PROJECT_VERSION = 1.0.0d1;
+				DEVELOPMENT_TEAM = 7C2JP6CU5D;
 				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = "compiler-default";
 				GCC_ENABLE_CPP_RTTI = YES;
@@ -462,12 +455,12 @@
 				GCC_PREPROCESSOR_DEFINITIONS = "";
 				GCC_THREADSAFE_STATICS = YES;
 				GCC_USE_STANDARD_INCLUDE_SEARCHING = YES;
-				GENERATE_MASTER_OBJECT_FILE = NO;
+				GENERATE_MASTER_OBJECT_FILE = YES;
 				HEADER_SEARCH_PATHS = /usr/include;
 				INFOPLIST_FILE = CMI8788/Info.plist;
 				INFOPLIST_PREPROCESS = NO;
 				KEEP_PRIVATE_EXTERNS = YES;
-				LD_NO_PIE = YES;
+				LD_NO_PIE = NO;
 				LD_QUOTE_LINKER_ARGUMENTS_FOR_COMPILER_DRIVER = YES;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
@@ -479,7 +472,8 @@
 				MODULE_NAME = PCIAudioDriver;
 				MODULE_VERSION = 1.0.0d1;
 				ONLY_ACTIVE_ARCH = NO;
-				OTHER_CFLAGS = "-pthread";
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = "";
 				PRECOMPS_INCLUDE_HEADERS_FROM_BUILT_PRODUCTS_DIR = NO;
 				PRODUCT_BUNDLE_IDENTIFIER = com.CMedia.CMI8788.PCIAudioDriver;
 				PRODUCT_NAME = PCIAudioDriver;
@@ -505,7 +499,7 @@
 				CE235FA5207DBA0600AF3203 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = Debug;
 		};
 		CE235FA6207DBA0600AF3203 /* Build configuration list for PBXNativeTarget "PCIAudioDriver" */ = {
 			isa = XCConfigurationList;
@@ -514,7 +508,7 @@
 				CE235FA8207DBA0600AF3203 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
 	};

@@ -588,24 +588,24 @@ void XonarAudioEngine::update_cs2000_rate(struct oxygen *chip, unsigned int rate
  
 static int oxygen_ac97_wait(struct oxygen *chip, unsigned int mask)
 {
-    UInt8 status;
+    UInt8 status = 0;
     /*
      * Reading the status register also clears the bits, so we have to save
      * the read bits in status.
      */
     //chip->ac97_maskval = mask;
-    pthread_mutex_lock(&chip->ac97_mutex);
+    IOLockLock(chip->ac97_mutex);
     while( ({status |= oxygen_read8(chip, OXYGEN_AC97_INTERRUPT_STATUS);
             status & mask;}) )
-    pthread_cond_timedwait(&chip->ac97_condition,&chip->ac97_mutex,&chip->ac97_timeout);
-    pthread_mutex_unlock(&chip->ac97_mutex);
-   // thread_block(THREAD_CONTINUE_NULL);
+    //pthread_cond_timedwait(&chip->ac97_condition,&chip->ac97_mutex,&chip->ac97_timeout);
+    IOLockSleepDeadline(chip->ac97_mutex, &chip->ac97_statusbits, 1e6, THREAD_UNINT);
+    //thread_block(THREAD_CONTINUE_NULL);
     /*
      * Check even after a timeout because this function should not require
      * the AC'97 interrupt to be enabled.
      */
-    chip->ac97_statusbits |= oxygen_read8(chip, OXYGEN_AC97_INTERRUPT_STATUS);
-    return chip->ac97_statusbits & mask ? 0 : -EIO;
+    status |= oxygen_read8(chip, OXYGEN_AC97_INTERRUPT_STATUS);
+    return status & mask ? 0 : -EIO;
 }
 
 
@@ -1080,7 +1080,7 @@ bool XonarAudioEngine::init(struct oxygen *chip, int model)
         
     }
     chip->mutex = IOLockAlloc();
-    pthread_mutex_init(&chip->ac97_mutex,NULL);
+    chip->ac97_mutex = IOLockAlloc();
     *chip->reg_lock = OS_UNFAIR_LOCK_INIT;
     //lck_spin_init(chip->reg_lock, NULL, NULL);
     //pthread_cond_init(&chip->ac97_condition,NULL);
@@ -1980,11 +1980,12 @@ bool XonarAudioEngine::interruptFilter(OSObject *owner, IOFilterInterruptEventSo
     }
     
     if (status & OXYGEN_INT_AC97) {
-                unsigned int maskval = chip->ac97_maskval;
-        // thread_wakeup_prim((event_t)chip->ac97_statusbits,0,THREAD_AWAKENED);
-                pthread_mutex_lock(&chip->ac97_mutex);
-                pthread_cond_broadcast(&chip->ac97_condition);
-                pthread_mutex_unlock(&chip->ac97_mutex);
+                //unsigned int maskval = chip->ac97_maskval;
+                IOLockWakeup(chip->ac97_mutex, &chip->ac97_statusbits, true);
+                //thread_wakeup_prim((event_t)chip->ac97_statusbits,0,THREAD_AWAKENED);
+                //pthread_mutex_lock(&chip->ac97_mutex);
+                //pthread_cond_broadcast(&chip->ac97_condition);
+                //pthread_mutex_unlock(&chip->ac97_mutex);
     }
     
     return true;

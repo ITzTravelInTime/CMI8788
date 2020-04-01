@@ -48,10 +48,11 @@
 #include <machine/limits.h>
 #include <string.h>
 #include <os/lock.h>
+#include <sys/time.h>
 #include <IOKit/audio/IOAudioDevice.h>
-#define _MACH_PORT_T // to remove conflict with mach_port_t (happens when you use pthreads)
-#include <pthread.h>
-
+//#define _MACH_PORT_T // to remove conflict with mach_port_t (happens when you use pthreads)
+//#include <pthread.h>
+#include <IOKit/IOConditionLock.h>
 #include <IOKit/IOWorkLoop.h>
 #include <IOKit/IOLocks.h>
 #include <IOKit/IOTypes.h>
@@ -211,9 +212,9 @@ struct oxygen {
     //IOWorkLoop spdif_input_bits_work;
     //IOWorkLoop gpio_work;
     //wait_queue_t ac97_waitqueue;
-    pthread_cond_t  ac97_condition = PTHREAD_COND_INITIALIZER;
+    //pthread_cond_t  ac97_condition = PTHREAD_COND_INITIALIZER;
     kern_return_t ac97_statusbits;
-    pthread_mutex_t ac97_mutex;
+    IOLock *ac97_mutex;
     struct timespec ac97_timeout = {0, (long)1e6};
     wait_result_t ac97_result;
     unsigned int ac97_maskval;
