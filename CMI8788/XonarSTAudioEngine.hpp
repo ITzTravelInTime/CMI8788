@@ -46,7 +46,7 @@
 
 
 #include "XonarAudioEngine.hpp"
-#include "XonarD2XAudioEngine.hpp"
+//#include "XonarD2XAudioEngine.hpp"
 
 #define XonarSTAudioEngine com_CMedia_CMI8788_XonarSTAudioEngine
 

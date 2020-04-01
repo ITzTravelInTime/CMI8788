@@ -41,11 +41,11 @@
  */
 
 
-#include "XonarHDAVAudioEngine.hpp"
 #include "pcm1796.h"
 #include "cm9780.h"
 #include "cs2000.h"
 #include "ac97.h"
+#include "XonarHDAVAudioEngine.hpp"
 
  
 #include <IOKit/IOLib.h>

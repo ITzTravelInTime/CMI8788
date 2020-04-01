@@ -46,8 +46,7 @@
 
 
 #include "XonarAudioEngine.hpp"
-#include "XonarSTAudioEngine.hpp"
-//#include <IOKit/audio/IOAudioEngine.h>
+//#include "XonarSTAudioEngine.hpp"
 
 #define XonarD2XAudioEngine com_CMedia_CMI8788_XonarD2XAudioEngine
 
