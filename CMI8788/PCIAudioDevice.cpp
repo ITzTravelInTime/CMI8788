@@ -133,7 +133,7 @@ bool PCIAudioDevice::initHardware(IOService *provider)
 {
 
     bool result = false;
-    //XonarAudioEngine *audioEngineInstance = NULL;
+    XonarAudioEngine *audioEngineInstance = NULL;
     this->accessibleEngineInstance = new XonarAudioEngine;
     printf("SamplePCIAudioDevice[%p]::initHardware(%p)\n", this, provider);
     
@@ -216,7 +216,7 @@ void PCIAudioDevice::free()
         deviceMap->release();
         deviceMap = NULL;
     }
-    submodelInstance->free();
+    //submodelInstance->free();
     accessibleEngineInstance->free();
     super::free();
 }
