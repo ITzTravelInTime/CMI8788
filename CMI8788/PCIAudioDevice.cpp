@@ -124,7 +124,7 @@ void PCIAudioDevice::oxygen_restore_eeprom(IOPCIDevice *device, struct oxygen *c
         oxygen_clear_bits8(chip, OXYGEN_MISC,
                            OXYGEN_MISC_WRITE_PCI_SUBID);
         
-        printf("PCIAudioDevice[%p]::oxygen_restore_eeprom EEPROM ID restored\n", this);
+        kprintf("PCIAudioDevice[%p]::oxygen_restore_eeprom EEPROM ID restored\n", this);
     }
 }
 
@@ -133,14 +133,12 @@ bool PCIAudioDevice::initHardware(IOService *provider)
 {
 
     bool result = false;
-    XonarAudioEngine *audioEngineInstance = NULL;
     this->accessibleEngineInstance = new XonarAudioEngine;
     printf("SamplePCIAudioDevice[%p]::initHardware(%p)\n", this, provider);
     
     if (!super::initHardware(provider)) {
         goto Done;
     }
-    
     // Get the PCI device provider
     pciDevice = OSDynamicCast(IOPCIDevice, provider);
     if (!pciDevice) {
@@ -210,7 +208,7 @@ Done:
 
 void PCIAudioDevice::free()
 {
-    printf("SamplePCIAudioDevice[%p]::free()\n", this);
+    kprintf("SamplePCIAudioDevice[%p]::free()\n", this);
     
     if (deviceMap) {
         deviceMap->release();
@@ -227,7 +225,7 @@ bool PCIAudioDevice::createAudioEngine()
     //At this point, we should be at the chip->model.init() part of the oxygen_pci_probe function.
     //chip->model.init() is handled by the init() method of the submodel's class that we wish to instantiate.
     //that is: XonarHDAVAudioEngine::init() contains the code for xonar_hdav_init, etc.
-    printf("SamplePCIAudioDevice[%p]::createAudioEngine()\n", this);
+    kprintf("SamplePCIAudioDevice[%p]::createAudioEngine()\n", this);
     bool result = false;
     
     
