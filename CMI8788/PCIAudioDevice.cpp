@@ -164,7 +164,8 @@ bool PCIAudioDevice::initHardware(IOService *provider)
     pciDevice->setBusMasterEnable(true);
     pciDevice->setIOEnable(true);
     deviceRegisters->addr = deviceMap->getAddress();
-
+    kprintf("attemptoing to allocate lock in pcidriver func instead of engine\n");
+    deviceRegisters->ac97_mutex = IOLockAlloc();
     /* many thanks to (github.com/ammulder) whose intel PCI driver code is the reason
      * for the following three lines.
      */
@@ -211,7 +212,7 @@ Done:
 void PCIAudioDevice::free()
 {
     kprintf("XonarAudioDevice::free()\n");
-    
+    IOLockFree(deviceRegisters->ac97_mutex);
 //    if(accessibleEngineInstance != NULL) {
 //        accessibleEngineInstance->free();
 //
@@ -397,10 +398,8 @@ bool PCIAudioDevice::createAudioEngine()
     result = true;
     
 Done:
-    kprintf("got to the Done, at least\n");
-    if (!result && (submodelInstance != NULL)) {
+    if (submodelInstance) 
         submodelInstance->release();
-    }
     
     if (accessibleEngineInstance)
         accessibleEngineInstance->release();

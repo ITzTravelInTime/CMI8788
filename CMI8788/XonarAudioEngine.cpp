@@ -599,6 +599,7 @@ static int oxygen_ac97_wait(struct oxygen *chip, unsigned int mask)
             status & mask;}) )
     //pthread_cond_timedwait(&chip->ac97_condition,&chip->ac97_mutex,&chip->ac97_timeout);
     IOLockSleepDeadline(chip->ac97_mutex, &chip->ac97_statusbits, 1e6, THREAD_UNINT);
+    IOLockUnlock(chip->ac97_mutex);
     //thread_block(THREAD_CONTINUE_NULL);
     /*
      * Check even after a timeout because this function should not require
@@ -1081,6 +1082,8 @@ bool XonarAudioEngine::init(struct oxygen *chip, int model)
     }
   
     //chip->mutex = IOLockAlloc();
+    kprintf("chip name is %s\n",chip->model.shortname);
+    return false;
     //chip->ac97_mutex = IOLockAlloc();
     //*chip->reg_lock = OS_UNFAIR_LOCK_INIT;
     //lck_spin_init(chip->reg_lock, NULL, NULL);
@@ -1237,8 +1240,7 @@ bool XonarAudioEngine::init(struct oxygen *chip, int model)
     if (!(chip->has_ac97_0 | chip->has_ac97_1))
         oxygen_set_bits16(chip, OXYGEN_AC97_CONTROL,
                           OXYGEN_AC97_CLOCK_DISABLE);
-    kprintf("chip name is %s\n",chip->model.shortname);
-    return false;
+
     if (!chip->has_ac97_0) {
         oxygen_set_bits16(chip, OXYGEN_AC97_CONTROL,
                           OXYGEN_AC97_NO_CODEC_0);
@@ -1323,7 +1325,7 @@ bool XonarAudioEngine::initHardware(IOService *provider)
      IOWorkLoop *workLoop;
      */
     
-    printf("XonarAudioEngine[%p]::initHardware(%p)\n", this, provider);
+    kprintf("XonarAudioEngine::initHardware()\n");
     
     if (!super::initHardware(provider)) {
         goto Done;
