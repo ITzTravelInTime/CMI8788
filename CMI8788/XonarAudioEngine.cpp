@@ -837,7 +837,7 @@ bool XonarAudioEngine::init(struct oxygen *chip, int model)
      */
     bool result = false;
     
-    printf("XonarAudioEngine[%p]::init(%p)\n", this, chip);
+    printf("XonarAudioEngine::init\n");
     
     if (!chip) {
         goto Done;
@@ -1079,6 +1079,8 @@ bool XonarAudioEngine::init(struct oxygen *chip, int model)
         chip->model.adc_i2s_format = OXYGEN_I2S_FORMAT_LJUST;
         
     }
+    kprintf("Chip model name is %s\n", chip->model.shortname);
+    return false;
     chip->mutex = IOLockAlloc();
     chip->ac97_mutex = IOLockAlloc();
     //*chip->reg_lock = OS_UNFAIR_LOCK_INIT;
