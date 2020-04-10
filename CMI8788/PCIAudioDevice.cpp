@@ -210,15 +210,16 @@ Done:
 
 void PCIAudioDevice::free()
 {
-    printf("XonarAudioDevice::free()\n");
+    kprintf("XonarAudioDevice::free()\n");
     
-    if (deviceMap) {
-        deviceMap->unmap();
-        deviceMap = NULL;
-    }
-    if(accessibleEngineInstance != NULL)
-        accessibleEngineInstance->free();
-    
+//    if(accessibleEngineInstance != NULL) {
+//        accessibleEngineInstance->free();
+//
+//    }
+//    if (deviceMap) {
+//            deviceMap->unmap();
+//            deviceMap = NULL;
+//       }
     super::free();
 }
 
@@ -229,7 +230,7 @@ bool PCIAudioDevice::createAudioEngine()
     //At this point, we should be at the chip->model.init() part of the oxygen_pci_probe function.
     //chip->model.init() is handled by the init() method of the submodel's class that we wish to instantiate.
     //that is: XonarHDAVAudioEngine::init() contains the code for xonar_hdav_init, etc.
-    printf("XonarAudioDevice::createAudioEngine()\n");
+    kprintf("XonarAudioDevice::createAudioEngine()\n");
     bool result = false;
     
     
@@ -396,10 +397,13 @@ bool PCIAudioDevice::createAudioEngine()
     result = true;
     
 Done:
-    
+    kprintf("got to the Done, at least\n");
     if (!result && (submodelInstance != NULL)) {
         submodelInstance->release();
     }
+    
+    if (accessibleEngineInstance)
+        accessibleEngineInstance->release();
     
     return result;
 }

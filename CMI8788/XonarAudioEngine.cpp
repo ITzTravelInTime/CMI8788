@@ -226,7 +226,7 @@ static int oxygen_wait_spi(struct oxygen *chip)
              OXYGEN_SPI_BUSY) == 0)
             return 0;
     }
-    dev_err(chip->card->dev, "oxygen: SPI wait timeout\n");
+    kprintf("oxygen: SPI wait timeout\n");
     return -EIO;
 }
 
@@ -630,7 +630,7 @@ void oxygen_write_ac97(struct oxygen *chip, unsigned int codec,
             return;
         }
     }
-    dev_err(chip->card->dev, "AC'97 write timeout\n");
+    kprintf("AC'97 write timeout\n");
 }
 //EXPORT_SYMBOL(oxygen_write_ac97);
 
@@ -662,7 +662,7 @@ UInt16 oxygen_read_ac97(struct oxygen *chip, unsigned int codec,
             reg ^= 0xffff;
         }
     }
-    dev_err(chip->card->dev, "AC'97 read timeout on codec %u\n", codec);
+    kprintf("AC'97 read timeout on codec %u\n", codec);
     return 0;
 }
 
@@ -837,7 +837,7 @@ bool XonarAudioEngine::init(struct oxygen *chip, int model)
      */
     bool result = false;
     
-    printf("XonarAudioEngine::init\n");
+    kprintf("XonarAudioEngine::init\n");
     
     if (!chip) {
         goto Done;
@@ -1079,14 +1079,14 @@ bool XonarAudioEngine::init(struct oxygen *chip, int model)
         chip->model.adc_i2s_format = OXYGEN_I2S_FORMAT_LJUST;
         
     }
-    kprintf("Chip model name is %s\n", chip->model.shortname);
-    return false;
-    chip->mutex = IOLockAlloc();
-    chip->ac97_mutex = IOLockAlloc();
+  
+    //chip->mutex = IOLockAlloc();
+    //chip->ac97_mutex = IOLockAlloc();
     //*chip->reg_lock = OS_UNFAIR_LOCK_INIT;
-    lck_spin_init(chip->reg_lock, NULL, NULL);
+    //lck_spin_init(chip->reg_lock, NULL, NULL);
     //pthread_cond_init(&chip->ac97_condition,NULL);
-
+  
+    
     //begin oxygen_init
     unsigned int i;
     
@@ -1098,7 +1098,7 @@ bool XonarAudioEngine::init(struct oxygen *chip, int model)
     chip->spdif_bits = OXYGEN_SPDIF_C | OXYGEN_SPDIF_ORIGINAL |
     (IEC958_AES1_CON_PCM_CODER << OXYGEN_SPDIF_CATEGORY_SHIFT);
     chip->spdif_pcm_bits = chip->spdif_bits;
-    
+
     if (!(oxygen_read8(chip, OXYGEN_REVISION) & OXYGEN_REVISION_2))
         oxygen_set_bits8(chip, OXYGEN_MISC,
                          OXYGEN_MISC_PCI_MEM_W_1_CLOCK);
@@ -1237,6 +1237,8 @@ bool XonarAudioEngine::init(struct oxygen *chip, int model)
     if (!(chip->has_ac97_0 | chip->has_ac97_1))
         oxygen_set_bits16(chip, OXYGEN_AC97_CONTROL,
                           OXYGEN_AC97_CLOCK_DISABLE);
+    kprintf("chip name is %s\n",chip->model.shortname);
+    return false;
     if (!chip->has_ac97_0) {
         oxygen_set_bits16(chip, OXYGEN_AC97_CONTROL,
                           OXYGEN_AC97_NO_CODEC_0);
@@ -1289,6 +1291,7 @@ bool XonarAudioEngine::init(struct oxygen *chip, int model)
         oxygen_write_ac97(chip, 1, AC97_REC_GAIN, 0x0000);
         oxygen_ac97_set_bits(chip, 1, 0x6a, 0x0040);
     }
+
     // end oxygen_init
     chip->card_model = model;
     this->dev_id = chip;
@@ -1690,7 +1693,7 @@ IOAudioStream *XonarAudioEngine::createAudioStream(IOAudioStreamDirection direct
 
 void XonarAudioEngine::stop(IOService *provider)
 {
-    printf("XonarAudioEngine[%p]::stop(%p)\n", this, provider);
+    kprintf("XonarAudioEngine::stop()\n");
     
     // When our device is being stopped and torn down, we should go ahead and remove
     // the interrupt event source from the IOWorkLoop
@@ -1716,7 +1719,7 @@ void XonarAudioEngine::stop(IOService *provider)
 
 IOReturn XonarAudioEngine::performAudioEngineStart()
 {
-    printf("XonarAudioEngine[%p]::performAudioEngineStart()\n", this);
+    printf("XonarAudioEngine::performAudioEngineStart()\n");
     
     // The interruptEventSource needs to be enabled to allow interrupts to start firing
     assert(interruptEventSource);
@@ -1753,7 +1756,7 @@ IOReturn XonarAudioEngine::performAudioEngineStart()
 
 IOReturn XonarAudioEngine::performAudioEngineStop()
 {
-    printf("XonarAudioEngine[%p]::performAudioEngineStop()\n", this);
+    kprintf("XonarAudioEngine::performAudioEngineStop()\n");
     
     // Assuming we don't need interrupts after stopping the audio engine, we can disable them here
     assert(interruptEventSource_main);
@@ -1768,7 +1771,7 @@ IOReturn XonarAudioEngine::performAudioEngineStop()
 
 UInt32 XonarAudioEngine::getCurrentSampleFrame()
 {
-    printf("XonarAudioEngine[%p]::getCurrentSampleFrame()\n", this);
+    kprintf("XonarAudioEngine::getCurrentSampleFrame()\n");
     
     // In order for the erase process to run properly, this function must return the current location of
     // the audio engine - basically a sample counter
@@ -1785,7 +1788,7 @@ UInt32 XonarAudioEngine::getCurrentSampleFrame()
 
 IOReturn XonarAudioEngine::performFormatChange(IOAudioStream *audioStream, const IOAudioStreamFormat *newFormat, const IOAudioSampleRate *newSampleRate)
 {
-    printf("XonarAudioEngine[%p]::peformFormatChange(%p, %p, %p)\n", this, audioStream, newFormat, newSampleRate);
+    //printf("XonarAudioEngine[%p]::peformFormatChange(%p, %p, %p)\n", this, audioStream, newFormat, newSampleRate);
     
     // Since we only allow one format, we only need to be concerned with sample rate changes
     // In this case, we only allow 2 sample rates - 44100 & 48000, so those are the only ones
