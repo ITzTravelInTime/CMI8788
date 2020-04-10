@@ -95,7 +95,7 @@ void PCIAudioDevice::oxygen_write_eeprom(struct oxygen *chip, unsigned int index
               & OXYGEN_EEPROM_BUSY))
             return;
     }
-    dev_err(chip->card->dev, "EEPROM write timeout\n");
+    //dev_err(chip->card->dev, "EEPROM write timeout\n");
 }
 
 
@@ -124,7 +124,7 @@ void PCIAudioDevice::oxygen_restore_eeprom(IOPCIDevice *device, struct oxygen *c
         oxygen_clear_bits8(chip, OXYGEN_MISC,
                            OXYGEN_MISC_WRITE_PCI_SUBID);
         
-        kprintf("PCIAudioDevice[%p]::oxygen_restore_eeprom EEPROM ID restored\n", this);
+       kprintf("oxygen_restore_eeprom EEPROM ID restored\n");
     }
 }
 
@@ -133,8 +133,7 @@ bool PCIAudioDevice::initHardware(IOService *provider)
 {
 
     bool result = false;
-    this->accessibleEngineInstance = new XonarAudioEngine;
-    printf("SamplePCIAudioDevice[%p]::initHardware(%p)\n", this, provider);
+    //printf("SamplePCIAudioDevice[%p]::initHardware(%p)\n", this, provider);
     
     if (!super::initHardware(provider)) {
         goto Done;
@@ -148,13 +147,13 @@ bool PCIAudioDevice::initHardware(IOService *provider)
     // Config a map for the PCI config base registers
     // We need to keep this map around until we're done accessing the registers
     
-    deviceMap = pciDevice->mapDeviceMemoryWithRegister(kIOPCIConfigBaseAddress0, kIOMapWriteThruCache);
+    deviceMap = pciDevice->mapDeviceMemoryWithRegister(kIOPCIConfigBaseAddress0, kIOWriteThruCache);
     if (!deviceMap) {
         goto Done;
     }
     
     // Get the virtual address for the registers - mapped in the kernel address space
-    deviceRegisters = (struct oxygen *) deviceMap->getVirtualAddress();
+    deviceRegisters = (struct oxygen *) deviceMap->getMemoryDescriptor();
     if (!deviceRegisters) {
         goto Done;
     }
@@ -162,17 +161,20 @@ bool PCIAudioDevice::initHardware(IOService *provider)
     // Enable the PCI memory access - the kernel will panic if this isn't done before accessing the
     // mapped registers
     pciDevice->setMemoryEnable(true);
-    deviceRegisters->addr = deviceMap->getPhysicalAddress();
+    pciDevice->setBusMasterEnable(true);
+    pciDevice->setIOEnable(true);
+    deviceRegisters->addr = deviceMap->getAddress();
+
     /* many thanks to (github.com/ammulder) whose intel PCI driver code is the reason
      * for the following three lines.
      */
-    vendor_id = pciDevice->configRead16(kIOPCIConfigVendorID);
-    dev_id = pciDevice->configRead16(kIOPCIConfigDeviceID);
-    subdev_id = pciDevice->configRead16(kIOPCIConfigSubSystemID);
-    printf("Xonar Vendor ID:0x%04x, Device ID:0x%04x, SubDevice ID:0x%04x, Physical Address:%lu\n",
-           vendor_id, dev_id, subdev_id, deviceRegisters->addr);
+    vendor_id = pciDevice->extendedConfigRead16(kIOPCIConfigVendorID);
+    dev_id = pciDevice->extendedConfigRead16(kIOPCIConfigDeviceID);
+    subdev_id = pciDevice->extendedConfigRead16(kIOPCIConfigSubSystemID);
+    ////printf("Xonar Vendor ID:0x%04x, Device ID:0x%04x, SubDevice ID:0x%04x, Physical Address:0x%016llx\n",
+    //       vendor_id, dev_id, subdev_id, deviceMap->getAddress());
     // add the hardware init code here
-    
+
     if(subdev_id == HDAV_MODEL)
         setDeviceName("ASUS Xonar HDAV1.3 Deluxe");
     else if (subdev_id == ST_MODEL || subdev_id == STX_MODEL || subdev_id == XENSE_MODEL)
@@ -197,35 +199,37 @@ Done:
     
     if (!result) {
         if (deviceMap) {
-            deviceMap->release();
+            deviceMap->unmap();
             deviceMap = NULL;
         }
     }
-    
+
     
     return result;
 }
 
 void PCIAudioDevice::free()
 {
-    kprintf("SamplePCIAudioDevice[%p]::free()\n", this);
+    //printf("SamplePCIAudioDevice[%p]::free()\n", this);
     
     if (deviceMap) {
-        deviceMap->release();
+        deviceMap->unmap();
         deviceMap = NULL;
     }
-    //submodelInstance->free();
-    accessibleEngineInstance->free();
+    if(accessibleEngineInstance != NULL)
+        accessibleEngineInstance->free();
+    
     super::free();
 }
 
 bool PCIAudioDevice::createAudioEngine()
 {
+    accessibleEngineInstance = new XonarAudioEngine;
     IOAudioControl *control;
     //At this point, we should be at the chip->model.init() part of the oxygen_pci_probe function.
     //chip->model.init() is handled by the init() method of the submodel's class that we wish to instantiate.
     //that is: XonarHDAVAudioEngine::init() contains the code for xonar_hdav_init, etc.
-    kprintf("SamplePCIAudioDevice[%p]::createAudioEngine()\n", this);
+    //printf("SamplePCIAudioDevice[%p]::createAudioEngine()\n", this);
     bool result = false;
     
     
@@ -415,10 +419,10 @@ IOReturn PCIAudioDevice::volumeChangeHandler(IOService *target, IOAudioControl *
 
 IOReturn PCIAudioDevice::volumeChanged(IOAudioControl *volumeControl, XonarAudioEngine *engine, SInt32 oldValue, SInt32 newValue)
 {
-    printf("SamplePCIAudioDevice[%p]::volumeChanged(%p, %ld, %ld)\n", this, volumeControl, oldValue, newValue);
+    //printf("SamplePCIAudioDevice[%p]::volumeChanged(%p, %ld, %ld)\n", this, volumeControl, oldValue, newValue);
     
     if (volumeControl) {
-        printf("\t-> Channel %ld\n", volumeControl->getChannelID());
+        //printf("\t-> Channel %ld\n", volumeControl->getChannelID());
     }
     
     
@@ -464,7 +468,7 @@ IOReturn PCIAudioDevice::outputMuteChangeHandler(IOService *target, IOAudioContr
 
 IOReturn PCIAudioDevice::outputMuteChanged(IOAudioControl *muteControl, XonarAudioEngine *engine, SInt32 oldValue, SInt32 newValue)
 {
-    printf("SamplePCIAudioDevice[%p]::outputMuteChanged(%p, %ld, %ld)\n", this, muteControl, oldValue, newValue);
+    //printf("SamplePCIAudioDevice[%p]::outputMuteChanged(%p, %ld, %ld)\n", this, muteControl, oldValue, newValue);
     
     // Add output mute code here
     struct oxygen *chip = engine->chipData;
@@ -500,10 +504,10 @@ IOReturn PCIAudioDevice::gainChangeHandler(IOService *target, IOAudioControl *ga
 
 IOReturn PCIAudioDevice::gainChanged(IOAudioControl *gainControl, SInt32 oldValue, SInt32 newValue)
 {
-    printf("SamplePCIAudioDevice[%p]::gainChanged(%p, %ld, %ld)\n", this, gainControl, oldValue, newValue);
+    //printf("SamplePCIAudioDevice[%p]::gainChanged(%p, %ld, %ld)\n", this, gainControl, oldValue, newValue);
     
     if (gainControl) {
-        printf("\t-> Channel %ld\n", gainControl->getChannelID());
+        //printf("\t-> Channel %ld\n", gainControl->getChannelID());
     }
     
     // Add hardware gain change code here
@@ -526,7 +530,7 @@ IOReturn PCIAudioDevice::inputMuteChangeHandler(IOService *target, IOAudioContro
 
 IOReturn PCIAudioDevice::inputMuteChanged(IOAudioControl *muteControl, SInt32 oldValue, SInt32 newValue)
 {
-    printf("SamplePCIAudioDevice[%p]::inputMuteChanged(%p, %ld, %ld)\n", this, muteControl, oldValue, newValue);
+    //printf("SamplePCIAudioDevice[%p]::inputMuteChanged(%p, %ld, %ld)\n", this, muteControl, oldValue, newValue);
     
     // Add input mute change code here
     

@@ -138,14 +138,6 @@ enum {
 };
 
 
-typedef struct SamplePCIAudioDeviceRegisters {
-    UInt32	reg1;
-    UInt32	reg2;
-    UInt32	reg3;
-    UInt32	reg4;
-} SamplePCIAudioDeviceRegisters;
-
-
 struct generic_data {
     unsigned int dacs;
     UInt8 ak4396_regs[4][5];
