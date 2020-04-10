@@ -152,7 +152,10 @@ bool PCIAudioDevice::initHardware(IOService *provider)
         goto Done;
     }
     
-    // Get the virtual address for the registers - mapped in the kernel address space
+    /* Get the memory descriptor, which we will attempt to use like getVirtualAddress()
+     * cannot use getVirtualAddress like the sample code; assignment and/or access cause panics
+     * with memoryDescriptor, assignments do not cause panics but kprintf values will (probably the security
+     * issue that phil [@pmj] alluded to) */
     deviceRegisters = (struct oxygen *) deviceMap->getMemoryDescriptor();
     if (!deviceRegisters) {
         goto Done;
@@ -210,10 +213,13 @@ Done:
 void PCIAudioDevice::free()
 {
     kprintf("XonarAudioDevice::free()\n");
-//    if(accessibleEngineInstance != NULL) {
-//        accessibleEngineInstance->free();
-//
-//    }
+    
+
+    /* the documentation is explicitly clear that descriptors should
+     * not be unmapped by the caller. below was the code from the sample
+     * driver that i tried to port over. however i realised it's not needed.
+     * the memoryDescriptor will release itself after all accesses/references
+     * are complete */
 //    if (deviceMap) {
 //            deviceMap->unmap();
 //            deviceMap = NULL;
@@ -395,6 +401,9 @@ bool PCIAudioDevice::createAudioEngine()
     result = true;
     
 Done:
+    /* release both the submodel and accessible(main) engine instance
+     * so that they will automatically free after calling PCIAudioDriver::free()
+     */
     if (submodelInstance) 
         submodelInstance->release();
     

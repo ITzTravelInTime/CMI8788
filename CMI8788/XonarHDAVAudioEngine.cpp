@@ -108,7 +108,7 @@ bool XonarHDAVAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip)
     /* sample driver init code (from SamplePCIAudioEngine.cpp's ::init) */
     bool result = false;
     
-    printf("XonarHDAVAudioEngine[%p]::init(%p)\n", this, chip);
+    printf("XonarHDAVAudioEngine[]::init()\n");
     
     if (!chip) {
         goto Done;
@@ -175,7 +175,7 @@ bool XonarHDAVAudioEngine::initHardware(IOService *provider)
     IOAudioStream *audioStream;
     IOWorkLoop *workLoop;
     
-    printf("XonarHDAVAudioEngine[%p]::initHardware(%p)\n", this, provider);
+    printf("XonarHDAVAudioEngine::initHardware()\n");
     
     if (!super::initHardware(provider)) {
         goto Done;
@@ -259,7 +259,7 @@ Done:
 
 void XonarHDAVAudioEngine::free()
 {
-    printf("XonarHDAVAudioEngine[%p]::free()\n", this);
+    printf("XonarHDAVAudioEngine::free()\n");
     
     // We need to free our resources when we're going away
     
@@ -326,7 +326,7 @@ IOAudioStream *XonarHDAVAudioEngine::createNewAudioStream(IOAudioStreamDirection
 
 void XonarHDAVAudioEngine::stop(IOService *provider)
 {
-    printf("XonarHDAVAudioEngine[%p]::stop(%p)\n", this, provider);
+    printf("XonarHDAVAudioEngine::stop()\n");
     
     // When our device is being stopped and torn down, we should go ahead and remove
     // the interrupt event source from the IOWorkLoop
@@ -352,7 +352,7 @@ void XonarHDAVAudioEngine::stop(IOService *provider)
 
 IOReturn XonarHDAVAudioEngine::performAudioEngineStart()
 {
-    printf("XonarHDAVAudioEngine[%p]::performAudioEngineStart()\n", this);
+    printf("XonarHDAVAudioEngine::performAudioEngineStart()\n");
     
     // The interruptEventSource needs to be enabled to allow interrupts to start firing
     assert(interruptEventSource);
@@ -376,7 +376,7 @@ IOReturn XonarHDAVAudioEngine::performAudioEngineStart()
 
 IOReturn XonarHDAVAudioEngine::performAudioEngineStop()
 {
-    printf("XonarHDAVAudioEngine[%p]::performAudioEngineStop()\n", this);
+    printf("XonarHDAVAudioEngine::performAudioEngineStop()\n");
     
     // Assuming we don't need interrupts after stopping the audio engine, we can disable them here
     assert(interruptEventSource);
@@ -391,7 +391,7 @@ IOReturn XonarHDAVAudioEngine::performAudioEngineStop()
 
 UInt32 XonarHDAVAudioEngine::getCurrentSampleFrame()
 {
-    printf("XonarHDAVAudioEngine[%p]::getCurrentSampleFrame()\n", this);
+    printf("XonarHDAVAudioEngine::getCurrentSampleFrame()\n");
     
     // In order for the erase process to run properly, this function must return the current location of
     // the audio engine - basically a sample counter
@@ -408,7 +408,7 @@ UInt32 XonarHDAVAudioEngine::getCurrentSampleFrame()
 
 IOReturn XonarHDAVAudioEngine::performFormatChange(IOAudioStream *audioStream, const IOAudioStreamFormat *newFormat, const IOAudioSampleRate *newSampleRate)
 {
-    printf("XonarHDAVAudioEngine[%p]::peformFormatChange(%p, %p, %p)\n", this, audioStream, newFormat, newSampleRate);
+    //printf("XonarHDAVAudioEngine[%p]::peformFormatChange(%p, %p, %p)\n", this, audioStream, newFormat, newSampleRate);
     
     // Since we only allow one format, we only need to be concerned with sample rate changes
     // In this case, we only allow 2 sample rates - 44100 & 48000, so those are the only ones
