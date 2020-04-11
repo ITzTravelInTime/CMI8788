@@ -170,7 +170,13 @@ bool PCIAudioDevice::initHardware(IOService *provider)
     /* many thanks to (github.com/ammulder) whose intel PCI driver code is the reason
      * for the following three lines.
      */
-
+    kprintf("trying to initialise the locks here...\n");
+    deviceRegisters->ac97_mutex = IOLockAlloc();
+    kprintf("ac97 mutex succeeded\n");
+    deviceRegisters->mutex = IOLockAlloc();
+    kprintf("mutex alloc succeeded\n");
+    deviceRegisters->reg_lock = IOSimpleLockAlloc();
+    kprintf("SimpleLockAlloc succceeded\n");
     vendor_id = pciDevice->extendedConfigRead16(kIOPCIConfigVendorID);
     dev_id = pciDevice->extendedConfigRead16(kIOPCIConfigDeviceID);
     subdev_id = pciDevice->extendedConfigRead16(kIOPCIConfigSubSystemID);
@@ -214,7 +220,13 @@ void PCIAudioDevice::free()
 {
     kprintf("XonarAudioDevice::free()\n");
     
-
+    kprintf("trying to free allocated lawks\n");
+    IOSimpleLockFree(deviceRegisters->reg_lock);
+    kprintf("reg_lock freed\n");
+    IOLockFree(deviceRegisters->mutex);
+    kprintf("mutex freed\n");
+    IOLockFree(deviceRegisters->ac97_mutex);
+    kprintf("ac97_mutex freed\n");
     /* the documentation is explicitly clear that descriptors should
      * not be unmapped by the caller. below was the code from the sample
      * driver that i tried to port over. however i realised it's not needed.

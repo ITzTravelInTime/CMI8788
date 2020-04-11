@@ -66,10 +66,6 @@
 
 OSDefineMetaClassAndStructors(XonarAudioEngine, IOAudioEngine)
 
-static lck_grp_t                           *lockfam;
-static lck_grp_attr_t                          *lockattr;
-static lck_spin_t                          *reg_lock;
-static lck_attr_t                           *reglock_attr;
 
 static inline unsigned long msecs_to_jiffies(const unsigned int m)
 {
@@ -701,11 +697,11 @@ void XonarAudioEngine::xonar_line_mic_ac97_switch(struct oxygen *chip,
                                                   unsigned int reg, unsigned int mute)
 {
     if (reg == AC97_LINE) {
-        lck_spin_lock(chip->reg_lock);
+        IOSimpleLockLock(chip->reg_lock);
         oxygen_write16_masked(chip, OXYGEN_GPIO_DATA,
                               mute ? GPIO_INPUT_ROUTE : 0,
                               GPIO_INPUT_ROUTE);
-        lck_spin_unlock(chip->reg_lock);
+        IOSimpleLockUnlock(chip->reg_lock);
     }
 }
 
@@ -1089,12 +1085,6 @@ bool XonarAudioEngine::init(struct oxygen *chip, int model)
     //reg_lock =    IOSimpleLockAlloc();
     //ac97_mutex = IOLockAlloc();
     //mutex = IOLockAlloc();
-    kprintf("allocating lock group properties\n");
-    lockattr = lck_grp_attr_alloc_init();
-    lockfam = lck_grp_alloc_init("xonaraudioengine lock fam", lockattr);
-    reglock_attr = lck_attr_alloc_init();
-    kprintf("trying to allocate the lock here\n");
-    reg_lock = lck_spin_alloc_init(lockfam, reglock_attr);
     kprintf("chip name is %s\n",chip->model.shortname);
     return false;
     //lck_spin_init(chip->reg_lock, NULL, NULL);
@@ -1550,13 +1540,6 @@ void XonarAudioEngine::free()
     kprintf("XonarAudioEngine::free()\n");
     
     // We need to free our resources when we're going away
-    if(reg_lock) {
-        lck_spin_free(reg_lock, lockfam);
-        lck_attr_free(reglock_attr);
-        lck_grp_free(lockfam);
-        lck_grp_attr_free(lockattr);
-    }
-    kprintf("freed reg_lock\n");
     
     if (interruptEventSource_main) {
         interruptEventSource_main->release();
@@ -1853,7 +1836,7 @@ void XonarAudioEngine::oxygen_spdif_input_bits_changed(struct oxygen* chip)
      * changes.
      */
     IODelay(1000);
-    lck_spin_lock(chip->reg_lock);
+    IOSimpleLockLock(chip->reg_lock);
     reg = oxygen_read32(chip, OXYGEN_SPDIF_CONTROL);
     if ((reg & (OXYGEN_SPDIF_SENSE_STATUS |
                 OXYGEN_SPDIF_LOCK_STATUS))
@@ -1864,9 +1847,9 @@ void XonarAudioEngine::oxygen_spdif_input_bits_changed(struct oxygen* chip)
          */
         reg ^= OXYGEN_SPDIF_IN_CLOCK_MASK;
         oxygen_write32(chip, OXYGEN_SPDIF_CONTROL, reg);
-        lck_spin_unlock(chip->reg_lock);
+        IOSimpleLockUnlock(chip->reg_lock);
         IODelay(1000);
-        lck_spin_lock(chip->reg_lock);
+        IOSimpleLockLock(chip->reg_lock);
         reg = oxygen_read32(chip, OXYGEN_SPDIF_CONTROL);
         if ((reg & (OXYGEN_SPDIF_SENSE_STATUS |
                     OXYGEN_SPDIF_LOCK_STATUS))
@@ -1884,14 +1867,14 @@ void XonarAudioEngine::oxygen_spdif_input_bits_changed(struct oxygen* chip)
             }
         }
     }
-    lck_spin_unlock(chip->reg_lock);
+    IOSimpleLockUnlock(chip->reg_lock);
     /*
      if (chip->controls[CONTROL_SPDIF_INPUT_BITS]) {
-     lck_spin_lock(chip->reg_lock);
+     IOSimpleLockLock(chip->reg_lock);
      chip->interrupt_mask |= OXYGEN_INT_SPDIF_IN_DETECT;
      oxygen_write16(chip, OXYGEN_INTERRUPT_MASK,
      chip->interrupt_mask);
-     lck_spin_unlock(chip->reg_lock);
+     IOSimpleLockUnlock(chip->reg_lock);
      
      
      // We don't actually know that any channel status bits have
@@ -1923,7 +1906,7 @@ bool XonarAudioEngine::interruptFilter(OSObject *owner, IOFilterInterruptEventSo
     if (!status)
         return false;
     
-    lck_spin_lock(chip->reg_lock);
+    IOSimpleLockLock(chip->reg_lock);
     
     clear = status & (OXYGEN_CHANNEL_A |
                       OXYGEN_CHANNEL_B |
@@ -1945,7 +1928,7 @@ bool XonarAudioEngine::interruptFilter(OSObject *owner, IOFilterInterruptEventSo
     
     elapsed_streams = status & chip->pcm_running;
     
-    lck_spin_unlock(chip->reg_lock);
+    IOSimpleLockUnlock(chip->reg_lock);
     /* Not sure if we need this loop since OSX handles PCM very differently
      *from Linux/ALSA. commenting out for now since there is no equivalent of
      *snd_pcm_period_elapsed (updates the position and tells us if we've run over
@@ -1957,7 +1940,7 @@ bool XonarAudioEngine::interruptFilter(OSObject *owner, IOFilterInterruptEventSo
         //         snd_pcm_period_elapsed(chip->streams[i]);
         
         if (status & OXYGEN_INT_SPDIF_IN_DETECT) {
-            lck_spin_lock(chip->reg_lock);
+            IOSimpleLockLock(chip->reg_lock);
             i = oxygen_read32(chip, OXYGEN_SPDIF_CONTROL);
             if (i & (OXYGEN_SPDIF_SENSE_INT | OXYGEN_SPDIF_LOCK_INT |
                      OXYGEN_SPDIF_RATE_INT)) {
@@ -1972,7 +1955,7 @@ bool XonarAudioEngine::interruptFilter(OSObject *owner, IOFilterInterruptEventSo
                  * the work. in this case, checking the spdif bits*/
                 callingInstance->workLoop->runAction((Action)callingInstance->oxygen_spdif_input_bits_changed, callingInstance, callingInstance->dev_id);
             }
-            lck_spin_unlock(chip->reg_lock);
+            IOSimpleLockUnlock(chip->reg_lock);
         }
     
     if (status & OXYGEN_INT_GPIO)

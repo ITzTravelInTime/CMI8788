@@ -214,11 +214,11 @@ void XonarCS43XXAudioEngine::xonar_d1_line_mic_ac97_switch(struct oxygen *chip,
                                                            unsigned int reg, unsigned int mute)
 {
     if (reg == AC97_LINE) {
-        lck_spin_lock(chip->reg_lock);
+        IOSimpleLockLock(chip->reg_lock);
         oxygen_write16_masked(chip, OXYGEN_GPIO_DATA,
                               mute ? GPIO_D1_INPUT_ROUTE : 0,
                               GPIO_D1_INPUT_ROUTE);
-        lck_spin_unlock(chip->reg_lock);
+        IOSimpleLockUnlock(chip->reg_lock);
     }
 }
 

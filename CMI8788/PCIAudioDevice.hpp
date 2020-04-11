@@ -179,8 +179,9 @@ struct oxygen_model {
 
 struct oxygen {
     unsigned long addr;
-    lck_spin_t *reg_lock;
+    IOSimpleLock *reg_lock;
     IOLock *mutex;
+    IOLock *ac97_mutex;
 //    struct snd_card *card;
 //    struct pci_dev *pci;
 //    struct snd_rawmidi *midi;
@@ -206,7 +207,6 @@ struct oxygen {
     //wait_queue_t ac97_waitqueue;
     //pthread_cond_t  ac97_condition = PTHREAD_COND_INITIALIZER;
     kern_return_t ac97_statusbits;
-    IOLock *ac97_mutex;
     struct timespec ac97_timeout = {0, (long)1e6};
     wait_result_t ac97_result;
     unsigned int ac97_maskval;
@@ -220,8 +220,6 @@ struct oxygen {
     UInt8 uart_input[32];
     struct oxygen_model model;
 } __attribute__((aligned(8)));
-
-
 
 
 static UInt8 oxygen_read8(struct oxygen *chip, unsigned int reg)
