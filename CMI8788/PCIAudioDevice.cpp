@@ -157,10 +157,12 @@ bool PCIAudioDevice::initHardware(IOService *provider)
      * with memoryDescriptor, assignments do not cause panics but kprintf values will (probably the security
      * issue that phil [@pmj] alluded to) */
     deviceRegisters = (struct oxygen *) deviceMap->getMemoryDescriptor();
+    deviceMap->getMemoryDescriptor()->initialize();
     if (!deviceRegisters) {
         goto Done;
     }
-    
+    kprintf("jumping to done to test free\n");
+    goto Done;
     // Enable the PCI memory access - the kernel will panic if this isn't done before accessing the
     // mapped registers
     pciDevice->setMemoryEnable(true);
@@ -198,15 +200,19 @@ bool PCIAudioDevice::initHardware(IOService *provider)
     result = true;
     
 Done:
-    
+    kprintf("testing free\n");
     if (!result) {
+        if (deviceRegisters) {
+            ((IOMemoryDescriptor *)deviceRegisters)->release();
+            deviceRegisters = NULL;
+        }
         if (deviceMap) {
-            deviceMap->unmap();
+            deviceMap->release();
             deviceMap = NULL;
         }
     }
 
-    
+
     return result;
 }
 
@@ -220,10 +226,17 @@ void PCIAudioDevice::free()
      * driver that i tried to port over. however i realised it's not needed.
      * the memoryDescriptor will release itself after all accesses/references
      * are complete */
-//    if (deviceMap) {
-//            deviceMap->unmap();
-//            deviceMap = NULL;
-//       }
+    if (deviceRegisters) {
+        ((IOMemoryDescriptor *)deviceRegisters)->release();
+        deviceRegisters = NULL;
+    }
+    
+    if (deviceMap) {
+            deviceMap->release();
+            deviceMap = NULL;
+       }
+    kprintf("freed!\n");
+
     super::free();
 }
 

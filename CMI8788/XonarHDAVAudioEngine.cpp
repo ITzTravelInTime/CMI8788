@@ -108,7 +108,7 @@ bool XonarHDAVAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip)
     /* sample driver init code (from SamplePCIAudioEngine.cpp's ::init) */
     bool result = false;
     
-    printf("XonarHDAVAudioEngine[]::init()\n");
+    kprintf("XonarHDAVAudioEngine[]::init()\n");
     
     if (!chip) {
         goto Done;
@@ -175,7 +175,7 @@ bool XonarHDAVAudioEngine::initHardware(IOService *provider)
     IOAudioStream *audioStream;
     IOWorkLoop *workLoop;
     
-    printf("XonarHDAVAudioEngine::initHardware()\n");
+    kprintf("XonarHDAVAudioEngine::initHardware()\n");
     
     if (!super::initHardware(provider)) {
         goto Done;
@@ -259,7 +259,7 @@ Done:
 
 void XonarHDAVAudioEngine::free()
 {
-    printf("XonarHDAVAudioEngine::free()\n");
+    kprintf("XonarHDAVAudioEngine::free()\n");
     
     // We need to free our resources when we're going away
     
@@ -326,7 +326,7 @@ IOAudioStream *XonarHDAVAudioEngine::createNewAudioStream(IOAudioStreamDirection
 
 void XonarHDAVAudioEngine::stop(IOService *provider)
 {
-    printf("XonarHDAVAudioEngine::stop()\n");
+    kprintf("XonarHDAVAudioEngine::stop()\n");
     
     // When our device is being stopped and torn down, we should go ahead and remove
     // the interrupt event source from the IOWorkLoop
@@ -352,7 +352,7 @@ void XonarHDAVAudioEngine::stop(IOService *provider)
 
 IOReturn XonarHDAVAudioEngine::performAudioEngineStart()
 {
-    printf("XonarHDAVAudioEngine::performAudioEngineStart()\n");
+    kprintf("XonarHDAVAudioEngine::performAudioEngineStart()\n");
     
     // The interruptEventSource needs to be enabled to allow interrupts to start firing
     assert(interruptEventSource);
@@ -376,7 +376,7 @@ IOReturn XonarHDAVAudioEngine::performAudioEngineStart()
 
 IOReturn XonarHDAVAudioEngine::performAudioEngineStop()
 {
-    printf("XonarHDAVAudioEngine::performAudioEngineStop()\n");
+    kprintf("XonarHDAVAudioEngine::performAudioEngineStop()\n");
     
     // Assuming we don't need interrupts after stopping the audio engine, we can disable them here
     assert(interruptEventSource);
@@ -391,7 +391,7 @@ IOReturn XonarHDAVAudioEngine::performAudioEngineStop()
 
 UInt32 XonarHDAVAudioEngine::getCurrentSampleFrame()
 {
-    printf("XonarHDAVAudioEngine::getCurrentSampleFrame()\n");
+    kprintf("XonarHDAVAudioEngine::getCurrentSampleFrame()\n");
     
     // In order for the erase process to run properly, this function must return the current location of
     // the audio engine - basically a sample counter
@@ -408,7 +408,7 @@ UInt32 XonarHDAVAudioEngine::getCurrentSampleFrame()
 
 IOReturn XonarHDAVAudioEngine::performFormatChange(IOAudioStream *audioStream, const IOAudioStreamFormat *newFormat, const IOAudioSampleRate *newSampleRate)
 {
-    //printf("XonarHDAVAudioEngine[%p]::peformFormatChange(%p, %p, %p)\n", this, audioStream, newFormat, newSampleRate);
+    //kprintf("XonarHDAVAudioEngine[%p]::peformFormatChange(%p, %p, %p)\n", this, audioStream, newFormat, newSampleRate);
     
     // Since we only allow one format, we only need to be concerned with sample rate changes
     // In this case, we only allow 2 sample rates - 44100 & 48000, so those are the only ones
@@ -416,18 +416,18 @@ IOReturn XonarHDAVAudioEngine::performFormatChange(IOAudioStream *audioStream, c
     if (newSampleRate) {
         switch (newSampleRate->whole) {
             case 44100:
-                printf("/t-> 44.1kHz selected\n");
+                kprintf("/t-> 44.1kHz selected\n");
                 
                 // Add code to switch hardware to 44.1khz
                 break;
             case 48000:
-                printf("/t-> 48kHz selected\n");
+                kprintf("/t-> 48kHz selected\n");
                 
                 // Add code to switch hardware to 48kHz
                 break;
             default:
                 // This should not be possible since we only specified 44100 and 48000 as valid sample rates
-                printf("/t Internal Error - unknown sample rate selected.\n");
+                kprintf("/t Internal Error - unknown sample rate selected.\n");
                 break;
         }
     }
