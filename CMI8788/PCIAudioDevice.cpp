@@ -147,7 +147,7 @@ bool PCIAudioDevice::initHardware(IOService *provider)
     // Config a map for the PCI config base registers
     // We need to keep this map around until we're done accessing the registers
     
-    deviceMap = pciDevice->mapDeviceMemoryWithRegister(kIOPCIConfigBaseAddress0, kIOWriteThruCache);
+    deviceMap = pciDevice->mapDeviceMemoryWithRegister(kIOPCIConfigBaseAddress0);
     if (!deviceMap) {
         goto Done;
     }
@@ -161,8 +161,6 @@ bool PCIAudioDevice::initHardware(IOService *provider)
     if (!deviceRegisters) {
         goto Done;
     }
-    kprintf("jumping to done to test free\n");
-    goto Done;
     // Enable the PCI memory access - the kernel will panic if this isn't done before accessing the
     // mapped registers
     pciDevice->setMemoryEnable(true);
@@ -172,6 +170,7 @@ bool PCIAudioDevice::initHardware(IOService *provider)
     /* many thanks to (github.com/ammulder) whose intel PCI driver code is the reason
      * for the following three lines.
      */
+
     vendor_id = pciDevice->extendedConfigRead16(kIOPCIConfigVendorID);
     dev_id = pciDevice->extendedConfigRead16(kIOPCIConfigDeviceID);
     subdev_id = pciDevice->extendedConfigRead16(kIOPCIConfigSubSystemID);
@@ -200,17 +199,12 @@ bool PCIAudioDevice::initHardware(IOService *provider)
     result = true;
     
 Done:
-    kprintf("testing free\n");
-    if (!result) {
-        if (deviceRegisters) {
-            ((IOMemoryDescriptor *)deviceRegisters)->release();
-            deviceRegisters = NULL;
-        }
-        if (deviceMap) {
-            deviceMap->release();
-            deviceMap = NULL;
-        }
-    }
+//    if (!result) {
+//        if (deviceMap) {
+//            deviceMap->release();
+//            deviceMap = NULL;
+//        }
+//    }
 
 
     return result;
@@ -224,19 +218,12 @@ void PCIAudioDevice::free()
     /* the documentation is explicitly clear that descriptors should
      * not be unmapped by the caller. below was the code from the sample
      * driver that i tried to port over. however i realised it's not needed.
-     * the memoryDescriptor will release itself after all accesses/references
+     * the memoryDescriptor will free/release itself after all accesses/references
      * are complete */
-    if (deviceRegisters) {
-        ((IOMemoryDescriptor *)deviceRegisters)->release();
-        deviceRegisters = NULL;
-    }
-    
     if (deviceMap) {
-            deviceMap->release();
+            deviceMap->unmap();
             deviceMap = NULL;
        }
-    kprintf("freed!\n");
-
     super::free();
 }
 
@@ -417,10 +404,10 @@ Done:
     /* release both the submodel and accessible(main) engine instance
      * so that they will automatically free after calling PCIAudioDriver::free()
      */
-    if (submodelInstance) 
+    if (!result && submodelInstance)
         submodelInstance->release();
     
-    if (accessibleEngineInstance)
+    if (!result && accessibleEngineInstance)
         accessibleEngineInstance->release();
     
     return result;

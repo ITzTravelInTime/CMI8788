@@ -1536,7 +1536,7 @@ Done:
 
 void XonarAudioEngine::free()
 {
-    printf("XonarAudioEngine[%p]::free()\n", this);
+    kprintf("XonarAudioEngine::free()\n");
     
     // We need to free our resources when we're going away
     

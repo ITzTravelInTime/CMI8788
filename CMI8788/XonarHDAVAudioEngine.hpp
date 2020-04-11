@@ -57,6 +57,7 @@ class XonarHDAVAudioEngine : public IOAudioEngine
     OSDeclareDefaultStructors(XonarHDAVAudioEngine)
     
     struct xonar_hdav                   *deviceRegisters;
+    int                                 data_size;
     //right now i've created 4 since there are 4 I2S input buffers
     // however, i am not sure how to incorporate them yet,
     // as i have to (probably) create an ioaudiostream for each
@@ -66,7 +67,7 @@ class XonarHDAVAudioEngine : public IOAudioEngine
     IOAudioStream                   *inputs[2];
     SInt16							*outputBuffer;
     SInt16							*inputBuffer;
-    
+
     IOFilterInterruptEventSource	*interruptEventSource;
     XonarAudioEngine                *engineInstance;
 public:
