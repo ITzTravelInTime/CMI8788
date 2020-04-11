@@ -1085,8 +1085,7 @@ bool XonarAudioEngine::init(struct oxygen *chip, int model)
     //reg_lock =    IOSimpleLockAlloc();
     //ac97_mutex = IOLockAlloc();
     //mutex = IOLockAlloc();
-    kprintf("chip name is %s\n",chip->model.shortname);
-    return false;
+
     //lck_spin_init(chip->reg_lock, NULL, NULL);
     //pthread_cond_init(&chip->ac97_condition,NULL);
   
@@ -1242,6 +1241,8 @@ bool XonarAudioEngine::init(struct oxygen *chip, int model)
         oxygen_set_bits16(chip, OXYGEN_AC97_CONTROL,
                           OXYGEN_AC97_CLOCK_DISABLE);
 
+    kprintf("just before ac97_* calls\n");
+
     if (!chip->has_ac97_0) {
         oxygen_set_bits16(chip, OXYGEN_AC97_CONTROL,
                           OXYGEN_AC97_NO_CODEC_0);
@@ -1294,7 +1295,8 @@ bool XonarAudioEngine::init(struct oxygen *chip, int model)
         oxygen_write_ac97(chip, 1, AC97_REC_GAIN, 0x0000);
         oxygen_ac97_set_bits(chip, 1, 0x6a, 0x0040);
     }
-
+    kprintf("chip name is %s\n",chip->model.shortname);
+    return false;
     // end oxygen_init
     chip->card_model = model;
     this->dev_id = chip;

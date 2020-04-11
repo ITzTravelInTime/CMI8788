@@ -172,7 +172,6 @@ bool PCIAudioDevice::initHardware(IOService *provider)
      */
     kprintf("trying to initialise the locks here...\n");
     deviceRegisters->ac97_mutex = IOLockAlloc();
-    kprintf("ac97 mutex succeeded\n");
     deviceRegisters->mutex = IOLockAlloc();
     kprintf("mutex alloc succeeded\n");
     deviceRegisters->reg_lock = IOSimpleLockAlloc();
