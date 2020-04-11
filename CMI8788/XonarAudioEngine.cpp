@@ -1233,7 +1233,6 @@ bool XonarAudioEngine::init(struct oxygen *chip, int model)
         oxygen_set_bits16(chip, OXYGEN_AC97_CONTROL,
                           OXYGEN_AC97_CLOCK_DISABLE);
 
-    kprintf("just before ac97_* calls\n");
 
     if (!chip->has_ac97_0) {
         oxygen_set_bits16(chip, OXYGEN_AC97_CONTROL,

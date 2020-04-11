@@ -140,6 +140,7 @@ bool XonarHDAVAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip)
     chip->model.resume = xonar_hdav_resume;
     chip->model.cleanup = xonar_hdav_cleanup;
     
+    kprintf("right before the initialisation of the engine's functions\n");
     engine->pcm1796_init(chip);
     
     oxygen_set_bits16(chip, OXYGEN_GPIO_CONTROL,
