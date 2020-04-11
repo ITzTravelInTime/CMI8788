@@ -1081,15 +1081,7 @@ bool XonarAudioEngine::init(struct oxygen *chip, int model)
         
     }
   
-    
-    //reg_lock =    IOSimpleLockAlloc();
-    //ac97_mutex = IOLockAlloc();
-    //mutex = IOLockAlloc();
-
-    //lck_spin_init(chip->reg_lock, NULL, NULL);
-    //pthread_cond_init(&chip->ac97_condition,NULL);
-  
-    
+      
     //begin oxygen_init
     unsigned int i;
     
@@ -1295,14 +1287,11 @@ bool XonarAudioEngine::init(struct oxygen *chip, int model)
         oxygen_write_ac97(chip, 1, AC97_REC_GAIN, 0x0000);
         oxygen_ac97_set_bits(chip, 1, 0x6a, 0x0040);
     }
-    kprintf("chip name is %s\n",chip->model.shortname);
-    return false;
     // end oxygen_init
     chip->card_model = model;
-    this->dev_id = chip;
+    dev_id = chip;
     //save ptr to oxygen struct from PCIDriver into private class var dev_id for interrupthandler
-    chipData = (struct oxygen*) this->dev_id;
-
+    chipData = (struct oxygen*) dev_id;
     result = true;
     
 Done:
