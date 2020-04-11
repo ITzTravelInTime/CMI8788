@@ -1,17 +1,13 @@
 CMI8788 ALSA driver port to APPUL (Apple) Macintosh (MAC) OSX
 (Xonar HDAV/D2X/ST etc models)
 
-still a work in progress (need to test gpio/spdif queues* & move alsa mixer/pcm to IOAudioEngine)
-* using runAction within interruptfilter via IOFilterInterruptEventSource.h to mimic gpio_work/spdif_input_bits_work workqueues (single threaded context w/in filter should be OK, but i am unable to test as it i think pthread fns are restricted to com.apple.kpi.private)
+still a work in progress (need to finish initialisation, then work on mixer/controls)
+* using runAction within interruptfilter via IOFilterInterruptEventSource.h to mimic gpio_work/spdif_input_bits_work workqueues (single threaded context w/in filter should be OK)
 
-update (30 04 2018):
+update (11 04 2020):
 oxygen_{read,write} functions are functional (tested using restore_eeprom function). the remaining work involves:
 1. setting up the streams/volume-controls for each submodel's engine
-2. finding the OSX-equivalent of wait_event_timeout. 
-   * it may be the case that i am calling assert_wait_timeout incorrectly.
-
-i will need to put my Xonar HDAV1.3 Deluxe back in my PC soon, as i am going to need it. however, i hope to pick up another card in this family to finish the work. i am hopeful others have used this work as a basis for their own investigations.
-
+2. it seems IOLockWakeup and IOLockSleepDeadline should be sufficient to replace the waitqueue in linux. i would argue that IOLockWakeup/IOLockSleepDeadline are superior, since multiple threads that satisfy the condition can be woken up (whereas waitqueues can only wake one at a time).
 
 all code belongs to Clemens Ladisch (clemens@ladisch.de).
 
@@ -20,36 +16,54 @@ i'm pretty sure Clemens Ladisch is JUHMAHN for "fucking masher" ;)
 http://www.osxbook.com
 http://www.newosxbook.com (forum is here: http://newosxbook.com/forum/)
 
-also want to thank Siguza on the newosxbook forum for his timely, insightful, helpful, kind, and honest remarks; it is because of him the driver now kernel panics ("successful") instead of failing to link. 
+also want to thank Siguza on the newosxbook forum for helping me get started. and much love to @pmj for answering my onslaught of inquiries.
 
-update (23/10/2018 01:52GMT): i've managed to get the driver/kext to load/unload properly, even when a submodel class is chosen dynamically (according to the PCI vendor/submodel IDs!). 
+latest log using fwkpfv (because APPULL likes to fucking ruin things and then not fix them unless the user wants to diminish their intellectual capacity by "upgrading" their operating system to one that is "currently supported" and not solely receiving security updates):
 
--the driver can only load/unload once. if you try a second time, it will fail to unload and you will have to restart (i am looking at this issue, which is much more mild than having this problem on the first load/unload attempt) 
-
-latest log:
-
-Oct 22, 2018, 7:16:19 PM kernel[0]: SamplePCIAudioDevice[0xffffff81109f7800]::initHardware(0xffffff80f2da2a00)
-
-Oct 22, 2018, 7:16:19 PM kernel[0]: Xonar Vendor ID:0x13f6, Device ID:0x8788, SubDevice ID:0x8314, Physical Address:16384
-
-Oct 22, 2018, 7:16:19 PM kernel[0]: CMI8788: EEPROM write timeout 
-
-Oct 22, 2018, 7:16:19 PM kernel[0]: CMI8788: EEPROM write timeout 
-
-Oct 22, 2018, 7:16:19 PM kernel[0]: PCIAudioDevice[0xffffff81109f7800]::oxygen_restore_eeprom EEPROM ID restored 
-
-Oct 22, 2018, 7:16:19 PM kernel[0]: SamplePCIAudioDevice[0xffffff81109f7800]::createAudioEngine() 
-
-Oct 22, 2018, 7:16:19 PM kernel[0]: XonarHDAVAudioEngine[0xffffff80fd6b4200]::init(0xffffff8e209f1000) 
-
-Oct 22, 2018, 7:16:19 PM kernel[0]: XonarAudioEngine[0xffffff8102b4cc00]::init(0xffffff8e209f1000) 
-
-Oct 22, 2018, 7:16:19 PM kernel[0]: Can't unload kext com.CMedia.CMI8788.PCIAudioDriver; classes have instances: 
-
-Oct 22, 2018, 7:16:19 PM kernel[0]: Kext com.CMedia.CMI8788.PCIAudioDriver class com_CMedia_CMI8788_XonarHDAVAudioEngine has 1 instance. 
-
-Oct 22, 2018, 7:16:19 PM kernel[0]: Kext com.CMedia.CMI8788.PCIAudioDriver class com_CMedia_CMI8788_PCIAudioDevice has 1 instance. 
-
-Oct 22, 2018, 7:16:19 PM kernel[0]: Kext com.CMedia.CMI8788.PCIAudioDriver class com_CMedia_CMI8788_XonarAudioEngine has 1 instance.  
-
-Oct 22, 2018, 7:16:19 PM kernel[0]: com_CMedia_CMI8788_PCIAudioDevice: not registry member at registerService()
+u>341736235 XonarAudioDevice::initHardware()
+u>341736280 trying to initialise the locks here...
+u>341736296 mutex alloc succeeded
+u>341736311 SimpleLockAlloc succceeded
+u>341738615 oxygen_restore_eeprom EEPROM ID restored
+u>341738644 XonarAudioDevice::createAudioEngine()
+u>341738660 XonarHDAVAudioEngine[]::init()
+u>341738675 XonarAudioEngine::init
+u>341738788 just before ac97_* calls
+u>341738854 AC'97 write timeout
+u>341740174 AC'97 read timeout on codec 0
+u>341740255 AC'97 write timeout
+u>341740396 AC'97 read timeout on codec 0
+u>341740464 AC'97 write timeout
+u>341740604 AC'97 read timeout on codec 0
+u>341740672 AC'97 write timeout
+u>341740738 AC'97 write timeout
+u>341740801 AC'97 write timeout
+u>341740865 AC'97 write timeout
+u>341740929 AC'97 write timeout
+u>341741006 AC'97 write timeout
+u>341741070 AC'97 write timeout
+u>341741134 AC'97 write timeout
+u>341741198 AC'97 write timeout
+u>341741261 AC'97 write timeout
+u>341741324 AC'97 write timeout
+u>341741466 AC'97 read timeout on codec 0
+u>341741532 AC'97 write timeout
+u>341741672 AC'97 read timeout on codec 0
+u>341741747 AC'97 write timeout
+u>341741887 AC'97 read timeout on codec 0
+u>341741950 AC'97 write timeout
+u>341741964 chip name is Xonar HDAV1.3+H6
+u>341770074 Debugger: Unexpected kernel trap number: 0xe, RIP: 0xffffff7f8a1793a4, CR2: 0x10000
+u>341770104 CPU 20 panic trap number 0xe, rip 0xffffff7f8a1793a4
+u>341770119 cr0 0x000000008001003b cr2 0x0000000000010000 cr3 0x000000000aabe000 cr4 0x00000000000226e0
+u>341770261 Debugger called: <panic>
+u>341770278 IOPlatformPanicAction -> AppleAHCIDiskDriver
+u>341770295 IOPlatformPanicAction -> AppleAHCIDiskDriver
+u>341770311 IOPlatformPanicAction -> AppleAHCIDiskDriver
+u>341770327 IOPlatformPanicAction -> AppleAHCIDiskDriver
+u>341770342 IOPlatformPanicAction -> AppleSMC
+u>341773603 Attempting to commit panic log to NVRAM
+u>342152788 ethernet MAC address: 00:00:00:00:00:00
+u>342152811 ip address: 0.0.0.0
+u>342152831 
+u>342152843 Waiting for remote debugger connection.
