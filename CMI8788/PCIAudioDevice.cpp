@@ -235,6 +235,7 @@ bool PCIAudioDevice::createAudioEngine()
     //chip->model.init() is handled by the init() method of the submodel's class that we wish to instantiate.
     //that is: XonarHDAVAudioEngine::init() contains the code for xonar_hdav_init, etc.
     kprintf("XonarAudioDevice::createAudioEngine()\n");
+
     bool result = false;
     
     

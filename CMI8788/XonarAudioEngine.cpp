@@ -66,6 +66,10 @@
 
 OSDefineMetaClassAndStructors(XonarAudioEngine, IOAudioEngine)
 
+static lck_grp_t                           *lockfam;
+static lck_grp_attr_t                          *lockattr;
+static lck_spin_t                          *reg_lock;
+static lck_attr_t                           *reglock_attr;
 
 static inline unsigned long msecs_to_jiffies(const unsigned int m)
 {
@@ -1081,11 +1085,18 @@ bool XonarAudioEngine::init(struct oxygen *chip, int model)
         
     }
   
-    //chip->mutex = IOLockAlloc();
+    
+    //reg_lock =    IOSimpleLockAlloc();
+    //ac97_mutex = IOLockAlloc();
+    //mutex = IOLockAlloc();
+    kprintf("allocating lock group properties\n");
+    lockattr = lck_grp_attr_alloc_init();
+    lockfam = lck_grp_alloc_init("xonaraudioengine lock fam", lockattr);
+    reglock_attr = lck_attr_alloc_init();
+    kprintf("trying to allocate the lock here\n");
+    reg_lock = lck_spin_alloc_init(lockfam, reglock_attr);
     kprintf("chip name is %s\n",chip->model.shortname);
     return false;
-    //chip->ac97_mutex = IOLockAlloc();
-    //*chip->reg_lock = OS_UNFAIR_LOCK_INIT;
     //lck_spin_init(chip->reg_lock, NULL, NULL);
     //pthread_cond_init(&chip->ac97_condition,NULL);
   
@@ -1539,7 +1550,13 @@ void XonarAudioEngine::free()
     kprintf("XonarAudioEngine::free()\n");
     
     // We need to free our resources when we're going away
-    
+    if(reg_lock) {
+        lck_spin_free(reg_lock, lockfam);
+        lck_attr_free(reglock_attr);
+        lck_grp_free(lockfam);
+        lck_grp_attr_free(lockattr);
+    }
+    kprintf("freed reg_lock\n");
     
     if (interruptEventSource_main) {
         interruptEventSource_main->release();
