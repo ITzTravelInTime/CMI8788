@@ -20,50 +20,50 @@ also want to thank Siguza on the newosxbook forum for helping me get started. an
 
 latest log using fwkpfv (because APPULL likes to fucking ruin things and then not fix them unless the user wants to diminish their intellectual capacity by "upgrading" their operating system to one that is "currently supported" and not solely receiving security updates):
 
-u>341736235 XonarAudioDevice::initHardware()
-u>341736280 trying to initialise the locks here...
-u>341736296 mutex alloc succeeded
-u>341736311 SimpleLockAlloc succceeded
-u>341738615 oxygen_restore_eeprom EEPROM ID restored
-u>341738644 XonarAudioDevice::createAudioEngine()
-u>341738660 XonarHDAVAudioEngine[]::init()
-u>341738675 XonarAudioEngine::init
-u>341738788 just before ac97_* calls
-u>341738854 AC'97 write timeout
-u>341740174 AC'97 read timeout on codec 0
-u>341740255 AC'97 write timeout
-u>341740396 AC'97 read timeout on codec 0
-u>341740464 AC'97 write timeout
-u>341740604 AC'97 read timeout on codec 0
-u>341740672 AC'97 write timeout
-u>341740738 AC'97 write timeout
-u>341740801 AC'97 write timeout
-u>341740865 AC'97 write timeout
-u>341740929 AC'97 write timeout
-u>341741006 AC'97 write timeout
-u>341741070 AC'97 write timeout
-u>341741134 AC'97 write timeout
-u>341741198 AC'97 write timeout
-u>341741261 AC'97 write timeout
-u>341741324 AC'97 write timeout
-u>341741466 AC'97 read timeout on codec 0
-u>341741532 AC'97 write timeout
-u>341741672 AC'97 read timeout on codec 0
-u>341741747 AC'97 write timeout
-u>341741887 AC'97 read timeout on codec 0
-u>341741950 AC'97 write timeout
-u>341741964 chip name is Xonar HDAV1.3+H6
-u>341770074 Debugger: Unexpected kernel trap number: 0xe, RIP: 0xffffff7f8a1793a4, CR2: 0x10000
-u>341770104 CPU 20 panic trap number 0xe, rip 0xffffff7f8a1793a4
-u>341770119 cr0 0x000000008001003b cr2 0x0000000000010000 cr3 0x000000000aabe000 cr4 0x00000000000226e0
-u>341770261 Debugger called: <panic>
-u>341770278 IOPlatformPanicAction -> AppleAHCIDiskDriver
-u>341770295 IOPlatformPanicAction -> AppleAHCIDiskDriver
-u>341770311 IOPlatformPanicAction -> AppleAHCIDiskDriver
-u>341770327 IOPlatformPanicAction -> AppleAHCIDiskDriver
-u>341770342 IOPlatformPanicAction -> AppleSMC
-u>341773603 Attempting to commit panic log to NVRAM
-u>342152788 ethernet MAC address: 00:00:00:00:00:00
-u>342152811 ip address: 0.0.0.0
-u>342152831 
-u>342152843 Waiting for remote debugger connection.
+u>458411357 XonarAudioDevice::initHardware()<br>
+u>458411403 trying to initialise the locks here...<br>
+u>458411418 mutex alloc succeeded<br>
+u>458411431 SimpleLockAlloc succceeded<br>
+u>458413702 oxygen_restore_eeprom EEPROM ID restored<br>
+u>458413733 XonarAudioDevice::createAudioEngine()<br>
+u>458413749 XonarHDAVAudioEngine[]::init()<br>
+u>458413763 XonarAudioEngine::init<br>
+u>458413926 AC'97 write timeout<br>
+u>458415156 AC'97 read timeout on codec 0<br>
+u>458415234 AC'97 write timeout<br>
+u>458415369 AC'97 read timeout on codec 0<br>
+u>458415438 AC'97 write timeout<br>
+u>458415572 AC'97 read timeout on codec 0<br>
+u>458415641 AC'97 write timeout<br>
+u>458415706 AC'97 write timeout<br>
+u>458415770 AC'97 write timeout<br>
+u>458415833 AC'97 write timeout<br>
+u>458415897 AC'97 write timeout<br>
+u>458415960 AC'97 write timeout<br>
+u>458416024 AC'97 write timeout<br>
+u>458416087 AC'97 write timeout<br>
+u>458416151 AC'97 write timeout<br>
+u>458416213 AC'97 write timeout<br>
+u>458416276 AC'97 write timeout<br>
+u>458416410 AC'97 read timeout on codec 0<br>
+u>458416476 AC'97 write timeout<br>
+u>458416610 AC'97 read timeout on codec 0<br>
+u>458416685 AC'97 write timeout<br>
+u>458416820 AC'97 read timeout on codec 0<br>
+u>458416882 AC'97 write timeout<br>
+u>458416899 right before the initialisation of the engine's functions<br>
+u>458444781 Debugger: Unexpected kernel trap number: 0xe, RIP: 0xffffff7f925793c6, CR2: 0x10000<br>
+u>458444806 CPU 6 panic trap number 0xe, rip 0xffffff7f925793c6<br>
+u>458444820 cr0 0x000000008001003b cr2 0x0000000000010000 cr3 0x0000000012ebe000 cr4 0x00000000000226e0<br>
+u>458444904 Debugger called: <panic><br>
+u>458444921 IOPlatformPanicAction -> AppleAHCIDiskDriver<br>
+u>458444938 IOPlatformPanicAction -> AppleAHCIDiskDriver<br>
+u>458444953 IOPlatformPanicAction -> AppleAHCIDiskDriver<br>
+u>458444969 IOPlatformPanicAction -> AppleAHCIDiskDriver<br>
+u>458444984 IOPlatformPanicAction -> AppleSMC<br>
+u>458448272 Attempting to commit panic log to NVRAM<br>
+u>458840141 ethernet MAC address: 00:00:00:00:00:00<br>
+u>458840164 ip address: 0.0.0.0<br>
+u>458840184 <br>
+u>458840195 Waiting for remote debugger connection.
+
