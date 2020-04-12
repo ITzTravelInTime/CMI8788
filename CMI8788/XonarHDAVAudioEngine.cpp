@@ -120,7 +120,7 @@ bool XonarHDAVAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip)
     /* end sample driver template */
     data_size = chip->model.model_data_size;
     chip->model_data = IOMalloc(data_size);
-    deviceRegisters = (struct xonar_hdav*) &chip->model_data;
+    deviceRegisters = (struct xonar_hdav*) chip->model_data;
     engineInstance = engine;
     
     /* begin ALSA xonar_hdav_init */
@@ -141,6 +141,7 @@ bool XonarHDAVAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip)
     chip->model.cleanup = xonar_hdav_cleanup;
     
     kprintf("right before the initialisation of the engine's functions\n");
+    return false;
     engine->pcm1796_init(chip);
     
     oxygen_set_bits16(chip, OXYGEN_GPIO_CONTROL,
@@ -264,9 +265,11 @@ void XonarHDAVAudioEngine::free()
     kprintf("XonarHDAVAudioEngine::free()\n");
     
     // We need to free our resources when we're going away
-    if(deviceRegisters)
+    if(deviceRegisters) {
         IOFree(deviceRegisters, data_size);
-    
+        deviceRegisters = NULL;
+    }
+
     if (interruptEventSource) {
         interruptEventSource->release();
         interruptEventSource = NULL;

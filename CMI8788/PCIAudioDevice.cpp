@@ -170,18 +170,17 @@ bool PCIAudioDevice::initHardware(IOService *provider)
     /* many thanks to (github.com/ammulder) whose intel PCI driver code is the reason
      * for the following three lines.
      */
-    kprintf("trying to initialise the locks here...\n");
+
     deviceRegisters->ac97_mutex = IOLockAlloc();
     deviceRegisters->mutex = IOLockAlloc();
-    kprintf("mutex alloc succeeded\n");
     deviceRegisters->reg_lock = IOSimpleLockAlloc();
-    kprintf("SimpleLockAlloc succceeded\n");
+
     vendor_id = pciDevice->extendedConfigRead16(kIOPCIConfigVendorID);
     dev_id = pciDevice->extendedConfigRead16(kIOPCIConfigDeviceID);
     subdev_id = pciDevice->extendedConfigRead16(kIOPCIConfigSubSystemID);
-    printf("Xonar Vendor ID:0x%04x, Device ID:0x%04x, SubDevice ID:0x%04x, Physical Address:0x%016llx\n",
+    kprintf("Xonar Vendor ID:0x%04x, Device ID:0x%04x, SubDevice ID:0x%04x, Physical Address:0x%016llx\n",
            vendor_id, dev_id, subdev_id, deviceMap->getAddress());
-    goto Done;
+  
     //     add the hardware init code here
 
     if(subdev_id == HDAV_MODEL)
@@ -220,13 +219,9 @@ void PCIAudioDevice::free()
 {
     kprintf("XonarAudioDevice::free()\n");
     
-    kprintf("trying to free allocated lawks\n");
     IOSimpleLockFree(deviceRegisters->reg_lock);
-    kprintf("reg_lock freed\n");
     IOLockFree(deviceRegisters->mutex);
-    kprintf("mutex freed\n");
     IOLockFree(deviceRegisters->ac97_mutex);
-    kprintf("ac97_mutex freed\n");
     if (deviceRegisters) {
         IOFree(deviceRegisters, sizeof(struct oxygen));
         deviceRegisters = NULL;
