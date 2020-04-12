@@ -137,11 +137,14 @@ void XonarD2XAudioEngine::xonar_d2_init(struct oxygen *chip, XonarAudioEngine *e
 bool XonarD2XAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip, UInt16 submodel)
 {
     bool result = false;
+    
+    printf("XonarD2XAudioEngine[%p]::init(%p)\n", this, chip);
+
+    data_size = chip->model.model_data_size;
     chip->model_data = IOMalloc(chip->model.model_data_size);
     deviceRegisters = (struct xonar_pcm179x*) chip->model_data;
     deviceRegisters->current_rate = (IOAudioSampleRate *) IOMalloc(sizeof(IOAudioSampleRate));
-    
-    printf("XonarD2XAudioEngine[%p]::init(%p)\n", this, chip);
+
     
     if (!chip) {
         goto Done;

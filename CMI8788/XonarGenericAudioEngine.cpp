@@ -406,7 +406,7 @@ bool XonarGenericAudioEngine::init(XonarAudioEngine *audioEngine, struct oxygen 
     if (!audioEngine->init(chip, model)) {
         goto Done;
     }
-    
+    data_size = chip->model.model_data_size;
     chip->model_data = IOMalloc(chip->model.model_data_size);
     deviceRegisters = (struct xonar_generic*) chip->model_data;
     this->engineInstance = audioEngine;
