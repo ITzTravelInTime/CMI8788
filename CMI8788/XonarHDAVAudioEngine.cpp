@@ -136,6 +136,7 @@ bool XonarHDAVAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip)
     deviceRegisters->pcm179x.generic.ext_power_bit = GPI_EXT_POWER;
     deviceRegisters->pcm179x.dacs = chip->model.dac_channels_mixer / 2;
     deviceRegisters->pcm179x.h6 = chip->model.dac_channels_mixer > 2;
+    deviceRegisters->pcm179x.current_rate = (IOAudioSampleRate *) IOMalloc(sizeof(IOAudioSampleRate));
     // assign fn ptr uart_input to xonar_hdmi_uart_input
     chip->model.resume = xonar_hdav_resume;
     chip->model.cleanup = xonar_hdav_cleanup;
@@ -149,8 +150,6 @@ bool XonarHDAVAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip)
     engine->xonar_init_ext_power(chip);
     engine->xonar_hdmi_init(chip, &(deviceRegisters->hdmi));
     engine->xonar_enable_output(chip);
-    
-    
     
     /* end hdav_init, begin last bit of SamplePCIAudioEngine.cpp's init
      */
@@ -265,6 +264,7 @@ void XonarHDAVAudioEngine::free()
     // We need to free our resources when we're going away
     if(deviceRegisters) {
         IOFree(deviceRegisters, data_size);
+        IOFree(deviceRegisters->pcm179x.current_rate, sizeof(IOAudioSampleRate));
         deviceRegisters = NULL;
     }
 
