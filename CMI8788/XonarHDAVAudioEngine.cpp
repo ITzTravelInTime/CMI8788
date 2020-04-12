@@ -140,16 +140,19 @@ bool XonarHDAVAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip)
     chip->model.resume = xonar_hdav_resume;
     chip->model.cleanup = xonar_hdav_cleanup;
     
-    kprintf("right before the initialisation of the engine's functions\n");
-    return false;
+
     engine->pcm1796_init(chip);
-    
+    kprintf("ok we actually get out of pcm1796_init...\n");
     oxygen_set_bits16(chip, OXYGEN_GPIO_CONTROL,
                       GPIO_HDAV_MAGIC | GPIO_INPUT_ROUTE);
     oxygen_clear_bits16(chip, OXYGEN_GPIO_DATA, GPIO_INPUT_ROUTE);
+    kprintf("before init_cs53x1\n");
     engine->xonar_init_cs53x1(chip);
+    kprintf("before init_ext_power\n");
     engine->xonar_init_ext_power(chip);
-    engine->xonar_hdmi_init(chip, &deviceRegisters->hdmi);
+    kprintf("before hdmi_init\n");
+    engine->xonar_hdmi_init(chip, &(deviceRegisters->hdmi));
+    kprintf("before enable_output\n");
     engine->xonar_enable_output(chip);
     
     

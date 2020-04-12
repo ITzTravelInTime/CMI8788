@@ -286,7 +286,8 @@ bool PCIAudioDevice::createAudioEngine()
             goto Done;
 
     }
-
+    kprintf("we made it this far meaning the init has succeeded!\n");
+    goto Done;
     /* The remaining portions of oxygen_pci_probe focus on initialising PCM and the mixer.
      * from what i can gather, these portions of the init from the Linux Driver are handled
      * radically differently from OSX, and so this is where OSX-specific/new code will need to
