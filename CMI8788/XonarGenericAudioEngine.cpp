@@ -112,7 +112,7 @@ void XonarGenericAudioEngine::wm8785_write(struct oxygen *chip, UInt8 reg, unsig
                                            XonarAudioEngine *instance)
 {
     
-    struct generic_data *data = (struct generic_data*) &chip->model_data;
+    struct generic_data *data = (struct generic_data*) chip->model_data;
     
     instance->oxygen_write_spi(chip, OXYGEN_SPI_TRIGGER |
                      OXYGEN_SPI_DATA_LENGTH_2 |
@@ -132,7 +132,7 @@ void XonarGenericAudioEngine::ak4396_write(struct oxygen *chip, unsigned int cod
     static const UInt8 codec_spi_map[4] = {
         0, 1, 2, 4
     };
-    struct generic_data *data = (struct generic_data*) &chip->model_data;
+    struct generic_data *data = (struct generic_data*) chip->model_data;
     
     instance->oxygen_write_spi(chip, OXYGEN_SPI_TRIGGER |
                      OXYGEN_SPI_DATA_LENGTH_2 |
@@ -147,7 +147,7 @@ void XonarGenericAudioEngine::ak4396_write(struct oxygen *chip, unsigned int cod
 void XonarGenericAudioEngine::ak4396_write_cached(struct oxygen *chip, unsigned int codec,
                                                   UInt8 reg, UInt8 value, XonarAudioEngine *engineInstance)
 {
-    struct generic_data *data = (struct generic_data*) &chip->model_data;
+    struct generic_data *data = (struct generic_data*) chip->model_data;
     
     if (value != data->ak4396_regs[codec][reg])
         ak4396_write(chip, codec, reg, value, engineInstance);
@@ -156,7 +156,7 @@ void XonarGenericAudioEngine::ak4396_write_cached(struct oxygen *chip, unsigned 
 
 void XonarGenericAudioEngine::ak4396_registers_init(struct oxygen *chip, XonarAudioEngine *engineInstance)
 {
-    struct generic_data *data = (struct generic_data*) &chip->model_data;
+    struct generic_data *data = (struct generic_data*) chip->model_data;
     unsigned int i;
     
     for (i = 0; i < data->dacs; ++i) {
@@ -175,7 +175,7 @@ void XonarGenericAudioEngine::ak4396_registers_init(struct oxygen *chip, XonarAu
 
 void XonarGenericAudioEngine::ak4396_init(struct oxygen *chip, XonarAudioEngine *engineInstance)
 {
-    struct generic_data *data = (struct generic_data*) &chip->model_data;
+    struct generic_data *data = (struct generic_data*) chip->model_data;
     
     data->dacs = chip->model.dac_channels_pcm / 2;
     data->ak4396_regs[0][AK4396_CONTROL_2] =
@@ -193,7 +193,7 @@ void XonarGenericAudioEngine::ak5385_init(struct oxygen *chip, XonarAudioEngine 
 
 void XonarGenericAudioEngine::wm8785_registers_init(struct oxygen *chip, XonarAudioEngine* engineInstance)
 {
-    struct generic_data *data = (struct generic_data*) &chip->model_data;
+    struct generic_data *data = (struct generic_data*) chip->model_data;
     
     wm8785_write(chip, WM8785_R7, 0, engineInstance);
     wm8785_write(chip, WM8785_R0, data->wm8785_regs[0], engineInstance);
@@ -202,7 +202,7 @@ void XonarGenericAudioEngine::wm8785_registers_init(struct oxygen *chip, XonarAu
 
 void XonarGenericAudioEngine::wm8785_init(struct oxygen *chip, XonarAudioEngine *engineInstance)
 {
-    struct generic_data *data = (struct generic_data*) &chip->model_data;
+    struct generic_data *data = (struct generic_data*) chip->model_data;
     
     data->wm8785_regs[0] =
     WM8785_MCR_SLAVE | WM8785_OSR_SINGLE | WM8785_FORMAT_LJUST;
@@ -308,7 +308,7 @@ void XonarGenericAudioEngine::stereo_resume(struct oxygen *chip, XonarAudioEngin
 void XonarGenericAudioEngine::set_ak4396_params(struct oxygen *chip,
                                                 XonarAudioEngine *engineInstance)
 {
-    struct generic_data *data = (struct generic_data*) &chip->model_data;
+    struct generic_data *data = (struct generic_data*) chip->model_data;
     unsigned int i;
     UInt8 value;
     
@@ -335,7 +335,7 @@ void XonarGenericAudioEngine::set_ak4396_params(struct oxygen *chip,
 /*
  void XonarGenericAudioEngine::update_ak4396_volume(struct oxygen *chip)
  {
- struct generic_data *data = (struct generic_data*) &chip->model_data;
+ struct generic_data *data = (struct generic_data*) chip->model_data;
  unsigned int i;
  
  for (i = 0; i < data->dacs; ++i) {
@@ -348,7 +348,7 @@ void XonarGenericAudioEngine::set_ak4396_params(struct oxygen *chip,
  
  void XonarGenericAudioEngine::update_ak4396_mute(struct oxygen *chip)
  {
- struct generic_data *data = (struct generic_data*) &chip->model_data;
+ struct generic_data *data = (struct generic_data*) chip->model_data;
  unsigned int i;
  UInt8 value;
  
@@ -361,7 +361,7 @@ void XonarGenericAudioEngine::set_ak4396_params(struct oxygen *chip,
  */
 void XonarGenericAudioEngine::set_wm8785_params(struct oxygen *chip, XonarAudioEngine *engineInstance)
 {
-    struct generic_data *data = (struct generic_data*) &chip->model_data;
+    struct generic_data *data = (struct generic_data*) chip->model_data;
     unsigned int value;
     
     value = WM8785_MCR_SLAVE | WM8785_FORMAT_LJUST;
@@ -408,7 +408,7 @@ bool XonarGenericAudioEngine::init(XonarAudioEngine *audioEngine, struct oxygen 
     }
     
     chip->model_data = IOMalloc(chip->model.model_data_size);
-    deviceRegisters = (struct xonar_generic*) &chip->model_data;
+    deviceRegisters = (struct xonar_generic*) chip->model_data;
     this->engineInstance = audioEngine;
 
     //end APPUL portion of sampleaudioengine::init
@@ -768,7 +768,7 @@ void XonarGenericAudioEngine::filterInterrupt(int index)
  struct snd_ctl_elem_value *value)
  {
  struct oxygen *chip = ctl->private_data;
- struct generic_data *data = (struct generic_data*) &chip->model_data;
+ struct generic_data *data = (struct generic_data*) chip->model_data;
  
  value->value.enumerated.item[0] =
  (data->ak4396_regs[0][AK4396_CONTROL_2] & AK4396_SLOW) != 0;

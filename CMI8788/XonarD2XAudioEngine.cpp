@@ -138,7 +138,9 @@ bool XonarD2XAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip, UI
 {
     bool result = false;
     chip->model_data = IOMalloc(chip->model.model_data_size);
-    deviceRegisters = (struct xonar_pcm179x*) &chip->model_data;
+    deviceRegisters = (struct xonar_pcm179x*) chip->model_data;
+    deviceRegisters->current_rate = (IOAudioSampleRate *) IOMalloc(sizeof(IOAudioSampleRate));
+    
     printf("XonarD2XAudioEngine[%p]::init(%p)\n", this, chip);
     
     if (!chip) {
@@ -266,6 +268,11 @@ void XonarD2XAudioEngine::free()
     printf("XonarD2XAudioEngine[%p]::free()\n", this);
     
     // We need to free our resources when we're going away
+    if(deviceRegisters) {
+        IOFree(deviceRegisters, data_size);
+        IOFree(deviceRegisters->current_rate, sizeof(IOAudioSampleRate));
+        deviceRegisters = NULL;
+    }
     
     if (interruptEventSource) {
         interruptEventSource->release();

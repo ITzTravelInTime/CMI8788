@@ -230,7 +230,7 @@ bool XonarCS43XXAudioEngine::init(XonarAudioEngine *audioEngine, struct oxygen *
     
     printf("SamplePCIAudioEngine[%p]::init(%p)\n", this, chip);
     chip->model_data = IOMalloc(chip->model.model_data_size);
-    deviceRegisters = (struct xonar_cs43xx *) &chip->model_data;
+    deviceRegisters = (struct xonar_cs43xx *) chip->model_data;
     
     if (!chip) {
         goto Done;
@@ -415,7 +415,10 @@ void XonarCS43XXAudioEngine::free()
     printf("XonarCS43XXAudioEngine[%p]::free()\n", this);
     
     // We need to free our resources when we're going away
-    
+    if(deviceRegisters) {
+        IOFree(deviceRegisters, data_size);
+        deviceRegisters = NULL;
+    }
     if (interruptEventSource) {
         interruptEventSource->release();
         interruptEventSource = NULL;

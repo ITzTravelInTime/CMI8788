@@ -75,7 +75,7 @@ void XonarSTAudioEngine::xonar_st_init_i2c(struct oxygen *chip, XonarAudioEngine
 
 void XonarSTAudioEngine::xonar_st_init_common(struct oxygen *chip, XonarAudioEngine *engineInstance)
 {
-    struct xonar_pcm179x *data = (struct xonar_pcm179x*) &chip->model_data;
+    struct xonar_pcm179x *data = (struct xonar_pcm179x*) chip->model_data;
     
     data->generic.output_enable_bit = GPIO_ST_OUTPUT_ENABLE;
     data->dacs = chip->model.dac_channels_mixer / 2;
@@ -355,7 +355,7 @@ bool XonarSTAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip, UIn
     /* sample driver init code (from SamplePCIAudioEngine.cpp's ::init) */
     bool result = false;
     chip->model_data = IOMalloc(chip->model.model_data_size);
-    deviceRegisters = (struct xonar_pcm179x*) &chip->model_data;
+    deviceRegisters = (struct xonar_pcm179x*) chip->model_data;
     printf("XonarSTAudioEngine[%p]::init(%p)\n", this, chip);
     
     if (!chip) {
@@ -557,6 +557,10 @@ void XonarSTAudioEngine::free()
     printf("XonarSTAudioEngine[%p]::free()\n", this);
     
     // We need to free our resources when we're going away
+    if(deviceRegisters) {
+        IOFree(deviceRegisters, data_size);
+        deviceRegisters = NULL;
+    }
     
     if (interruptEventSource) {
         interruptEventSource->release();

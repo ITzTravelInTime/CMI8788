@@ -23,6 +23,8 @@ class XonarWM87x6AudioEngine : public IOAudioEngine
     friend class XonarAudioEngine;
     OSDeclareDefaultStructors(XonarWM87x6AudioEngine)
     struct xonar_wm87x6                  *deviceRegisters;
+    int                                     data_size;
+
     //right now i've created 4 since there are 4 I2S input buffers
     // however, i am not sure how to incorporate them yet,
     // as i have to (probably) create an ioaudiostream for each
