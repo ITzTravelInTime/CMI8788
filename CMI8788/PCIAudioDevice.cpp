@@ -156,8 +156,8 @@ bool PCIAudioDevice::initHardware(IOService *provider)
      * cannot use getVirtualAddress like the sample code; assignment and/or access cause panics
      * with memoryDescriptor, assignments do not cause panics but kprintf values will (probably the security
      * issue that phil [@pmj] alluded to) */
-    deviceRegisters = (struct oxygen *) deviceMap->getMemoryDescriptor();
-    deviceMap->getMemoryDescriptor()->initialize();
+    deviceRegisters = (struct oxygen *) IOMalloc(sizeof(struct oxygen)); //deviceMap->getMemoryDescriptor();
+
     if (!deviceRegisters) {
         goto Done;
     }
@@ -179,9 +179,10 @@ bool PCIAudioDevice::initHardware(IOService *provider)
     vendor_id = pciDevice->extendedConfigRead16(kIOPCIConfigVendorID);
     dev_id = pciDevice->extendedConfigRead16(kIOPCIConfigDeviceID);
     subdev_id = pciDevice->extendedConfigRead16(kIOPCIConfigSubSystemID);
-    ////printf("Xonar Vendor ID:0x%04x, Device ID:0x%04x, SubDevice ID:0x%04x, Physical Address:0x%016llx\n",
-    //       vendor_id, dev_id, subdev_id, deviceMap->getAddress());
-    // add the hardware init code here
+    printf("Xonar Vendor ID:0x%04x, Device ID:0x%04x, SubDevice ID:0x%04x, Physical Address:0x%016llx\n",
+           vendor_id, dev_id, subdev_id, deviceMap->getAddress());
+    goto Done;
+    //     add the hardware init code here
 
     if(subdev_id == HDAV_MODEL)
         setDeviceName("ASUS Xonar HDAV1.3 Deluxe");
@@ -204,12 +205,12 @@ bool PCIAudioDevice::initHardware(IOService *provider)
     result = true;
     
 Done:
-//    if (!result) {
-//        if (deviceMap) {
-//            deviceMap->release();
-//            deviceMap = NULL;
-//        }
-//    }
+    if (!result) {
+        if (deviceMap) {
+            deviceMap->release();
+            deviceMap = NULL;
+        }
+    }
 
 
     return result;
@@ -226,13 +227,12 @@ void PCIAudioDevice::free()
     kprintf("mutex freed\n");
     IOLockFree(deviceRegisters->ac97_mutex);
     kprintf("ac97_mutex freed\n");
-    /* the documentation is explicitly clear that descriptors should
-     * not be unmapped by the caller. below was the code from the sample
-     * driver that i tried to port over. however i realised it's not needed.
-     * the memoryDescriptor will free/release itself after all accesses/references
-     * are complete */
+    if (deviceRegisters) {
+        IOFree(deviceRegisters, sizeof(struct oxygen));
+        deviceRegisters = NULL;
+    }
     if (deviceMap) {
-            deviceMap->unmap();
+            deviceMap->release();
             deviceMap = NULL;
        }
     super::free();
