@@ -263,7 +263,6 @@ int XonarAudioEngine::oxygen_write_spi(struct oxygen *chip, UInt8 control, unsig
     oxygen_write8(chip, OXYGEN_SPI_CONTROL, control);
     return oxygen_wait_spi(chip);
 }
-//EXPORT_SYMBOL(oxygen_write_spi);
 
 
 
@@ -295,7 +294,6 @@ void XonarAudioEngine::oxygen_write_i2c(struct oxygen *chip, UInt8 device, UInt8
     oxygen_write8(chip, OXYGEN_2WIRE_CONTROL,
                   device | OXYGEN_2WIRE_DIR_WRITE);
 }
-//EXPORT_SYMBOL(oxygen_write_i2c);
 
 inline void XonarAudioEngine::pcm1796_write_i2c(struct oxygen *chip, unsigned int codec,
                                                 UInt8 reg, UInt8 value)
@@ -371,7 +369,6 @@ void XonarAudioEngine::pcm1796_init(struct oxygen *chip)
         data = (struct xonar_pcm179x*) &((struct xonar_hdav*) chip->model_data)->pcm179x;
     else
         data = (struct xonar_pcm179x*) chip->model_data;
-    //struct xonar_pcm179x *data =(struct xonar_pcm179x*) &chip->model_data;
     
     data->pcm1796_regs[0][18 - PCM1796_REG_BASE] =
     PCM1796_DMF_DISABLED | PCM1796_FMT_24_I2S | PCM1796_ATLD;
