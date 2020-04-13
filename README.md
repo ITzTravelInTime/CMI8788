@@ -61,4 +61,4 @@ u>347845501 XonarAudioEngine::stop()<br>
 u>347845747 XonarAudioEngine::free()<br>
 u>347845904 XonarAudioDevice::free()
 
-![Image of driver detection] (https://github.com/i3roly/CMI8788/card_driver.png)
+![Image of driver detection] (https://github.com/i3roly/CMI8788/blob/master/card_driver.png)
