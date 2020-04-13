@@ -588,6 +588,7 @@ void XonarAudioEngine::update_cs2000_rate(struct oxygen *chip, unsigned int rate
 static int oxygen_ac97_wait(struct oxygen *chip, unsigned int mask)
 {
     UInt8 status = 0;
+    wait_result_t retval;
     /*
      * Reading the status register also clears the bits, so we have to save
      * the read bits in status.
@@ -595,9 +596,17 @@ static int oxygen_ac97_wait(struct oxygen *chip, unsigned int mask)
     //chip->ac97_maskval = mask;
     IOLockLock(chip->ac97_mutex);
     while( ({status |= oxygen_read8(chip, OXYGEN_AC97_INTERRUPT_STATUS);
-            status & mask;}) )
+        status & mask;}) ) {
     //pthread_cond_timedwait(&chip->ac97_condition,&chip->ac97_mutex,&chip->ac97_timeout);
-    IOLockSleepDeadline(chip->ac97_mutex, &chip->ac97_statusbits, 1e6, THREAD_UNINT);
+    
+        if(!(retval = IOLockSleepDeadline(chip->ac97_mutex, &chip->ac97_statusbits, 1e6, THREAD_UNINT)))
+            kprintf("ac97_thread was awakened!\n");
+        else if(retval == 1)
+            kprintf("ac97_thread timed out\n");
+        else if (retval == -1)
+            kprintf ("ac97_thread waiting...\n");
+            
+    }
     IOLockUnlock(chip->ac97_mutex);
     //thread_block(THREAD_CONTINUE_NULL);
     /*
@@ -1300,13 +1309,8 @@ Done:
 bool XonarAudioEngine::initHardware(IOService *provider)
 {
     /* Comments by Broly:
-     * not sure if we need the initHardware method to contain anything,
-     * since each submodel is somewhat unique in terms of its IOAudioStream
-     * objects. thus i think we can leave this method empty, return true, and then
-     * move all of this stuff to each submodel's initHardware method.
-     *
-     * the important part is that XonarAudioEngine "holds" the main
-     interrupthandler, since each submodel uses it. */
+     * card has been initialised at this point as follows:
+     * 1. after . */
     
     bool result = false;
     IOAudioStream *audioStream;
@@ -1482,6 +1486,7 @@ bool XonarAudioEngine::initHardware(IOService *provider)
             //                                                  BUFFER_BYTES_MAX);
         }
     }
+    
     /*
      // Setup the initial sample rate for the audio engine
      initialSampleRate.whole = INITIAL_SAMPLE_RATE;
@@ -1976,12 +1981,9 @@ bool XonarAudioEngine::interruptFilter(OSObject *owner, IOFilterInterruptEventSo
     }
     
     if (status & OXYGEN_INT_AC97) {
-                //unsigned int maskval = chip->ac97_maskval;
+                chip->ac97_statusbits = 0;
                 IOLockWakeup(chip->ac97_mutex, &chip->ac97_statusbits, true);
                 //thread_wakeup_prim((event_t)chip->ac97_statusbits,0,THREAD_AWAKENED);
-                //pthread_mutex_lock(&chip->ac97_mutex);
-                //pthread_cond_broadcast(&chip->ac97_condition);
-                //pthread_mutex_unlock(&chip->ac97_mutex);
     }
     
     return true;

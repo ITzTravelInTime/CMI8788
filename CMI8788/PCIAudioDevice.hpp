@@ -206,7 +206,7 @@ struct oxygen {
     //IOWorkLoop gpio_work;
     //wait_queue_t ac97_waitqueue;
     //pthread_cond_t  ac97_condition = PTHREAD_COND_INITIALIZER;
-    kern_return_t ac97_statusbits;
+    bool ac97_statusbits;
     struct timespec ac97_timeout = {0, (long)1e6};
     wait_result_t ac97_result;
     unsigned int ac97_maskval;

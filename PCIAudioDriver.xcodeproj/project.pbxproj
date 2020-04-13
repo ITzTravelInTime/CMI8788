@@ -82,10 +82,10 @@
 		CE235F92207DBA0600AF3203 = {
 			isa = PBXGroup;
 			children = (
-				CE4CF3A52444EB620052BB17 /* README.md */,
-				CE4CF3A72444ED510052BB17 /* card_driver.png */,
 				CE235F9E207DBA0600AF3203 /* PCIAudioDriver */,
 				CE235F9D207DBA0600AF3203 /* Products */,
+				CE4CF3A52444EB620052BB17 /* README.md */,
+				CE4CF3A72444ED510052BB17 /* card_driver.png */,
 			);
 			sourceTree = "<group>";
 		};
@@ -126,9 +126,9 @@
 				CEACF3FE2082A09600D01190 /* XonarSTAudioEngine.hpp */,
 				CEACF40C2083177100D01190 /* XonarD2XAudioEngine.cpp */,
 				CEACF40E208317AC00D01190 /* XonarD2XAudioEngine.hpp */,
-				CE235FA1207DBA0600AF3203 /* PCIAudioDevice.cpp */,
 				CE4CF3A62444ED4F0052BB17 /* card_driver.png */,
 				CE235F9F207DBA0600AF3203 /* PCIAudioDevice.hpp */,
+				CE235FA1207DBA0600AF3203 /* PCIAudioDevice.cpp */,
 				CE235FA3207DBA0600AF3203 /* Info.plist */,
 			);
 			name = PCIAudioDriver;
