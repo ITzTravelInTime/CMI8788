@@ -20,50 +20,45 @@ also want to thank Siguza on the newosxbook forum for helping me get started. an
 
 latest log using fwkpfv (because APPULL likes to fucking ruin things and then not fix them unless the user wants to diminish their intellectual capacity by "upgrading" their operating system to one that is "currently supported" and not solely receiving security updates):
 
-u>458411357 XonarAudioDevice::initHardware()<br>
-u>458411403 trying to initialise the locks here...<br>
-u>458411418 mutex alloc succeeded<br>
-u>458411431 SimpleLockAlloc succceeded<br>
-u>458413702 oxygen_restore_eeprom EEPROM ID restored<br>
-u>458413733 XonarAudioDevice::createAudioEngine()<br>
-u>458413749 XonarHDAVAudioEngine[]::init()<br>
-u>458413763 XonarAudioEngine::init<br>
-u>458413926 AC'97 write timeout<br>
-u>458415156 AC'97 read timeout on codec 0<br>
-u>458415234 AC'97 write timeout<br>
-u>458415369 AC'97 read timeout on codec 0<br>
-u>458415438 AC'97 write timeout<br>
-u>458415572 AC'97 read timeout on codec 0<br>
-u>458415641 AC'97 write timeout<br>
-u>458415706 AC'97 write timeout<br>
-u>458415770 AC'97 write timeout<br>
-u>458415833 AC'97 write timeout<br>
-u>458415897 AC'97 write timeout<br>
-u>458415960 AC'97 write timeout<br>
-u>458416024 AC'97 write timeout<br>
-u>458416087 AC'97 write timeout<br>
-u>458416151 AC'97 write timeout<br>
-u>458416213 AC'97 write timeout<br>
-u>458416276 AC'97 write timeout<br>
-u>458416410 AC'97 read timeout on codec 0<br>
-u>458416476 AC'97 write timeout<br>
-u>458416610 AC'97 read timeout on codec 0<br>
-u>458416685 AC'97 write timeout<br>
-u>458416820 AC'97 read timeout on codec 0<br>
-u>458416882 AC'97 write timeout<br>
-u>458416899 right before the initialisation of the engine's functions<br>
-u>458444781 Debugger: Unexpected kernel trap number: 0xe, RIP: 0xffffff7f925793c6, CR2: 0x10000<br>
-u>458444806 CPU 6 panic trap number 0xe, rip 0xffffff7f925793c6<br>
-u>458444820 cr0 0x000000008001003b cr2 0x0000000000010000 cr3 0x0000000012ebe000 cr4 0x00000000000226e0<br>
-u>458444904 Debugger called: <panic><br>
-u>458444921 IOPlatformPanicAction -> AppleAHCIDiskDriver<br>
-u>458444938 IOPlatformPanicAction -> AppleAHCIDiskDriver<br>
-u>458444953 IOPlatformPanicAction -> AppleAHCIDiskDriver<br>
-u>458444969 IOPlatformPanicAction -> AppleAHCIDiskDriver<br>
-u>458444984 IOPlatformPanicAction -> AppleSMC<br>
-u>458448272 Attempting to commit panic log to NVRAM<br>
-u>458840141 ethernet MAC address: 00:00:00:00:00:00<br>
-u>458840164 ip address: 0.0.0.0<br>
-u>458840184 <br>
-u>458840195 Waiting for remote debugger connection.
+u>344271272 XonarAudioDevice::initHardware()<br>
+u>344271323 Xonar Vendor ID:0x13f6, Device ID:0x8788, SubDevice ID:0x8314, Physical Address:0x0000000000004000<br>
+u>344273579 oxygen_restore_eeprom EEPROM ID restored<br>
+u>344273597 XonarAudioDevice::createAudioEngine()<br>
+u>344273616 XonarHDAVAudioEngine::init()<br>
+u>344273630 XonarAudioEngine::init<br>
+u>344273778 AC'97 write timeout<br>
+u>344275007 AC'97 read timeout on codec 0<br>
+u>344275085 AC'97 write timeout<br>
+u>344275219 AC'97 read timeout on codec 0<br>
+u>344275287 AC'97 write timeout<br>
+u>344275421 AC'97 read timeout on codec 0<br>
+u>344275489 AC'97 write timeout<br>
+u>344275555 AC'97 write timeout<br>
+u>344275619 AC'97 write timeout<br>
+u>344275682 AC'97 write timeout<br>
+u>344275745 AC'97 write timeout<br>
+u>344275809 AC'97 write timeout<br>
+u>344275872 AC'97 write timeout<br>
+u>344275936 AC'97 write timeout<br>
+u>344275997 AC'97 write timeout<br>
+u>344276061 AC'97 write timeout<br>
+u>344276125 AC'97 write timeout<br>
+u>344276258 AC'97 read timeout on codec 0<br>
+u>344276325 AC'97 write timeout<br>
+u>344276458 AC'97 read timeout on codec 0<br>
+u>344276534 AC'97 write timeout<br>
+u>344276668 AC'97 read timeout on codec 0<br>
+u>344276731 AC'97 write timeout<br>
+u>344406290 creating volumecontrol 1<br>
+u>344406352 creating volumecontrol2<br>
+u>344406381 creating volumecontrol 3<br>
+u>344406404 creating volumecontrol 4<br>
+u>344406428 creating volumecontrol 5<br>
+u>344406452 creating volumecontrol 6<br>
+u>344406490 XonarAudioEngine::initHardware()<br>
+u>344407820 XonarHDAVAudioEngine::free()<br>
+u>347845501 XonarAudioEngine::stop()<br>
+u>347845747 XonarAudioEngine::free()<br>
+u>347845904 XonarAudioDevice::free()
 
+![Image of driver detection] (https://github.com/i3roly/CMI8788/card_driver.png)
