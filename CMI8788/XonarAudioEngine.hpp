@@ -181,7 +181,7 @@ class XonarAudioEngine : public IOAudioEngine
     IOAudioStream                   *inputs[4];
     SInt16							*outputBuffer;
     SInt16							*inputBuffer;
-    
+    IOAudioSampleRate               initialSampleRate;
     //IOWorkLoop                      *workLoop;
     IOFilterInterruptEventSource	*interruptEventSource_main;
     //IOFilterInterruptEventSource	*gpioEventSource; unused (if runAction works in the interrupthandler, which is all we need)
@@ -189,7 +189,7 @@ class XonarAudioEngine : public IOAudioEngine
     //need this for the interrupt handler, as the filterInterrupt OS call doesn't allow us to pass parameters.
     void                            *dev_id;
 
-
+    char                            *Description;
 public:
     struct oxygen* chipData;// = (struct oxygen*) dev_id;
 

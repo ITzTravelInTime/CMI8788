@@ -409,7 +409,7 @@ bool XonarGenericAudioEngine::init(XonarAudioEngine *audioEngine, struct oxygen 
     data_size = chip->model.model_data_size;
     chip->model_data = IOMalloc(chip->model.model_data_size);
     deviceRegisters = (struct xonar_generic*) chip->model_data;
-    this->engineInstance = audioEngine;
+    engineInstance = audioEngine;
 
     //end APPUL portion of sampleaudioengine::init
     
@@ -437,9 +437,7 @@ bool XonarGenericAudioEngine::init(XonarAudioEngine *audioEngine, struct oxygen 
     wm8785_init(chip,audioEngine);
     //end generic_init
     
-    //set registers/engine and finish APPUL sampleaudioengine init
-    
-
+    audioEngine->setDescription(chip->model.shortname);
 
     result = true;
     

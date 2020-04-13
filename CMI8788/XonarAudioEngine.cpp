@@ -598,8 +598,8 @@ static int oxygen_ac97_wait(struct oxygen *chip, unsigned int mask)
     while( ({status |= oxygen_read8(chip, OXYGEN_AC97_INTERRUPT_STATUS);
         status & mask;}) ) {
     //pthread_cond_timedwait(&chip->ac97_condition,&chip->ac97_mutex,&chip->ac97_timeout);
-    
-        if(!(retval = IOLockSleepDeadline(chip->ac97_mutex, &chip->ac97_statusbits, 1e6, THREAD_UNINT)))
+            retval = IOLockSleepDeadline(chip->ac97_mutex, &chip->ac97_statusbits, 1e6, THREAD_UNINT);
+        if(!retval)
             kprintf("ac97_thread was awakened!\n");
         else if(retval == 1)
             kprintf("ac97_thread timed out\n");
@@ -1357,8 +1357,7 @@ bool XonarAudioEngine::initHardware(IOService *provider)
             if (!audioStream) {
                 goto Done;
             }
-            addAudioStream(audioStream);
-            audioStream->release();
+
         }
         if (chipData->model.device_config & CAPTURE_0_FROM_I2S_1) {
             //add rec_a_ops fns
@@ -1366,8 +1365,7 @@ bool XonarAudioEngine::initHardware(IOService *provider)
             if (!audioStream) {
                 goto Done;
             }
-            addAudioStream(audioStream);
-            audioStream->release();
+            
         }
         else if (chipData->model.device_config & CAPTURE_0_FROM_I2S_2) {
             //add rec_b_ops fns
@@ -1375,9 +1373,11 @@ bool XonarAudioEngine::initHardware(IOService *provider)
             if (!audioStream) {
                 goto Done;
             }
-            addAudioStream(audioStream);
-            audioStream->release();
+
         }
+        audioStream->setName("MultiChannel");
+        addAudioStream(audioStream);
+        audioStream->release();
         //        pcm->private_data = chip;
         //        strcpy(pcm->name, "Multichannel");
         //        if (outs)
@@ -1406,8 +1406,7 @@ bool XonarAudioEngine::initHardware(IOService *provider)
             if (!audioStream) {
                 goto Done;
             }
-            addAudioStream(audioStream);
-            audioStream->release();
+
         }
         if (ins) {
             //add rc_c_ops fns
@@ -1415,9 +1414,11 @@ bool XonarAudioEngine::initHardware(IOService *provider)
             if (!audioStream) {
                 goto Done;
             }
-            addAudioStream(audioStream);
-            audioStream->release();
+
         }
+        audioStream->setName("Digital");
+        addAudioStream(audioStream);
+        audioStream->release();
         //        pcm->private_data = chip;
         //        strcpy(pcm->name, "Digital");
         //        snd_pcm_lib_preallocate_pages_for_all(pcm, SNDRV_DMA_TYPE_DEV,
@@ -1445,6 +1446,7 @@ bool XonarAudioEngine::initHardware(IOService *provider)
             if (!audioStream) {
                 goto Done;
             }
+            audioStream->setName(outs ? "AC97" : "Analog2");
             addAudioStream(audioStream);
             audioStream->release();
             oxygen_write8_masked(chipData, OXYGEN_REC_ROUTING,
@@ -1457,15 +1459,15 @@ bool XonarAudioEngine::initHardware(IOService *provider)
             if (!audioStream) {
                 goto Done;
             }
+            audioStream->setName(outs ? "Front Panel" : "Analog 2");
             addAudioStream(audioStream);
             audioStream->release();
         }
         //        pcm->private_data = chip;
-        //        strcpy(pcm->name, outs ? "Front Panel" : "Analog 2");
         
         ins = !!(chipData->model.device_config & CAPTURE_3_FROM_I2S_3);
         if (ins) {
-            //            err = snd_pcm_new(chip->card, "Analog3", 3, 0, ins, &pcm);
+            //            err = snd_pcm_new(chip->card,  3, 0, ins, &pcm);
             if (err < 0)
                 return err;
             //add rec_c fns
@@ -1473,6 +1475,7 @@ bool XonarAudioEngine::initHardware(IOService *provider)
             if (!audioStream) {
                 goto Done;
             }
+            audioStream->setName("Analog 3");
             addAudioStream(audioStream);
             audioStream->release();
             oxygen_write8_masked(chipData, OXYGEN_REC_ROUTING,
@@ -1487,12 +1490,12 @@ bool XonarAudioEngine::initHardware(IOService *provider)
         }
     }
     
-    /*
+    
      // Setup the initial sample rate for the audio engine
      initialSampleRate.whole = INITIAL_SAMPLE_RATE;
      initialSampleRate.fraction = 0;
      
-     setDescription("Sample PCI Audio Engine");
+     //setDescription("Sample PCI Audio Engine");
      
      setSampleRate(&initialSampleRate);
      
@@ -1503,7 +1506,7 @@ bool XonarAudioEngine::initHardware(IOService *provider)
      if (!workLoop) {
      goto Done;
      }
-     */
+    
     // Create an interrupt event source through which to receive interrupt callbacks
     // In this case, we only want to do work at primary interrupt time, so
     // we create an IOFilterInterruptEventSource which makes a filtering call
@@ -1862,7 +1865,7 @@ void XonarAudioEngine::oxygen_spdif_input_bits_changed(struct oxygen* chip)
         }
     }
     IOSimpleLockUnlock(chip->reg_lock);
-    /*
+    
      if (chip->controls[CONTROL_SPDIF_INPUT_BITS]) {
      IOSimpleLockLock(chip->reg_lock);
      chip->interrupt_mask |= OXYGEN_INT_SPDIF_IN_DETECT;
@@ -1877,7 +1880,7 @@ void XonarAudioEngine::oxygen_spdif_input_bits_changed(struct oxygen* chip)
      //    snd_ctl_notify(chip->card, SNDRV_CTL_EVENT_MASK_VALUE,
      //                  &chip->controls[CONTROL_SPDIF_INPUT_BITS]->id);
      }
-     */
+     
 }
 
 

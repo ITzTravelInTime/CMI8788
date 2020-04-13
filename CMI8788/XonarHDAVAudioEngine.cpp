@@ -102,7 +102,7 @@ int XonarHDAVAudioEngine::xonar_hdav_mixer_init(struct oxygen *chip, XonarAudioE
 }
 
 
-bool XonarHDAVAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip)
+bool XonarHDAVAudioEngine::init(XonarAudioEngine *audioEngine, struct oxygen *chip)
 {
     
     /* sample driver init code (from SamplePCIAudioEngine.cpp's ::init) */
@@ -114,14 +114,14 @@ bool XonarHDAVAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip)
         goto Done;
     }
     
-    if (!engine->init(chip, HDAV_MODEL)) {
+    if (!audioEngine->init(chip, HDAV_MODEL)) {
         goto Done;
     }
     /* end sample driver template */
     data_size = chip->model.model_data_size;
     chip->model_data = IOMalloc(data_size);
     deviceRegisters = (struct xonar_hdav*) chip->model_data;
-    engineInstance = engine;
+    engineInstance = audioEngine;
     
     /* begin ALSA xonar_hdav_init */
     oxygen_write16(chip, OXYGEN_2WIRE_BUS_STATUS,
@@ -142,18 +142,17 @@ bool XonarHDAVAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip)
     chip->model.cleanup = xonar_hdav_cleanup;
     
 
-    engine->pcm1796_init(chip);
+    audioEngine->pcm1796_init(chip);
     oxygen_set_bits16(chip, OXYGEN_GPIO_CONTROL,
                       GPIO_HDAV_MAGIC | GPIO_INPUT_ROUTE);
     oxygen_clear_bits16(chip, OXYGEN_GPIO_DATA, GPIO_INPUT_ROUTE);
-    engine->xonar_init_cs53x1(chip);
-    engine->xonar_init_ext_power(chip);
-    engine->xonar_hdmi_init(chip, &(deviceRegisters->hdmi));
-    engine->xonar_enable_output(chip);
-    
-    /* end hdav_init, begin last bit of SamplePCIAudioEngine.cpp's init
-     */
-    
+    audioEngine->xonar_init_cs53x1(chip);
+    audioEngine->xonar_init_ext_power(chip);
+    audioEngine->xonar_hdmi_init(chip, &(deviceRegisters->hdmi));
+    audioEngine->xonar_enable_output(chip);
+
+    audioEngine->setDescription(chip->model.shortname);
+
     result = true;
     
     goto Done;

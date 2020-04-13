@@ -430,6 +430,8 @@ bool XonarWM87x6AudioEngine::init(XonarAudioEngine *audioEngine, struct oxygen *
     data_size = chip->model.model_data_size;
     chip->model_data = IOMalloc(chip->model.model_data_size);
     deviceRegisters = (struct xonar_wm87x6 *) chip->model_data;
+    engineInstance = audioEngine;
+    
     if (!chip) {
         goto Done;
     }
@@ -517,9 +519,10 @@ bool XonarWM87x6AudioEngine::init(XonarAudioEngine *audioEngine, struct oxygen *
     //end APPUL portion of sampleaudioengine::init
     
     
-    
+    audioEngine->setDescription(chip->model.shortname);
+
     //set registers/engine and finish APPUL sampleaudioengine init
-    this->engineInstance = audioEngine;
+    
     result = true;
     
 Done:

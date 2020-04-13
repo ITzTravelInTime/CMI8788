@@ -233,6 +233,7 @@ bool XonarCS43XXAudioEngine::init(XonarAudioEngine *audioEngine, struct oxygen *
     data_size = chip->model.model_data_size;
     chip->model_data = IOMalloc(chip->model.model_data_size);
     deviceRegisters = (struct xonar_cs43xx *) chip->model_data;
+    engineInstance = audioEngine;
     
     if (!chip) {
         goto Done;
@@ -313,8 +314,8 @@ bool XonarCS43XXAudioEngine::init(XonarAudioEngine *audioEngine, struct oxygen *
     else
         goto Done;
     
-    //set registers/engine and finish APPUL sampleaudioengine init
-    this->engineInstance = audioEngine;
+    audioEngine->setDescription(chip->model.shortname);
+
     result = true;
     
 Done:
