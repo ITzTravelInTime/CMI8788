@@ -286,8 +286,6 @@ bool PCIAudioDevice::createAudioEngine()
             goto Done;
 
     }
-    kprintf("we made it this far meaning the init has succeeded!\n");
-    goto Done;
     /* The remaining portions of oxygen_pci_probe focus on initialising PCM and the mixer.
      * from what i can gather, these portions of the init from the Linux Driver are handled
      * radically differently from OSX, and so this is where OSX-specific/new code will need to
@@ -299,6 +297,7 @@ bool PCIAudioDevice::createAudioEngine()
     // and a db range from -22.5 to 0.0
     // Once each control is added to the audio engine, they should be released
     // so that when the audio engine is done with them, they get freed properly
+    kprintf("creating volumecontrol 1\n");
     control = IOAudioLevelControl::createVolumeControl((deviceRegisters->model.dac_volume_max+deviceRegisters->model.dac_volume_min)/2,	// Initial value
                                                        deviceRegisters->model.dac_volume_min,		// min value
                                                        deviceRegisters->model.dac_volume_max,	// max value
@@ -315,7 +314,8 @@ bool PCIAudioDevice::createAudioEngine()
     control->setValueChangeHandler((IOAudioControl::IntValueChangeHandler)volumeChangeHandler, this);
     accessibleEngineInstance->addDefaultAudioControl(control);
     control->release();
-    
+    kprintf("creating volumecontrol2\n");
+
     control = IOAudioLevelControl::createVolumeControl((deviceRegisters->model.dac_volume_max+deviceRegisters->model.dac_volume_min)/2,	// Initial value
                                                        deviceRegisters->model.dac_volume_min,		// min value
                                                        deviceRegisters->model.dac_volume_max,	// max value
@@ -328,11 +328,12 @@ bool PCIAudioDevice::createAudioEngine()
     if (!control) {
         goto Done;
     }
-    
+   
+
     control->setValueChangeHandler((IOAudioControl::IntValueChangeHandler)volumeChangeHandler, this);
     accessibleEngineInstance->addDefaultAudioControl(control);
     control->release();
-    
+     kprintf("creating volumecontrol 3\n");
     // Create an output mute control
     control = IOAudioToggleControl::createMuteControl(false,	// initial state - unmuted
                                                       kIOAudioControlChannelIDAll,	// Affects all channels
@@ -343,11 +344,12 @@ bool PCIAudioDevice::createAudioEngine()
     if (!control) {
         goto Done;
     }
-    
+ 
+
     control->setValueChangeHandler((IOAudioControl::IntValueChangeHandler)outputMuteChangeHandler, this);
     accessibleEngineInstance->addDefaultAudioControl(control);
     control->release();
-    
+       kprintf("creating volumecontrol 4\n");
     // Create a left & right input gain control with an int range from 0 to 65535
     // and a db range from 0 to 22.5
     control = IOAudioLevelControl::createVolumeControl(65535,	// Initial value
@@ -362,11 +364,12 @@ bool PCIAudioDevice::createAudioEngine()
     if (!control) {
         goto Done;
     }
-    
+
+
     control->setValueChangeHandler((IOAudioControl::IntValueChangeHandler)gainChangeHandler, this);
     accessibleEngineInstance->addDefaultAudioControl(control);
     control->release();
-    
+        kprintf("creating volumecontrol 5\n");
     control = IOAudioLevelControl::createVolumeControl(65535,	// Initial value
                                                        0,		// min value
                                                        65535,	// max value
@@ -383,7 +386,7 @@ bool PCIAudioDevice::createAudioEngine()
     control->setValueChangeHandler((IOAudioControl::IntValueChangeHandler)gainChangeHandler, this);
     accessibleEngineInstance->addDefaultAudioControl(control);
     control->release();
-    
+        kprintf("creating volumecontrol 6\n");
     // Create an input mute control
     control = IOAudioToggleControl::createMuteControl(false,	// initial state - unmuted
                                                       kIOAudioControlChannelIDAll,	// Affects all channels
@@ -404,6 +407,7 @@ bool PCIAudioDevice::createAudioEngine()
     activateAudioEngine(accessibleEngineInstance);
     // Once the audio engine has been activated, release it so that when the driver gets terminated,
     // it gets freed
+    submodelInstance->release();
     accessibleEngineInstance->release();
     
     result = true;

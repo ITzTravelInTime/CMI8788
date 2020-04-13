@@ -107,9 +107,9 @@ static void xonar_ext_power_gpio_changed(struct oxygen *chip)
     if (has_power != data->has_power) {
         data->has_power = has_power;
         if (has_power) {
-            printf("power restored\n");
+            kprintf("power restored\n");
         } else {
-            printf("Hey! Don't unplug the power cable!\n");
+            kprintf("Hey! Don't unplug the power cable!\n");
             /* TODO: stop PCMs */
         }
     }
@@ -813,7 +813,7 @@ void XonarAudioEngine::xonar_hdmi_uart_input(struct oxygen *chip)
     if (chip->uart_input_count >= 2 &&
         chip->uart_input[chip->uart_input_count - 2] == 'O' &&
         chip->uart_input[chip->uart_input_count - 1] == 'K') {
-        printf("message from HDMI chip received:\n");
+        kprintf("message from HDMI chip received:\n");
         print_hex_dump_bytes("", DUMP_PREFIX_OFFSET,
                              chip->uart_input, chip->uart_input_count);
         chip->uart_input_count = 0;
@@ -1710,7 +1710,7 @@ void XonarAudioEngine::stop(IOService *provider)
 
 IOReturn XonarAudioEngine::performAudioEngineStart()
 {
-    printf("XonarAudioEngine::performAudioEngineStart()\n");
+    kprintf("XonarAudioEngine::performAudioEngineStart()\n");
     
     // The interruptEventSource needs to be enabled to allow interrupts to start firing
     assert(interruptEventSource);
@@ -1787,18 +1787,18 @@ IOReturn XonarAudioEngine::performFormatChange(IOAudioStream *audioStream, const
     if (newSampleRate) {
         switch (newSampleRate->whole) {
             case 44100:
-                printf("/t-> 44.1kHz selected\n");
+                kprintf("/t-> 44.1kHz selected\n");
                 
                 // Add code to switch hardware to 44.1khz
                 break;
             case 48000:
-                printf("/t-> 48kHz selected\n");
+                kprintf("/t-> 48kHz selected\n");
                 
                 // Add code to switch hardware to 48kHz
                 break;
             default:
                 // This should not be possible since we only specified 44100 and 48000 as valid sample rates
-                printf("/t Internal Error - unknown sample rate selected.\n");
+                kprintf("/t Internal Error - unknown sample rate selected.\n");
                 break;
         }
     }

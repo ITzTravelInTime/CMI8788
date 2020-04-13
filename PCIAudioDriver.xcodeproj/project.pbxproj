@@ -42,6 +42,9 @@
 		CE442427207FF78500158F35 /* ak4396.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ak4396.h; sourceTree = "<group>"; };
 		CE442428207FF78500158F35 /* oxygen_regs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = oxygen_regs.h; sourceTree = "<group>"; };
 		CE44242A207FF78500158F35 /* wm8785.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = wm8785.h; sourceTree = "<group>"; };
+		CE4CF3A52444EB620052BB17 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		CE4CF3A62444ED4F0052BB17 /* card_driver.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = card_driver.png; path = ../../../../Desktop/card_driver.png; sourceTree = "<group>"; };
+		CE4CF3A72444ED510052BB17 /* card_driver.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = card_driver.png; sourceTree = "<group>"; };
 		CE5601AA208EB7CA001A5D0D /* hexdumpfn.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = hexdumpfn.c; sourceTree = "<group>"; };
 		CE5601B0208ECB6E001A5D0D /* XonarGenericAudioEngine.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = XonarGenericAudioEngine.cpp; sourceTree = "<group>"; };
 		CE5601B1208ECB6E001A5D0D /* XonarGenericAudioEngine.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = XonarGenericAudioEngine.hpp; sourceTree = "<group>"; };
@@ -79,9 +82,10 @@
 		CE235F92207DBA0600AF3203 = {
 			isa = PBXGroup;
 			children = (
+				CE4CF3A52444EB620052BB17 /* README.md */,
+				CE4CF3A72444ED510052BB17 /* card_driver.png */,
 				CE235F9E207DBA0600AF3203 /* PCIAudioDriver */,
 				CE235F9D207DBA0600AF3203 /* Products */,
-				CEE750692434121100E22C81 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -123,18 +127,12 @@
 				CEACF40C2083177100D01190 /* XonarD2XAudioEngine.cpp */,
 				CEACF40E208317AC00D01190 /* XonarD2XAudioEngine.hpp */,
 				CE235FA1207DBA0600AF3203 /* PCIAudioDevice.cpp */,
+				CE4CF3A62444ED4F0052BB17 /* card_driver.png */,
 				CE235F9F207DBA0600AF3203 /* PCIAudioDevice.hpp */,
 				CE235FA3207DBA0600AF3203 /* Info.plist */,
 			);
 			name = PCIAudioDriver;
 			path = CMI8788;
-			sourceTree = "<group>";
-		};
-		CEE750692434121100E22C81 /* Frameworks */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
