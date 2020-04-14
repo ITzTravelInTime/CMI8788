@@ -134,7 +134,7 @@ void XonarD2XAudioEngine::xonar_d2_init(struct oxygen *chip, XonarAudioEngine *e
     // snd_component_add(chip->card, "CS5381");
 }
 
-bool XonarD2XAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip, UInt16 submodel)
+bool XonarD2XAudioEngine::init(XonarAudioEngine *audioEngine, struct oxygen *chip, UInt16 submodel)
 {
     bool result = false;
     
@@ -144,7 +144,7 @@ bool XonarD2XAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip, UI
     chip->model_data = IOMalloc(chip->model.model_data_size);
     deviceRegisters = (struct xonar_pcm179x*) chip->model_data;
     deviceRegisters->current_rate = (IOAudioSampleRate *) IOMalloc(sizeof(IOAudioSampleRate));
-
+    engineInstance = audioEngine;
     
     if (!chip) {
         goto Done;
@@ -155,21 +155,21 @@ bool XonarD2XAudioEngine::init(XonarAudioEngine *engine, struct oxygen *chip, UI
     }
     
     if(submodel == D2_MODEL)
-        xonar_d2_init(chip, engine);
+        xonar_d2_init(chip, audioEngine);
     else if(submodel == D2X_MODEL) {
         deviceRegisters->generic.ext_power_reg = OXYGEN_GPIO_DATA;
         deviceRegisters->generic.ext_power_int_reg = OXYGEN_GPIO_INTERRUPT_MASK;
         deviceRegisters->generic.ext_power_bit = GPIO_D2X_EXT_POWER;
         oxygen_clear_bits16(chip, OXYGEN_GPIO_CONTROL, GPIO_D2X_EXT_POWER);
-        engine->xonar_init_ext_power(chip);
-        xonar_d2_init(chip, engine);
+        audioEngine->xonar_init_ext_power(chip);
+        xonar_d2_init(chip, audioEngine);
     }
     else
         goto Done;
     
-    //set the pointer to XonarAudioEngine.
-    this->engineInstance = engine;
-    
+
+    audioEngine->setDescription(chip->model.shortname);
+
     result = true;
     
 Done:

@@ -16,7 +16,10 @@ i'm pretty sure Clemens Ladisch is JUHMAHN for "fucking masher" ;)
 http://www.osxbook.com
 http://www.newosxbook.com (forum is here: http://newosxbook.com/forum/)
 
-also want to thank Siguza on the newosxbook forum for helping me get started. and much love to @pmj for answering my onslaught of inquiries.
+also want to thank:
+Siguza on the newosxbook forum for helping me get started, much love to 
+@pmj for answering my onslaught of inquiries, my longtime friend
+kuljit thiara for allowing me to borrow his macbook pro for one week that allowed me to finish phase one (initialising hardware) of the drier
 
 latest log using fwkpfv (because APPULL likes to fucking ruin things and then not fix them unless the user wants to diminish their intellectual capacity by "upgrading" their operating system to one that is "currently supported" and not solely receiving security updates):
 

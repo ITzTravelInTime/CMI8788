@@ -1514,7 +1514,7 @@ bool XonarAudioEngine::initHardware(IOService *provider)
     // our secondary interrupt handler is to be called.  In our case, we
     // can do the work in the filter routine and then return false to
     // indicate that we do not want our secondary handler called
-    /*
+    
      interruptEventSource_main = IOFilterInterruptEventSource::filterInterruptEventSource(this,
      XonarAudioEngine::interruptHandler,
      XonarAudioEngine::interruptFilter,                                                                                                                                                                       audioDevice->getProvider());
@@ -1522,7 +1522,7 @@ bool XonarAudioEngine::initHardware(IOService *provider)
      if (!interruptEventSource_main) { //|| !gpioEventSource || !spdifEventSource) { <- (see comment in header file)
      goto Done;
      }
-     */
+    
     result = true;
     
 Done:
