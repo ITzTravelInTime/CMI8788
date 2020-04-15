@@ -137,7 +137,7 @@ bool XonarHDAVAudioEngine::init(XonarAudioEngine *audioEngine, struct oxygen *ch
     deviceRegisters->pcm179x.dacs = chip->model.dac_channels_mixer / 2;
     deviceRegisters->pcm179x.h6 = chip->model.dac_channels_mixer > 2;
     deviceRegisters->pcm179x.current_rate = (IOAudioSampleRate *) IOMalloc(sizeof(IOAudioSampleRate));
-    // assign fn ptr uart_input to xonar_hdmi_uart_input
+    chip->model.uart_input = audioEngine->xonar_hdmi_uart_input;
     chip->model.resume = xonar_hdav_resume;
     chip->model.cleanup = xonar_hdav_cleanup;
     
