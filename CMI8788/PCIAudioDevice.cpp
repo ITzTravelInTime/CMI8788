@@ -131,13 +131,20 @@ void PCIAudioDevice::oxygen_restore_eeprom(IOPCIDevice *device, struct oxygen *c
 
 bool PCIAudioDevice::initHardware(IOService *provider)
 {
-
-    bool result = false;
+    char bootArg[16];
     kprintf("XonarAudioDevice::initHardware()\n");
+    
+    if (PE_parse_boot_argn("-xonaroff", bootArg, sizeof(bootArg)/sizeof(bootArg[0])) || PE_parse_boot_argn("-cmioff", bootArg, sizeof(bootArg)/sizeof(bootArg[0]))){
+        kprintf("XonarAudioDevice::initHardware Driver disabled with disable boot arg\n");
+        goto Done;
+    }
+    
+    
     
     if (!super::initHardware(provider)) {
         goto Done;
     }
+    
     // Get the PCI device provider
     pciDevice = OSDynamicCast(IOPCIDevice, provider);
     if (!pciDevice) {
@@ -183,6 +190,7 @@ bool PCIAudioDevice::initHardware(IOService *provider)
   
     //     add the hardware init code here
 
+    /*
     if(subdev_id == HDAV_MODEL)
         setDeviceName("ASUS Xonar HDAV1.3 Deluxe");
     else if (subdev_id == ST_MODEL || subdev_id == STX_MODEL || subdev_id == XENSE_MODEL)
@@ -191,9 +199,61 @@ bool PCIAudioDevice::initHardware(IOService *provider)
         setDeviceName("ASUS Xonar D2(X) models");
     else if (subdev_id == DS_MODEL || subdev_id == DSX_MODEL || subdev_id == HDAV_SLIM)
         setDeviceName("ASUS Xonar DS(X)+HDAV SLIM models");
+    else
+        setDeviceName("ASUS Xonar Generic");
+    */
+    
+    
+    switch (subdev_id){
+        case HDAV_MODEL:
+            setDeviceName("ASUS Xonar HDAV1.3 Deluxe");
+            break;
+        case ST_MODEL:
+            setDeviceName("ASUS Xonar ST");
+            break;
+        case STX_MODEL:
+            //TODO: distingush beetween the STX and the STX II
+            setDeviceName("ASUS Xonar STX [II]");
+            break;
+        case XENSE_MODEL:
+            setDeviceName("ASUS Xonar Xense");
+            break;
+        case D2_MODEL:
+            setDeviceName("ASUS Xonar D2");
+            break;
+        case D2X_MODEL:
+            setDeviceName("ASUS Xonar D2X");
+            break;
+        case DX_MODEL:
+            setDeviceName("ASUS Xonar D2X");
+            break;
+        case CS4XX_MODEL:
+            setDeviceName("ASUS Xonar CS4XX");
+            break;
+        case D1_MODEL:
+            setDeviceName("ASUS Xonar D1");
+            break;
+        case DS_MODEL:
+            setDeviceName("ASUS Xonar DS");
+            break;
+        case DSX_MODEL:
+            setDeviceName("ASUS Xonar DSX");
+            break;
+        case HDAV_SLIM:
+            setDeviceName("ASUS HDAV");
+            break;
+        default:
+            kprintf("XonarAudioDevice::initHardware unsupported sound card 1\n");
+            goto Done;
+            break;
+    }
     
     setDeviceShortName("CMI8788");
     setManufacturerName("CMedia");
+    
+    //TODO: check if this line here crashes the driver or not
+    setDeviceTransportType(kIOAudioDeviceTransportTypePCI);
+    
     oxygen_restore_eeprom(pciDevice,deviceRegisters);
 
    
@@ -201,18 +261,15 @@ bool PCIAudioDevice::initHardware(IOService *provider)
         goto Done;
     }
     
-    result = true;
+    return true;
     
 Done:
-    if (!result) {
-        if (deviceMap) {
-            deviceMap->release();
-            deviceMap = NULL;
-        }
+    if (deviceMap) {
+        deviceMap->release();
+        deviceMap = NULL;
     }
 
-
-    return result;
+    return false;
 }
 
 void PCIAudioDevice::free()
@@ -244,7 +301,36 @@ bool PCIAudioDevice::createAudioEngine()
 
     bool result = false;
     
+    switch (subdev_id){
+        case HDAV_MODEL:
+            submodelInstance = new XonarHDAVAudioEngine;
+            break;
+        case ST_MODEL:
+        case STX_MODEL:
+        case XENSE_MODEL:
+            submodelInstance = new XonarSTAudioEngine;
+            break;
+        case D2_MODEL:
+        case D2X_MODEL:
+            submodelInstance = new XonarD2XAudioEngine;
+            break;
+        case DX_MODEL:
+        case CS4XX_MODEL:
+        case D1_MODEL:
+            submodelInstance = new XonarCS43XXAudioEngine;
+            break;
+        case DS_MODEL:
+        case DSX_MODEL:
+        case HDAV_SLIM:
+            submodelInstance = new XonarWM87x6AudioEngine;
+            break;
+        default:
+            kprintf("XonarAudioDevice::createAudioEngine unsupported sound card 1\n");
+            goto Done;
+            break;
+    }
     
+    /*
     if(subdev_id == HDAV_MODEL)
         submodelInstance = new XonarHDAVAudioEngine;
     else if (subdev_id == ST_MODEL || subdev_id == STX_MODEL || subdev_id == XENSE_MODEL)
@@ -255,6 +341,8 @@ bool PCIAudioDevice::createAudioEngine()
         submodelInstance = new XonarCS43XXAudioEngine;
     else if (subdev_id == DS_MODEL || subdev_id == DSX_MODEL || subdev_id == HDAV_SLIM)
         submodelInstance = new XonarWM87x6AudioEngine;
+    */
+    
     if (!submodelInstance)
         goto Done;
 
@@ -262,6 +350,42 @@ bool PCIAudioDevice::createAudioEngine()
     // Init the new audio engine with the device registers so it can access them if necessary
     // The audio engine subclass could be defined to take any number of parameters for its
     // initialization - use it like a constructor
+    
+    switch (subdev_id){
+        case HDAV_MODEL:
+            if (!( (XonarHDAVAudioEngine*) submodelInstance)->init(accessibleEngineInstance,deviceRegisters))
+                goto Done;
+            break;
+        case ST_MODEL:
+        case STX_MODEL:
+        case XENSE_MODEL:
+            if (!( (XonarSTAudioEngine*) submodelInstance)->init(accessibleEngineInstance,deviceRegisters,subdev_id))
+                goto Done;
+            break;
+        case D2_MODEL:
+        case D2X_MODEL:
+            if (!( (XonarD2XAudioEngine*) submodelInstance)->init(accessibleEngineInstance,deviceRegisters,subdev_id))
+                goto Done;
+            break;
+        case DX_MODEL:
+        case CS4XX_MODEL:
+        case D1_MODEL:
+            if (!( (XonarCS43XXAudioEngine*) submodelInstance)->init(accessibleEngineInstance,deviceRegisters,subdev_id))
+                goto Done;
+            break;
+        case DS_MODEL:
+        case DSX_MODEL:
+        case HDAV_SLIM:
+            if (!( (XonarWM87x6AudioEngine*) submodelInstance)->init(accessibleEngineInstance,deviceRegisters,subdev_id))
+                goto Done;
+            break;
+        default:
+            kprintf("XonarAudioDevice::createAudioEngine unsupported sound card 2\n");
+            goto Done;
+            break;
+    }
+    
+    /*
     if(subdev_id == HDAV_MODEL) {
         if (!( (XonarHDAVAudioEngine*) submodelInstance)->init(accessibleEngineInstance,deviceRegisters))
             goto Done;
@@ -286,6 +410,8 @@ bool PCIAudioDevice::createAudioEngine()
             goto Done;
 
     }
+     */
+    
     /* The remaining portions of oxygen_pci_probe focus on initialising PCM and the mixer.
      * from what i can gather, these portions of the init from the Linux Driver are handled
      * radically differently from OSX, and so this is where OSX-specific/new code will need to
@@ -314,6 +440,7 @@ bool PCIAudioDevice::createAudioEngine()
     control->setValueChangeHandler((IOAudioControl::IntValueChangeHandler)volumeChangeHandler, this);
     accessibleEngineInstance->addDefaultAudioControl(control);
     control->release();
+    
     kprintf("creating volumecontrol2\n");
 
     control = IOAudioLevelControl::createVolumeControl((deviceRegisters->model.dac_volume_max+deviceRegisters->model.dac_volume_min)/2,	// Initial value

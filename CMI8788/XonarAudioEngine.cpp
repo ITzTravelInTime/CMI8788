@@ -66,7 +66,7 @@
 
 OSDefineMetaClassAndStructors(XonarAudioEngine, IOAudioEngine)
 
-
+//TODO: Fix division by zero
 static inline unsigned long msecs_to_jiffies(const unsigned int m)
 {
     return (m + (MSEC_PER_SEC / HZ) - 1) / (MSEC_PER_SEC / HZ);
@@ -1734,16 +1734,17 @@ IOReturn XonarAudioEngine::performAudioEngineStart()
     
     /* ^^ this seems like where we'd need something like snd_pcm_period_elapsed.
      * providing first conditional from alsa main interrupt handler (oxygen_interrupt, oxygen_lib.c line 100-101):
-     *
-     // for(i = 0; i < PCM_COUNT; ++i) <- /*we don't need the loop here as each
-     //                                      IOAudioStream instance should do this*/
+     */
+    
+     // for(i = 0; i < PCM_COUNT; ++i) <- //we don't need the loop here as each IOAudioStream instance should do this
     //      if ((elapsed_streams & (1 << i)) && chip->streams[i])
     //          snd_pcm_period_elapsed(chip->streams[i]);
-    //..
-    /*
+     
+     /*
      * need a way to update the frame pointers at the beginning of each interrupt so that the ensuing
      * operations are applied to a fresh chunk of data (process per-chunk i guess).
      */
+    
     takeTimeStamp(false);
     
     // Add audio - I/O start code here
