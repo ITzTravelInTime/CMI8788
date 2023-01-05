@@ -77,19 +77,19 @@ static inline UInt64 __get_unaligned_le64(const UInt8 *p)
     __get_unaligned_le32(p);
 }
 
-static inline uint16_t get_unaligned_le16(const void *p)
+static inline UInt16 get_unaligned_le16(const void *p)
 {
-    return __get_unaligned_le16((const uint8_t *)p);
+    return __get_unaligned_le16((const UInt8 *)p);
 }
 
-static inline uint32_t get_unaligned_le32(const void *p)
+static inline UInt32 get_unaligned_le32(const void *p)
 {
-    return __get_unaligned_le32((const uint8_t *)p);
+    return __get_unaligned_le32((const UInt8 *)p);
 }
 
-static inline uint64_t get_unaligned_le64(const void *p)
+static inline UInt64 get_unaligned_le64(const void *p)
 {
-    return __get_unaligned_le64((const uint8_t *)p);
+    return __get_unaligned_le64((const UInt8 *)p);
 }
 
 

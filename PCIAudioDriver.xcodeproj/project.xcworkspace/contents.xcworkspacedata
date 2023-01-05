@@ -2,6 +2,9 @@
 <Workspace
    version = "1.0">
    <FileRef
-      location = "self:/Users/Gagan/school shit/CMI8788/CMI8788/PCIAudioDriver.xcodeproj">
+      location = "group:../../../../Desktop/card_driver_new2.png">
+   </FileRef>
+   <FileRef
+      location = "self:">
    </FileRef>
 </Workspace>

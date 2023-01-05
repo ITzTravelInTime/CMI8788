@@ -5,57 +5,55 @@
  
  Version:1.0.0
  
- Copyright:Copyright ) 1997-2000 by Apple Computer, Inc., All Rights Reserved.
+ Copyright:Copyright ) 1997-2000 by APPUL Computer, Inc., All Rights Reserved.
  
- Disclaimer:IMPORTANT:  This Apple software is supplied to you by Apple Computer, Inc.
- ("Apple") in consideration of your agreement to the following terms, and your use,
- installation, modification or redistribution of this Apple software constitutes acceptance
+ Disclaimer:IMPORTANT:  This APPUL software is supplied to you by APPUL Computer, Inc.
+ ("APPUL") in consideration of your agreement to the following terms, and your use,
+ installation, modification or redistribution of this APPUL software constitutes acceptance
  of these terms.  If you do not agree with these terms, please do not use, install, modify or
- redistribute this Apple software.
+ redistribute this APPUL software.
  
  In consideration of your agreement to abide by the following terms, and subject
- to these terms, Apple grants you a personal, non-exclusive license, under Apple's
- copyrights in this original Apple software (the "Apple Software"), to use, reproduce,
- modify and redistribute the Apple Software, with or without modifications, in source and/or
- binary forms; provided that if you redistribute the Apple Software in its entirety
+ to these terms, APPUL grants you a personal, non-exclusive license, under APPUL's
+ copyrights in this original APPUL software (the "APPUL Software"), to use, reproduce,
+ modify and redistribute the APPUL Software, with or without modifications, in source and/or
+ binary forms; provided that if you redistribute the APPUL Software in its entirety
  and without modifications, you must retain this notice and the following text
- and disclaimers in all such redistributions of the Apple Software.  Neither the
- name, trademarks, service marks or logos of Apple Computer, Inc. may be used to
- endorse or promote products derived from the Apple Software without specific prior
- written permission from Apple.  Except as expressly stated in this notice, no
- other rights or licenses, express or implied, are granted by Apple herein,
+ and disclaimers in all such redistributions of the APPUL Software.  Neither the
+ name, trademarks, service marks or logos of APPUL Computer, Inc. may be used to
+ endorse or promote products derived from the APPUL Software without specific prior
+ written permission from APPUL.  Except as expressly stated in this notice, no
+ other rights or licenses, express or implied, are granted by APPUL herein,
  including but not limited to any patent rights that may be infringed by your derivative
- works or by other works in which the Apple Software may be incorporated.
+ works or by other works in which the APPUL Software may be incorporated.
  
- The Apple Software is provided by Apple on an "AS IS" basis.  APPLE MAKES NO WARRANTIES,
+ The APPUL Software is provided by APPUL on an "AS IS" basis.  APPUL MAKES NO WARRANTIES,
  EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE IMPLIED WARRANTIES OF NON-INFRINGEMENT,
- MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE, REGARDING THE APPLE SOFTWARE
- OR ITS USE AND OPERATION ALONE OR IN COMBINATION WITH YOUR PRODUCTS. IN NO EVENT SHALL APPLE
+ MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE, REGARDING THE APPUL SOFTWARE
+ OR ITS USE AND OPERATION ALONE OR IN COMBINATION WITH YOUR PRODUCTS. IN NO EVENT SHALL APPUL
  BE LIABLE FOR ANY SPECIAL, INDIRECT, INCIDENTAL OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
  NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
  OR PROFITS; OR BUSINESS INTERRUPTION) ARISING IN ANY WAY OUT OF THE USE,
- REPRODUCTION, MODIFICATION AND/OR DISTRIBUTION OF THE APPLE SOFTWARE, HOWEVER CAUSED
+ REPRODUCTION, MODIFICATION AND/OR DISTRIBUTION OF THE APPUL SOFTWARE, HOWEVER CAUSED
  AND WHETHER UNDER THEORY OF CONTRACT, TORT (INCLUDING NEGLIGENCE), STRICT
- LIABILITY OR OTHERWISE, EVEN IF APPLE HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ LIABILITY OR OTHERWISE, EVEN IF APPUL HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  
  */
 
-
+#include "PCIAudioDevice.hpp"
 #include "XonarSTAudioEngine.hpp"
 
-#include <IOKit/IOLib.h>
-#include <IOKit/IOFilterInterruptEventSource.h>
-//#include <architecture/i386/pio.h>
-
-
+#include "oxygen.h"
 #include "pcm1796.h"
 #include "cm9780.h"
 #include "cs2000.h"
 #include "ac97.h"
-#define INITIAL_SAMPLE_RATE	44100
-#define NUM_SAMPLE_FRAMES	16384
-#define NUM_CHANNELS		2
-#define BIT_DEPTH			16
+
+#include <IOKit/audio/IOAudioDefines.h>
+#include <IOKit/audio/IOAudioLevelControl.h>
+#include <IOKit/audio/IOAudioToggleControl.h>
+#include <IOKit/audio/IOAudioPort.h>
+
 
 
 #define super IOAudioEngine
@@ -64,273 +62,40 @@ OSDefineMetaClassAndStructors(XonarSTAudioEngine, IOAudioEngine)
 
 
 
-void XonarSTAudioEngine::xonar_st_init_i2c(struct oxygen *chip, XonarAudioEngine *engineInstance)
+void XonarSTAudioEngine::xonar_st_init_i2c(struct oxygen *chip)
 {
-    oxygen_write16(chip, OXYGEN_2WIRE_BUS_STATUS,
-                   OXYGEN_2WIRE_LENGTH_8 |
-                   OXYGEN_2WIRE_INTERRUPT_MASK |
-                   OXYGEN_2WIRE_SPEED_STANDARD);
+        oxygen_write16(chip, OXYGEN_2WIRE_BUS_STATUS,
+                       OXYGEN_2WIRE_LENGTH_8 |
+                       OXYGEN_2WIRE_INTERRUPT_MASK |
+                       OXYGEN_2WIRE_SPEED_STANDARD);
 }
 
 
 void XonarSTAudioEngine::xonar_st_init_common(struct oxygen *chip, XonarAudioEngine *engineInstance)
 {
-    struct xonar_pcm179x *data = (struct xonar_pcm179x*) chip->model_data;
-    
-    data->generic.output_enable_bit = GPIO_ST_OUTPUT_ENABLE;
-    data->dacs = chip->model.dac_channels_mixer / 2;
-    data->h6 = chip->model.dac_channels_mixer > 2;
-    data->hp_gain_offset = 2*-18;
-
-    engineInstance->pcm1796_init(chip);
-    
-    oxygen_set_bits16(chip, OXYGEN_GPIO_CONTROL,
-                      GPIO_INPUT_ROUTE | GPIO_ST_HP_REAR |
-                      GPIO_ST_MAGIC | GPIO_ST_HP);
-    oxygen_clear_bits16(chip, OXYGEN_GPIO_DATA,
-                        GPIO_INPUT_ROUTE | GPIO_ST_HP_REAR | GPIO_ST_HP);
-    
-    
-    engineInstance->xonar_enable_output(chip);
-    
-    //   snd_component_add(chip->card, "PCM1792A");
-    //  snd_component_add(chip->card, "CS5381");
+        struct xonar_pcm179x *data = (struct xonar_pcm179x*) chip->model_data;
+        
+        data->generic.output_enable_bit = GPIO_ST_OUTPUT_ENABLE;
+        data->dacs = chip->model.dac_channels_mixer / 2;
+        data->h6 = chip->model.dac_channels_mixer > 2;
+        data->hp_gain_offset = 2*-18;
+        
+        engineInstance->pcm1796_init(chip);
+        
+        oxygen_set_bits16(chip, OXYGEN_GPIO_CONTROL,
+                          GPIO_INPUT_ROUTE | GPIO_ST_HP_REAR |
+                          GPIO_ST_MAGIC | GPIO_ST_HP);
+        oxygen_clear_bits16(chip, OXYGEN_GPIO_DATA,
+                            GPIO_INPUT_ROUTE | GPIO_ST_HP_REAR | GPIO_ST_HP);
+        
+        
+        engineInstance->xonar_enable_output(chip);
+        
+        //   snd_component_add(chip->card, "PCM1792A");
+        //  snd_component_add(chip->card, "CS5381");
 }
 
-void XonarSTAudioEngine::xonar_st_cleanup(struct oxygen *chip, XonarAudioEngine *engineInstance)
-{
-    engineInstance->xonar_disable_output(chip);
-}
-
-void XonarSTAudioEngine::xonar_st_suspend(struct oxygen *chip, XonarAudioEngine *engineInstance)
-{
-    xonar_st_cleanup(chip,engineInstance);
-}
-
-
-
-void XonarSTAudioEngine::xonar_stx_resume(struct oxygen *chip, XonarAudioEngine *engineInstance)
-{
-    engineInstance->pcm1796_registers_init(chip);
-    engineInstance->xonar_enable_output(chip);
-}
-
-void XonarSTAudioEngine::xonar_st_resume(struct oxygen *chip, XonarAudioEngine *engineInstance)
-{
-    engineInstance->cs2000_registers_init(chip);
-    xonar_stx_resume(chip,engineInstance);
-}
-
-void XonarSTAudioEngine::set_st_params(struct oxygen *chip,
-                                       XonarAudioEngine *instance)
-{
-    instance->update_cs2000_rate(chip, instance->getSampleRate()->whole);
-    //original call also sends params struct. need to stay on top of this
-    //with the IOAudioStream/Engine classes. will figure that out after
-    //the skeleton OOP setup is finished.
-    //Linux Call:
-    //set_pcm1796_params(chip, params);
-    //Mac Call:
-    instance->set_pcm1796_params(chip, instance);
-}
-
-
-//static const struct snd_kcontrol_new alt_switch = {
-//    .iface = SNDRV_CTL_ELEM_IFACE_MIXER,
-//    .name = "Analog Loopback Switch",
-//    .info = snd_ctl_boolean_mono_info,
-//    .get = xonar_gpio_bit_switch_get,
-//    .put = xonar_gpio_bit_switch_put,
-//    .private_value = GPIO_D2_ALT,
-//};
-//
-//static const struct snd_kcontrol_new hdav_hdmi_control = {
-//    .iface = SNDRV_CTL_ELEM_IFACE_MIXER,
-//    .name = "HDMI Playback Switch",
-//    .info = snd_ctl_boolean_mono_info,
-//    .get = xonar_gpio_bit_switch_get,
-//    .put = xonar_gpio_bit_switch_put,
-//    .private_value = GPIO_HDAV_OUTPUT_ENABLE | XONAR_GPIO_BIT_INVERT,
-//};
-//
-//
-//
-//int XonarSTAudioEngine::st_output_switch_info(struct snd_kcontrol *ctl,
-//                                 struct snd_ctl_elem_info *info)
-//{
-//    static const char *const names[3] = {
-//        "Speakers", "Headphones", "FP Headphones"
-//    };
-//
-//    return snd_ctl_enum_info(info, 1, 3, names);
-//}
-//
-//int XonarSTAudioEnginest_output_switch_get(struct snd_kcontrol *ctl,
-//                                struct snd_ctl_elem_value *value)
-//{
-//    struct oxygen *chip = ctl->private_data;
-//    UInt16 gpio;
-//
-//    gpio = oxygen_read16(chip, OXYGEN_GPIO_DATA);
-//    if (!(gpio & GPIO_ST_HP))
-//        value->value.enumerated.item[0] = 0;
-//    else if (gpio & GPIO_ST_HP_REAR)
-//        value->value.enumerated.item[0] = 1;
-//    else
-//        value->value.enumerated.item[0] = 2;
-//    return 0;
-//}
-//
-//
-//int XonarSTAudioEngine::st_output_switch_put(struct snd_kcontrol *ctl,
-//                                struct snd_ctl_elem_value *value)
-//{
-//    struct oxygen *chip = ctl->private_data;
-//    struct xonar_pcm179x *data = chip->model_data;
-//    UInt16 gpio_old, gpio;
-//
-//    IOLockLock(&chip->mutex);
-//    gpio_old = oxygen_read16(chip, OXYGEN_GPIO_DATA);
-//    gpio = gpio_old;
-//    switch (value->value.enumerated.item[0]) {
-//        case 0:
-//            gpio &= ~(GPIO_ST_HP | GPIO_ST_HP_REAR);
-//            break;
-//        case 1:
-//            gpio |= GPIO_ST_HP | GPIO_ST_HP_REAR;
-//            break;
-//        case 2:
-//            gpio = (gpio | GPIO_ST_HP) & ~GPIO_ST_HP_REAR;
-//            break;
-//    }
-//    oxygen_write16(chip, OXYGEN_GPIO_DATA, gpio);
-//    data->hp_active = gpio & GPIO_ST_HP;
-//    update_pcm1796_volume(chip);
-//    IOLockUnlock(&chip->mutex);
-//    return gpio != gpio_old;
-//}
-//
-//int XonarSTAudioEngine::st_hp_volume_offset_info(struct snd_kcontrol *ctl,
-//                                    struct snd_ctl_elem_info *info)
-//{
-//    static const char *const names[4] = {
-//        "< 32 ohms", "32-64 ohms", "64-300 ohms", "300-600 ohms"
-//    };
-//
-//    return snd_ctl_enum_info(info, 1, 4, names);
-//}
-//
-//static int st_hp_volume_offset_get(struct snd_kcontrol *ctl,
-//                                   struct snd_ctl_elem_value *value)
-//{
-//    struct oxygen *chip = ctl->private_data;
-//    struct xonar_pcm179x *data = chip->model_data;
-//
-//    IOLockLock(&chip->mutex);
-//    if (data->hp_gain_offset < 2*-12)
-//        value->value.enumerated.item[0] = 0;
-//    else if (data->hp_gain_offset < 2*-6)
-//        value->value.enumerated.item[0] = 1;
-//    else if (data->hp_gain_offset < 0)
-//        value->value.enumerated.item[0] = 2;
-//    else
-//        value->value.enumerated.item[0] = 3;
-//    IOLockUnlock(&chip->mutex);
-//    return 0;
-//}
-//
-//
-//static int st_hp_volume_offset_put(struct snd_kcontrol *ctl,
-//                                   struct snd_ctl_elem_value *value)
-//{
-//    static const s8 offsets[] = { 2*-18, 2*-12, 2*-6, 0 };
-//    struct oxygen *chip = ctl->private_data;
-//    struct xonar_pcm179x *data = chip->model_data;
-//    s8 offset;
-//    int changed;
-//
-//    if (value->value.enumerated.item[0] > 3)
-//        return -EINVAL;
-//    offset = offsets[value->value.enumerated.item[0]];
-//    IOLockLock(&chip->mutex);
-//    changed = offset != data->hp_gain_offset;
-//    if (changed) {
-//        data->hp_gain_offset = offset;
-//        update_pcm1796_volume(chip);
-//    }
-//    IOLockUnlock(&chip->mutex);
-//    return changed;
-//}
-//
-//static const struct snd_kcontrol_new st_controls[] = {
-//    {
-//        .iface = SNDRV_CTL_ELEM_IFACE_MIXER,
-//        .name = "Analog Output",
-//        .info = st_output_switch_info,
-//        .get = st_output_switch_get,
-//        .put = st_output_switch_put,
-//    },
-//    {
-//        .iface = SNDRV_CTL_ELEM_IFACE_MIXER,
-//        .name = "Headphones Impedance Playback Enum",
-//        .info = st_hp_volume_offset_info,
-//        .get = st_hp_volume_offset_get,
-//        .put = st_hp_volume_offset_put,
-//    },
-//};
-//
-//int XonarSTAudioEngine::xonar_st_h6_control_filter(struct snd_kcontrol_new *template)
-//{
-//    if (!strncmp(template->name, "Master Playback ", 16))
-//    // no volume/mute, as I²C to the third DAC does not work
-//        return 1;
-//    return 0;
-//}
 /*
- static int xense_output_switch_get(struct snd_kcontrol *ctl,
- struct snd_ctl_elem_value *value)
- {
- struct oxygen *chip = ctl->private_data;
- UInt16 gpio;
- 
- gpio = oxygen_read16(chip, OXYGEN_GPIO_DATA);
- if (gpio & GPIO_XENSE_SPEAKERS)
- value->value.enumerated.item[0] = 0;
- else if (!(gpio & GPIO_XENSE_SPEAKERS) && (gpio & GPIO_ST_HP_REAR))
- value->value.enumerated.item[0] = 1;
- else
- value->value.enumerated.item[0] = 2;
- return 0;
- }
- 
- static int xense_output_switch_put(struct snd_kcontrol *ctl,
- struct snd_ctl_elem_value *value)
- {
- struct oxygen *chip = ctl->private_data;
- struct xonar_pcm179x *data = chip->model_data;
- UInt16 gpio_old, gpio;
- 
- IOLockLock(&chip->mutex);
- gpio_old = oxygen_read16(chip, OXYGEN_GPIO_DATA);
- gpio = gpio_old;
- switch (value->value.enumerated.item[0]) {
- case 0:
- gpio |= GPIO_XENSE_SPEAKERS | GPIO_ST_HP_REAR;
- break;
- case 1:
- gpio = (gpio | GPIO_ST_HP_REAR) & ~GPIO_XENSE_SPEAKERS;
- break;
- case 2:
- gpio &= ~(GPIO_XENSE_SPEAKERS | GPIO_ST_HP_REAR);
- break;
- }
- oxygen_write16(chip, OXYGEN_GPIO_DATA, gpio);
- data->hp_active = !(gpio & GPIO_XENSE_SPEAKERS);
- update_pcm1796_volume(chip);
- IOLockUnlock(&chip->mutex);
- return gpio != gpio_old;
- }
- 
  static const struct snd_kcontrol_new xense_controls[] = {
  {
  .iface = SNDRV_CTL_ELEM_IFACE_MIXER,
@@ -347,71 +112,79 @@ void XonarSTAudioEngine::set_st_params(struct oxygen *chip,
  .put = st_hp_volume_offset_put,
  },
  };
- 
  */
 
-bool XonarSTAudioEngine::init(XonarAudioEngine *audioEngine, struct oxygen *chip, UInt16 model)
+int XonarSTAudioEngine::xonar_xense_mixer_init(struct oxygen *chip, PCIAudioDevice *dev, XonarAudioEngine *engine)
 {
-    /* sample driver init code (from SamplePCIAudioEngine.cpp's ::init) */
-    bool result = false;
-    
-    printf("XonarSTAudioEngine[%p]::init(%p)\n", this, chip);
-    
-    data_size = chip->model.model_data_size;
-    chip->model_data = IOMalloc(chip->model.model_data_size);
-    deviceRegisters = (struct xonar_pcm179x*) chip->model_data;
-    engineInstance = audioEngine;
-    
-    if (!chip) {
-        goto Done;
-    }
-    
-    if (!audioEngine->init(chip, model)) {
-        goto Done;
-    }
-    /* sample driver init code (from SamplePCIAudioEngine.cpp's ::init) */
-    
-    
-    if(model == ST_MODEL) {
-        deviceRegisters->generic.anti_pop_delay = 100;
-        deviceRegisters->h6 = chip->model.dac_channels_mixer > 2;
-        deviceRegisters->has_cs2000 = 1;
-        deviceRegisters->cs2000_regs[CS2000_FUN_CFG_1] = CS2000_REF_CLK_DIV_1;
-        deviceRegisters->broken_i2c = true;
+        unsigned int i;
+        int err;
+        /* HAVE TO FIX THIS
+         for (i = 0; i < ARRAY_SIZE(xense_controls); ++i) {
+         err = snd_ctl_add(chip->card,
+         snd_ctl_new1(&xense_controls[i], chip));
+         if (err < 0)
+         return err;
+         }
+         */
+        IOAudioPort *STOutputPort;
+        IOAudioToggleControl *STOutputSwitch;
+        STOutputPort = IOAudioPort::withAttributes(kIOAudioPortTypeMixer, "XENSE Output");
         
-        oxygen_write16(chip, OXYGEN_I2S_A_FORMAT,
-                       OXYGEN_RATE_48000 |
-                       OXYGEN_I2S_FORMAT_I2S |
-                       OXYGEN_I2S_MCLK(deviceRegisters->h6 ? MCLK_256 : MCLK_512) |
-                       OXYGEN_I2S_BITS_16 |
-                       OXYGEN_I2S_MASTER |
-                       OXYGEN_I2S_BCLK_64);
+        kprintf("creating ST Analog Output Switch Toggle\n");
+        STOutputSwitch = IOAudioToggleControl::create(false,    // initial state - unmuted
+                                                      kIOAudioControlChannelIDAll,    // Affects all channels
+                                                      kIOAudioControlChannelNameAll,
+                                                      0,        // control ID - driver-defined
+                                                      kIOAudioControlUsageOutput);
+        if (!STOutputSwitch) {
+                goto Done;
+        }
         
-        xonar_st_init_i2c(chip,audioEngine);
-        audioEngine->cs2000_registers_init(chip);
-        xonar_st_init_common(chip,audioEngine);
-        //      snd_component_add(chip->card, "CS2000");
+        STOutputSwitch->setValueChangeHandler((IOAudioControl::IntValueChangeHandler) ((PCIAudioDevice *)engine->audioDevice)->XenseOutputChangeHandler,
+                                              engine->audioDevice);
+        STOutputSwitch->setName("Analog Out");
+        //engine->addDefaultAudioControl(STOutputSwitch);
+        STOutputPort->addAudioControl(STOutputSwitch);
+        STOutputSwitch->release();
         
-    }
-    else if(model == STX_MODEL || model == STX2_MODEL) {
-        xonar_st_init_i2c(chip,audioEngine);
-        deviceRegisters->generic.anti_pop_delay = 800;
-        deviceRegisters->generic.ext_power_reg = OXYGEN_GPI_DATA;
-        deviceRegisters->generic.ext_power_int_reg = OXYGEN_GPI_INTERRUPT_MASK;
-        deviceRegisters->generic.ext_power_bit = GPI_EXT_POWER;
-        audioEngine->xonar_init_ext_power(chip);
-        xonar_st_init_common(chip,audioEngine);
-        chip->model.set_dac_params = audioEngine->set_pcm1796_params;
-    }
-    else if(model == XENSE_MODEL) {
-        deviceRegisters->generic.ext_power_reg = OXYGEN_GPI_DATA;
-        deviceRegisters->generic.ext_power_int_reg = OXYGEN_GPI_INTERRUPT_MASK;
-        deviceRegisters->generic.ext_power_bit = GPI_EXT_POWER;
-        audioEngine->xonar_init_ext_power(chip);
+        STOutputSwitch = IOAudioToggleControl::create(false,    // initial state - unmuted
+                                                      kIOAudioControlChannelIDAll,    // Affects all channels
+                                                      kIOAudioControlChannelNameAll,
+                                                      0,        // control ID - driver-defined
+                                                      kIOAudioOutputPortSubTypeHeadphones,
+                                                      kIOAudioControlUsageOutput);
         
-        deviceRegisters->generic.anti_pop_delay = 100;
-        deviceRegisters->has_cs2000 = 1;
-        deviceRegisters->cs2000_regs[CS2000_FUN_CFG_1] = CS2000_REF_CLK_DIV_1;
+        if (!STOutputSwitch) {
+                goto Done;
+        }
+        STOutputSwitch->setValueChangeHandler((IOAudioControl::IntValueChangeHandler)((PCIAudioDevice *)engine->audioDevice)->SThpVolumeOffsetChangeHandler,
+                                              engine->audioDevice);
+        STOutputSwitch->setName("Headphones Impedance Playback Enum");
+        //engine->addDefaultAudioControl(STOutputSwitch);
+        STOutputPort->addAudioControl(STOutputSwitch);
+        dev->attachAudioPort(STOutputPort, engine, NULL);
+        STOutputSwitch->release();
+        STOutputPort->release();
+        err = engine->add_pcm1796_controls(chip, dev);
+        if (err < 0)
+                return err;
+        return kIOReturnSuccess;
+        
+Done:
+        return kIOReturnError;
+}
+void XonarSTAudioEngine::xonar_xense_init(struct oxygen *chip, XonarAudioEngine *engineInstance)
+{
+        struct xonar_pcm179x *data = (struct xonar_pcm179x*) chip->model_data;
+        
+        data->generic.ext_power_reg = OXYGEN_GPI_DATA;
+        data->generic.ext_power_int_reg = OXYGEN_GPI_INTERRUPT_MASK;
+        data->generic.ext_power_bit = GPI_EXT_POWER;
+        engineInstance->xonar_init_ext_power(chip);
+        
+        data->generic.anti_pop_delay = 100;
+        data->has_cs2000 = 1;
+        data->cs2000_regs[CS2000_FUN_CFG_1] = CS2000_REF_CLK_DIV_1;
         
         oxygen_write16(chip, OXYGEN_I2S_A_FORMAT,
                        OXYGEN_RATE_48000 |
@@ -421,20 +194,14 @@ bool XonarSTAudioEngine::init(XonarAudioEngine *audioEngine, struct oxygen *chip
                        OXYGEN_I2S_MASTER |
                        OXYGEN_I2S_BCLK_64);
         
-        this->xonar_st_init_i2c(chip,audioEngine);
-        audioEngine->cs2000_registers_init(chip);
+        xonar_st_init_i2c(chip);
+        engineInstance->cs2000_registers_init(chip);
         
-        deviceRegisters->generic.output_enable_bit = GPIO_XENSE_OUTPUT_ENABLE;
-        deviceRegisters->dacs = 1;
-        deviceRegisters->hp_gain_offset = 2*-18;
+        data->generic.output_enable_bit = GPIO_XENSE_OUTPUT_ENABLE;
+        data->dacs = 1;
+        data->hp_gain_offset = 2*-18;
         
-        /* D2(X),ST(X)(II)+XENSE and HDAV call pcm1796x_init. given the difference in their
-         data structures, passing the model variable is necessary. however, pcm179x_init
-         behaves the same for D2(X)/ST(X)(II)+XENSE since they do not nest the pcm179x struct
-         inside their "main" struct like the hdav model, and thus
-         it doesn't matter which model value we pass *here* as long as it is *not* hdav */
-        
-        audioEngine->pcm1796_init(chip);
+        engineInstance->pcm1796_init(chip);
         
         oxygen_set_bits16(chip, OXYGEN_GPIO_CONTROL,
                           GPIO_INPUT_ROUTE | GPIO_ST_HP_REAR |
@@ -443,328 +210,309 @@ bool XonarSTAudioEngine::init(XonarAudioEngine *audioEngine, struct oxygen *chip
                             GPIO_INPUT_ROUTE | GPIO_ST_HP_REAR |
                             GPIO_XENSE_SPEAKERS);
         
-        audioEngine->xonar_init_cs53x1(chip);
-        audioEngine->xonar_enable_output(chip);
+        engineInstance->xonar_init_cs53x1(chip);
+        engineInstance->xonar_enable_output(chip);
         
-        
-        //   snd_component_add(chip->card, "PCM1796");
-        //   snd_component_add(chip->card, "CS5381");
-        //  snd_component_add(chip->card, "CS2000");
-    }
-    else
-        goto Done;
-    chip->model.cleanup = this->xonar_st_cleanup;
-    chip->model.suspend = this->xonar_st_suspend;
-    chip->model.resume = this->xonar_st_resume;
-        
-    audioEngine->setDescription(chip->model.shortname);
-
-    result = true;
-    
-Done:
-    
-    return result;
+        //GOTTA MAYBE FIX THIS
+        //snd_component_add(chip->card, "PCM1796");
+        //snd_component_add(chip->card, "CS5381");
+        //snd_component_add(chip->card, "CS2000");
 }
 
-bool XonarSTAudioEngine::initHardware(IOService *provider)
+/*
+ static const struct snd_kcontrol_new st_controls[] = {
+ {
+ .iface = SNDRV_CTL_ELEM_IFACE_MIXER,
+ .name = "Analog Output",
+ .info = st_output_switch_info,
+ .get = st_output_switch_get,
+ .put = st_output_switch_put,
+ },
+ {
+ .iface = SNDRV_CTL_ELEM_IFACE_MIXER,
+ .name = "Headphones Impedance Playback Enum",
+ .info = st_hp_volume_offset_info,
+ .get = st_hp_volume_offset_get,
+ .put = st_hp_volume_offset_put,
+ },
+ };
+ 
+ */
+int XonarSTAudioEngine::xonar_st_mixer_init(struct oxygen *chip, PCIAudioDevice *dev, XonarAudioEngine *engine)
 {
-    bool result = false;
-    IOAudioSampleRate initialSampleRate;
-    IOAudioStream *audioStream;
-    IOWorkLoop *workLoop;
-    
-    printf("XonarSTAudioEngine[%p]::initHardware(%p)\n", this, provider);
-    
-    if (!super::initHardware(provider)) {
-        goto Done;
-    }
-    
-    // Setup the initial sample rate for the audio engine
-    initialSampleRate.whole = INITIAL_SAMPLE_RATE;
-    initialSampleRate.fraction = 0;
-    
-    setDescription("Sample PCI Audio Engine");
-    
-    setSampleRate(&initialSampleRate);
-    
-    // Set the number of sample frames in each buffer
-    setNumSampleFramesPerBuffer(NUM_SAMPLE_FRAMES);
-    
-    workLoop = engineInstance->getWorkLoop();
-    if (!workLoop) {
-        goto Done;
-    }
-    
-    // Create an interrupt event source through which to receive interrupt callbacks
-    // In this case, we only want to do work at primary interrupt time, so
-    // we create an IOFilterInterruptEventSource which makes a filtering call
-    // from the primary interrupt interrupt who's purpose is to determine if
-    // our secondary interrupt handler is to be called.  In our case, we
-    // can do the work in the filter routine and then return false to
-    // indicate that we do not want our secondary handler called
-    interruptEventSource = IOFilterInterruptEventSource::filterInterruptEventSource(this,
-                                                                                    engineInstance->interruptHandler,
-                                                                                    engineInstance->interruptFilter,
-                                                                                    audioDevice->getProvider());
-    if (!interruptEventSource) {
-        goto Done;
-    }
-    
-    // In order to allow the interrupts to be received, the interrupt event source must be
-    // added to the IOWorkLoop
-    // Additionally, interrupts will not be firing until the interrupt event source is
-    // enabled by calling interruptEventSource->enable() - this probably doesn't need to
-    // be done until performAudioEngineStart() is called, and can probably be disabled
-    // when performAudioEngineStop() is called and the audio engine is no longer running
-    // Although this really depends on the specific hardware
-    workLoop->addEventSource(interruptEventSource);
-    
-    // Allocate our input and output buffers - a real driver will likely need to allocate its buffers
-    // differently
-    outputBuffer = (SInt16 *)IOMalloc(DEFAULT_BUFFER_BYTES);
-    if (!outputBuffer) {
-        goto Done;
-    }
-    
-    inputBuffer = (SInt16 *)IOMalloc(DEFAULT_BUFFER_BYTES);
-    if (!inputBuffer) {
-        goto Done;
-    }
-    
-    // Create an IOAudioStream for each buffer and add it to this audio engine
-    audioStream = createNewAudioStream(kIOAudioStreamDirectionOutput, outputBuffer, DEFAULT_BUFFER_BYTES);
-    if (!audioStream) {
-        goto Done;
-    }
-    
-    addAudioStream(audioStream);
-    audioStream->release();
-    
-    audioStream = createNewAudioStream(kIOAudioStreamDirectionInput, inputBuffer, DEFAULT_BUFFER_BYTES);
-    if (!audioStream) {
-        goto Done;
-    }
-    
-    addAudioStream(audioStream);
-    audioStream->release();
-    
-    result = true;
-    
+        unsigned int i;
+        int err;
+        /* HAVE TO FIX THIS
+         for (i = 0; i < ARRAY_SIZE(xense_controls); ++i) {
+         err = snd_ctl_add(chip->card,
+         snd_ctl_new1(&xense_controls[i], chip));
+         if (err < 0)
+         return err;
+         }
+         */
+        IOAudioPort *STOutputPort;
+        IOAudioToggleControl *STOutputSwitch;
+        STOutputPort = IOAudioPort::withAttributes(kIOAudioPortTypeMixer, "ST Output");
+        
+        kprintf("creating ST Analog Output Switch Toggle\n");
+        STOutputSwitch = IOAudioToggleControl::create(false,    // initial state - unmuted
+                                                      kIOAudioControlChannelIDAll,    // Affects all channels
+                                                      kIOAudioControlChannelNameAll,
+                                                      0,        // control ID - driver-defined
+                                                      kIOAudioControlUsageOutput);
+        if (!STOutputSwitch) {
+                goto Done;
+        }
+        
+        STOutputSwitch->setValueChangeHandler((IOAudioControl::IntValueChangeHandler) dev->STOutputChangeHandler,
+                                              dev);
+        STOutputSwitch->setName("Analog Out");
+        //engine->addDefaultAudioControl(STOutputSwitch);
+        STOutputPort->addAudioControl(STOutputSwitch);
+        STOutputSwitch->release();
+        
+        STOutputSwitch = IOAudioToggleControl::create(false,    // initial state - unmuted
+                                                      kIOAudioControlChannelIDAll,    // Affects all channels
+                                                      kIOAudioControlChannelNameAll,
+                                                      0,        // control ID - driver-defined
+                                                      kIOAudioOutputPortSubTypeHeadphones,
+                                                      kIOAudioControlUsageOutput);
+        
+        if (!STOutputSwitch) {
+                goto Done;
+        }
+        STOutputSwitch->setValueChangeHandler((IOAudioControl::IntValueChangeHandler)dev->SThpVolumeOffsetChangeHandler,
+                                              dev);
+        STOutputSwitch->setName("Headphones Impedance Playback Enum");
+        //engine->addDefaultAudioControl(STOutputSwitch);
+        STOutputPort->addAudioControl(STOutputSwitch);
+        dev->attachAudioPort(STOutputPort, engine, NULL);
+        STOutputPort->release();
+        STOutputSwitch->release();
+        
+        err = engine->add_pcm1796_controls(chip, dev);
+        if (err < 0)
+                return err;
+        return 0;
 Done:
-    
-    return result;
+        return -1;
 }
+
+
+
+
+void XonarSTAudioEngine::xonar_st_init(struct oxygen *chip, XonarAudioEngine *engineInstance)
+{
+        struct xonar_pcm179x *data = (struct xonar_pcm179x*) chip->model_data;
+        
+        data->generic.anti_pop_delay = 100;
+        data->h6 = chip->model.dac_channels_mixer > 2;
+        data->has_cs2000 = 1;
+        data->cs2000_regs[CS2000_FUN_CFG_1] = CS2000_REF_CLK_DIV_1;
+        data->broken_i2c = true;
+        
+        oxygen_write16(chip, OXYGEN_I2S_A_FORMAT,
+                       OXYGEN_RATE_48000 |
+                       OXYGEN_I2S_FORMAT_I2S |
+                       OXYGEN_I2S_MCLK(data->h6 ? MCLK_256 : MCLK_512) |
+                       OXYGEN_I2S_BITS_16 |
+                       OXYGEN_I2S_MASTER |
+                       OXYGEN_I2S_BCLK_64);
+        
+        xonar_st_init_i2c(chip);
+        engineInstance->cs2000_registers_init(chip);
+        xonar_st_init_common(chip,engineInstance);
+        
+        //GOTTA MAYBE FIX THIS
+        //snd_component_add(chip->card, "CS2000");
+}
+
+
+
+void XonarSTAudioEngine::xonar_st_cleanup(struct oxygen *chip, XonarAudioEngine *engineInstance)
+{
+        engineInstance->xonar_disable_output(chip);
+}
+
+void XonarSTAudioEngine::xonar_st_suspend(struct oxygen *chip, XonarAudioEngine *engineInstance)
+{
+        xonar_st_cleanup(chip,engineInstance);
+}
+
+
+void XonarSTAudioEngine::xonar_stx_init(struct oxygen *chip, XonarAudioEngine *engineInstance)
+{
+        struct xonar_pcm179x *data = (struct xonar_pcm179x*) chip->model_data;
+        
+        xonar_st_init_i2c(chip);
+        data->generic.anti_pop_delay = 800;
+        data->generic.ext_power_reg = OXYGEN_GPI_DATA;
+        data->generic.ext_power_int_reg = OXYGEN_GPI_INTERRUPT_MASK;
+        data->generic.ext_power_bit = GPI_EXT_POWER;
+        engineInstance->xonar_init_ext_power(chip);
+        xonar_st_init_common(chip, engineInstance);
+}
+
+
+
+
+void XonarSTAudioEngine::xonar_stx_resume(struct oxygen *chip, XonarAudioEngine *engineInstance)
+{
+        engineInstance->pcm1796_registers_init(chip);
+        engineInstance->xonar_enable_output(chip);
+}
+
+void XonarSTAudioEngine::xonar_st_resume(struct oxygen *chip, XonarAudioEngine *engineInstance)
+{
+        engineInstance->cs2000_registers_init(chip);
+        xonar_stx_resume(chip,engineInstance);
+}
+
+void XonarSTAudioEngine::set_st_params(struct oxygen *chip, XonarAudioEngine *instance,
+                                       IOAudioStream *currentStream)
+{
+        instance->update_cs2000_rate(chip, instance->getSampleRate()->whole);
+        //original call also sends params struct. need to stay on top of this
+        //with the IOAudioStream/Engine classes. will figure that out after
+        //the skeleton OOP setup is finished.
+        //Linux Call:
+        //set_pcm1796_params(chip, params);
+        //Mac Call:
+        instance->set_pcm1796_params(chip, instance, currentStream);
+}
+
+
+
+
+
+bool XonarSTAudioEngine::init(XonarAudioEngine *audioEngine, struct oxygen *chip, UInt16 model)
+{
+        /* sample driver init code (from SamplePCIAudioEngine.cpp's ::init) */
+        bool result = false;
+        
+        printf("XonarSTAudioEngine[%p]::init(%p)\n", this, chip);
+        
+        data_size = chip->model.model_data_size;
+        deviceRegisters = (struct xonar_pcm179x*) chip->model_data;
+        engineInstance = audioEngine;
+        
+        if (!chip) {
+                goto Done;
+        }
+        
+        if (!audioEngine->init(chip, model)) {
+                goto Done;
+        }
+        
+        chip->model.cleanup = xonar_st_cleanup;
+        chip->model.suspend = xonar_st_suspend;
+        chip->model.resume = xonar_st_resume;
+        
+        
+        switch (model) {
+                        
+                case MODEL_ST:
+                        chip->model.init = xonar_st_init;
+                        break;
+                case MODEL_STX:
+                case MODEL_STX2:
+                        chip->model.init = xonar_stx_init;
+                        chip->model.set_dac_params = audioEngine->set_pcm1796_params;
+                        chip->model.resume = xonar_stx_resume;
+                        break;
+                case MODEL_XENSE:
+                        chip->model.init = xonar_xense_init;
+                        chip->model.mixer_init = xonar_xense_mixer_init;
+                        break;
+                default:
+                        kprintf("XonarSTAudioEngine::init() fell into a case without corresponding model!. ID%x\n", model);
+                        goto Done;
+                        
+        }
+        
+        chip->model.init(chip, engineInstance);
+        audioEngine->setDescription(chip->model.shortname);
+        
+        result = true;
+        
+Done:
+        
+        return result;
+}
+
 
 void XonarSTAudioEngine::free()
 {
-    printf("XonarSTAudioEngine[%p]::free()\n", this);
-    
-    // We need to free our resources when we're going away
-    if(deviceRegisters) {
-        IOFree(deviceRegisters, data_size);
-        deviceRegisters = NULL;
-    }
-    
-    if (interruptEventSource) {
-        interruptEventSource->release();
-        interruptEventSource = NULL;
-    }
-    
-    if (outputBuffer) {
-        IOFree(outputBuffer, DEFAULT_BUFFER_BYTES);
-        outputBuffer = NULL;
-    }
-    
-    if (inputBuffer) {
-        IOFree(inputBuffer, DEFAULT_BUFFER_BYTES);
-        inputBuffer = NULL;
-    }
-    
-    super::free();
+        printf("XonarSTAudioEngine[%p]::free()\n", this);
+        
+        // We need to free our resources when we're going away
+        // the main engine will take care of anything it allocates.
+        // the submodel shouldn't free anything it doesn't allocate.
+        
+        if(deviceRegisters) {
+                //IOFree(deviceRegisters->current_rate, sizeof(IOAudioSampleRate));
+                //IOFree(deviceRegisters, data_size);
+                //deviceRegisters = NULL;
+        }
+        /*
+         if (interruptEventSource) {
+                interruptEventSource->release();
+                interruptEventSource = NULL;
+         }
+         
+         if (outputBuffer) {
+                IOFree(outputBuffer, DEFAULT_BUFFER_BYTES);
+                outputBuffer = NULL;
+         }
+         
+         if (inputBuffer) {
+                IOFree(inputBuffer, DEFAULT_BUFFER_BYTES);
+                inputBuffer = NULL;
+         }
+         */
+        super::free();
 }
 
-IOAudioStream *XonarSTAudioEngine::createNewAudioStream(IOAudioStreamDirection direction, void *sampleBuffer, UInt32 sampleBufferSize)
-{
-    IOAudioStream *audioStream;
-    
-    // For this sample device, we are only creating a single format and allowing 44.1KHz and 48KHz
-    audioStream = new IOAudioStream;
-    if (audioStream) {
-        if (!audioStream->initWithAudioEngine(this, direction, 1)) {
-            audioStream->release();
-        } else {
-            IOAudioSampleRate rate;
-            IOAudioStreamFormat format = {
-                2,												// num channels
-                kIOAudioStreamSampleFormatLinearPCM,			// sample format
-                kIOAudioStreamNumericRepresentationSignedInt,	// numeric format
-                BIT_DEPTH,										// bit depth
-                BIT_DEPTH,										// bit width
-                kIOAudioStreamAlignmentHighByte,				// high byte aligned - unused because bit depth == bit width
-                kIOAudioStreamByteOrderBigEndian,				// big endian
-                true,											// format is mixable
-                0												// driver-defined tag - unused by this driver
-            };
-            
-            // As part of creating a new IOAudioStream, its sample buffer needs to be set
-            // It will automatically create a mix buffer should it be needed
-            audioStream->setSampleBuffer(sampleBuffer, sampleBufferSize);
-            
-            // This device only allows a single format and a choice of 2 different sample rates
-            rate.fraction = 0;
-            rate.whole = 44100;
-            audioStream->addAvailableFormat(&format, &rate, &rate);
-            rate.whole = 48000;
-            audioStream->addAvailableFormat(&format, &rate, &rate);
-            
-            // Finally, the IOAudioStream's current format needs to be indicated
-            audioStream->setFormat(&format);
-        }
-    }
-    
-    return audioStream;
-}
 
 void XonarSTAudioEngine::stop(IOService *provider)
 {
-    printf("XonarSTAudioEngine[%p]::stop(%p)\n", this, provider);
-    
-    // When our device is being stopped and torn down, we should go ahead and remove
-    // the interrupt event source from the IOWorkLoop
-    // Additionally, we'll go ahead and release the interrupt event source since it isn't
-    // needed any more
-    if (interruptEventSource) {
-        IOWorkLoop *wl;
+        printf("XonarSTAudioEngine[%p]::stop(%p)\n", this, provider);
         
-        wl = getWorkLoop();
-        if (wl) {
-            wl->removeEventSource(interruptEventSource);
-        }
+        // When our device is being stopped and torn down, we should go ahead and remove
+        // the interrupt event source from the IOWorkLoop
+        // Additionally, we'll go ahead and release the interrupt event source since it isn't
+        // needed any more
+//        if (interruptEventSource) {
+//                IOWorkLoop *wl;
+//
+//                wl = getWorkLoop();
+//                if (wl) {
+//                        wl->removeEventSource(interruptEventSource);
+//                }
+//
+//                interruptEventSource->release();
+//                interruptEventSource = NULL;
+//        }
         
-        interruptEventSource->release();
-        interruptEventSource = NULL;
-    }
-    
-    // Add code to shut down hardware (beyond what is needed to simply stop the audio engine)
-    // There may be nothing needed here
-    
-    super::stop(provider);
-}
-
-IOReturn XonarSTAudioEngine::performAudioEngineStart()
-{
-    printf("XonarSTAudioEngine[%p]::performAudioEngineStart()\n", this);
-    
-    // The interruptEventSource needs to be enabled to allow interrupts to start firing
-    assert(interruptEventSource);
-    interruptEventSource->enable();
-    
-    // When performAudioEngineStart() gets called, the audio engine should be started from the beginning
-    // of the sample buffer.  Because it is starting on the first sample, a new timestamp is needed
-    // to indicate when that sample is being read from/written to.  The function takeTimeStamp()
-    // is provided to do that automatically with the current time.
-    // By default takeTimeStamp() will increment the current loop count in addition to taking the current
-    // timestamp.  Since we are starting a new audio engine run, and not looping, we don't want the loop count
-    // to be incremented.  To accomplish that, false is passed to takeTimeStamp().
-    takeTimeStamp(false);
-    
-    // Add audio - I/O start code here
-    
-    //#error performAudioEngineStart() - driver will not work until audio engine start code is added
-    
-    return kIOReturnSuccess;
-}
-
-IOReturn XonarSTAudioEngine::performAudioEngineStop()
-{
-    printf("XonarSTAudioEngine[%p]::performAudioEngineStop()\n", this);
-    
-    // Assuming we don't need interrupts after stopping the audio engine, we can disable them here
-    assert(interruptEventSource);
-    interruptEventSource->disable();
-    
-    // Add audio - I/O stop code here
-    
-    //#error performAudioEngineStop() - driver will not work until audio engine stop code is added
-    
-    return kIOReturnSuccess;
+        // Add code to shut down hardware (beyond what is needed to simply stop the audio engine)
+        // There may be nothing needed here
+        
+        super::stop(provider);
 }
 
 UInt32 XonarSTAudioEngine::getCurrentSampleFrame()
 {
-    printf("XonarSTAudioEngine[%p]::getCurrentSampleFrame()\n", this);
-    
-    // In order for the erase process to run properly, this function must return the current location of
-    // the audio engine - basically a sample counter
-    // It doesn't need to be exact, but if it is inexact, it should err towards being before the current location
-    // rather than after the current location.  The erase head will erase up to, but not including the sample
-    // frame returned by this function.  If it is too large a value, sound data that hasn't been played will be
-    // erased.
-    
-    //#error getCurrentSampleFrame() - driver will not work until correct sample frame is returned
-    
-    // Change to return the real value
-    return 0;
+        kprintf("XonarSTAudioEngine::getCurrentSampleFrame()\n");
+        
+        // In order for the erase process to run properly, this function must return the current location of
+        // the audio engine - basically a sample counter
+        // It doesn't need to be exact, but if it is inexact, it should err towards being before the current location
+        // rather than after the current location.  The erase head will erase up to, but not including the sample
+        // frame returned by this function.  If it is too large a value, sound data that hasn't been played will be
+        // erased.
+        
+        //#error getCurrentSampleFrame() - driver will not work until correct sample frame is returned
+        
+        // Change to return the real value
+        return 0;
 }
-
-IOReturn XonarSTAudioEngine::performFormatChange(IOAudioStream *audioStream, const IOAudioStreamFormat *newFormat, const IOAudioSampleRate *newSampleRate)
-{
-    printf("XonarSTAudioEngine[%p]::peformFormatChange(%p, %p, %p)\n", this, audioStream, newFormat, newSampleRate);
-    
-    // Since we only allow one format, we only need to be concerned with sample rate changes
-    // In this case, we only allow 2 sample rates - 44100 & 48000, so those are the only ones
-    // that we check for
-    if (newSampleRate) {
-        switch (newSampleRate->whole) {
-            case 44100:
-                printf("/t-> 44.1kHz selected\n");
-                
-                // Add code to switch hardware to 44.1khz
-                break;
-            case 48000:
-                printf("/t-> 48kHz selected\n");
-                
-                // Add code to switch hardware to 48kHz
-                break;
-            default:
-                // This should not be possible since we only specified 44100 and 48000 as valid sample rates
-                printf("/t Internal Error - unknown sample rate selected.\n");
-                break;
-        }
-    }
-    
-    return kIOReturnSuccess;
-}
-
-
-void XonarSTAudioEngine::interruptHandler(OSObject *owner, IOInterruptEventSource *source, int count)
-{
-    // Since our interrupt filter always returns false, this function will never be called
-    // If the filter returned true, this function would be called on the IOWorkLoop
-    return;
-}
-
-bool XonarSTAudioEngine::interruptFilter(OSObject *owner, IOFilterInterruptEventSource *source)
-{
-    XonarSTAudioEngine *audioEngine = OSDynamicCast(XonarSTAudioEngine, owner);
-    
-    // We've cast the audio engine from the owner which we passed in when we created the interrupt
-    // event source
-    if (audioEngine) {
-        // Then, filterInterrupt() is called on the specified audio engine
-        audioEngine->filterInterrupt(source->getIntIndex());
-    }
-    
-    return false;
-}
-
-void XonarSTAudioEngine::filterInterrupt(int index)
-{
-    // In the case of our simple device, we only get interrupts when the audio engine loops to the
-    // beginning of the buffer.  When that happens, we need to take a timestamp and increment
-    // the loop count.  The function takeTimeStamp() does both of those for us.  Additionally,
-    // if a different timestamp is to be used (other than the current time), it can be passed
-    // in to takeTimeStamp()
-    takeTimeStamp();
-}
-

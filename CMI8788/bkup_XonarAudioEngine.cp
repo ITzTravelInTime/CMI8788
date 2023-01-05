@@ -45,8 +45,6 @@
 #include <IOKit/IOFilterInterruptEventSource.h>
 #include "PCIAudioDevice.hpp"
 #include "XonarAudioEngine.hpp"
-#include "XonarSPDIFAudioEngine.hpp"
-#include "XonarAC97AudioEngine.hpp"
 #include "oxygen.h"
 #include "alsa.h"
 #include "ak4396.h"
@@ -114,7 +112,7 @@ static const char *formatRep(UInt32 numericRep){
                 default:
                         return " ";
         };
-        
+
 }
 static const char *formatAlignment(UInt8 numericRep) {
         switch (numericRep) {
@@ -134,13 +132,13 @@ static const char *formatByteOrder(UInt8 numericRep){
                         return "Li'l PennE";
                 default:
                         return " ";
-                        
+
         }
-        
+
 }
 
 const char *getStringStatus(long stateVal) {
-        
+
         switch(stateVal) {
                         
                 case kIOAudioEngineStopped:
@@ -156,6 +154,8 @@ const char *getStringStatus(long stateVal) {
         }
 }
 #endif
+
+
 const IOAudioStreamFormat ac97_format = {
         2,                                                // num channels
         kIOAudioStreamSampleFormatLinearPCM,            // sample format
@@ -169,7 +169,7 @@ const IOAudioStreamFormat ac97_format = {
 };
 const IOAudioSampleRate ac97_sampleRate = {48000, 0};
 
-const IOAudioStreamFormat multich_format = {
+IOAudioStreamFormat multich_format = {
         8,
         kIOAudioStreamSampleFormatLinearPCM,
         kIOAudioStreamNumericRepresentationSignedInt,
@@ -180,7 +180,29 @@ const IOAudioStreamFormat multich_format = {
         true,                                            // format is mixable
         PCM_MULTICH                                                // driver-defined tag - unused by this driver
 };
-const IOAudioStreamFormat oxygen_hardware[] = {
+const IOAudioSampleRate validRates[] = {
+        {32000,0},
+        {44100,0},
+        {48000,0},
+        {64000,0},
+        {88200,0},
+        {96000,0},
+        {176400,0},
+        {192000,0}
+};
+
+const unsigned int validRatesbits[] = {
+        SNDRV_PCM_RATE_32000,
+        SNDRV_PCM_RATE_44100,
+        SNDRV_PCM_RATE_48000,
+        SNDRV_PCM_RATE_64000,
+        SNDRV_PCM_RATE_88200,
+        SNDRV_PCM_RATE_96000,
+        SNDRV_PCM_RATE_176400,
+        SNDRV_PCM_RATE_192000
+};
+
+IOAudioStreamFormat oxygen_hardware[] = {
         {
                 2,
                 kIOAudioStreamSampleFormatLinearPCM,
@@ -229,37 +251,10 @@ const IOAudioStreamFormat oxygen_hardware[] = {
         ac97_format
 };
 
-
-const IOAudioSampleRate validRates[] = {
-        {32000,0},
-        {44100,0},
-        {48000,0},
-        {64000,0},
-        {88200,0},
-        {96000,0},
-        {176400,0},
-        {192000,0}
-};
-
-const unsigned int validRatesbits[] = {
-        SNDRV_PCM_RATE_32000,
-        SNDRV_PCM_RATE_44100,
-        SNDRV_PCM_RATE_48000,
-        SNDRV_PCM_RATE_64000,
-        SNDRV_PCM_RATE_88200,
-        SNDRV_PCM_RATE_96000,
-        SNDRV_PCM_RATE_176400,
-        SNDRV_PCM_RATE_192000
-};
-
-
-
 //filterStreams is only called on non AC-97 streams so we know 32 they support 32 bit
 void XonarAudioEngine::filterStreams(IOAudioStream *stream, unsigned int channel,
                                      UInt32 filter) {
-#if DEBUG
-        kprintf("XonarAudioEngine::%-30s BEGIN\n", __func__);
-#endif
+        
         stream->clearAvailableFormats(); // only way we can filter is to remove and re-add
         //copy voodoohda's 'template objects' approach to make some comparisons easier
         IOAudioStreamFormat format = {
@@ -281,184 +276,253 @@ void XonarAudioEngine::filterStreams(IOAudioStream *stream, unsigned int channel
                 0                                                // bytes per packet (to be filled in)
         };
         
-        int loopCount = 0; //PCM_MULTICH needs 4 times as many formats because of the 2 channel step increments,
-
-        if(channel != PCM_MULTICH) {
-                loopCount = 1; // 2
-                stream->maxNumChannels = 2;
-        }
-        else {
-                loopCount  = 4; // 2 4 6 8
-                stream->maxNumChannels = 8;
-        }
-        while(loopCount > 0) {
-                for(int i=0; i<ARRAY_SIZE(validRates); i++) {
-                        if(validRatesbits[i] & filter)
-                                continue;
-                        memcpy(&format, &oxygen_hardware[channel], sizeof(IOAudioStreamFormat));
-                        
-                        format.fNumChannels = 2*loopCount;
-                        
-                        //ALSA wiki says (https://www.alsa-project.org/wiki/FramesPeriods):
-                        //> > The "frame" represents the unit, 1 frame = # channels x sample_bytes.
-                        //> > In your case, 1 frame corresponds to 2 channels x 16 bits = 4 bytes.
-                        //> >
-                        //> > The periods is the number of periods in a ring-buffer.  In OSS, called
-                        //> > as "fragments".
-                        //> > So,
-                        //> >  - buffer_size = period_size * periods
-                        //> >  - period_bytes = period_size * bytes_per_frame
-                        //> >  - bytes_per_frame = channels * bytes_per_sample
-                        
-                        //the best we can do to mimic the period and buffer byte constraints is to set
-                        //the stream buffer to 32 bytes.
-                        /* err = snd_pcm_hw_constraint_step(runtime, 0,
-                         SNDRV_PCM_HW_PARAM_PERIOD_BYTES, 32);
-                         if (err < 0)
-                         return err; */
-                        
-                        //SNDRV_PCM_HW_PARAM_PERIOD_BYTES = # of bytes between interrupts
-                        //(https://elixir.bootlin.com/linux/latest/source/include/uapi/sound/asound.h#L384)
-                        //so 32 bytes in a period
-                        formatEx.fBytesPerPacket=32;
-                        
-                        /* err = snd_pcm_hw_constraint_step(runtime, 0,
-                         SNDRV_PCM_HW_PARAM_BUFFER_BYTES, 32);
-                         if (err < 0)
-                         return err;
-                         //SNDRV_PCM_HW_PARAM_BUFFER_BYTES = size of buffer in bytes
-                         */
-                        //if there's 32 bytes per packet then 1 frame must be 32 bytes since we
-                        //can carry 8 channels each with 4 bytes (???)
-                        formatEx.fFramesPerPacket=1;
-                        
-                        // ^ weird thing is clemens sets PERIOD_BYTES_MIN to 64:
-                        //   https://elixir.bootlin.com/linux/v4.14.298/source/sound/pci/oxygen/oxygen_pcm.c#L35
-                        //   so the formatEx parameters, will very likely need to be tweaked
-                        
-                        //It seems by setting the maxNumChannels in IOAudioStream, we are okay because
-                        //the IOAudioStreamFormat is still 2, so the below should be satisfied.
-#if DEBUG && (DEBUGLEVEL > 2)
-                        
-                        kprintf("XonarAudioEngine::%-30s adding format with the following attributes:\n"
-                                "XonarAudioEngine::%-30s sampleRate->whole: %d\t sampleRate->fraction: %d\n"
-                                "XonarAudioEngine::%-30s numChannels:%d\t sampleFormat:%s\t NumericRepresentation:%s\n"
-                                "XonarAudioEngine::%-30s bitDepth:(%d, 24)\t bitWidth:(%d, 32)\t streamAlignment:%s\n"
-                                "XonarAudioEngine::%-30s streamByteOrder:%s, mixable:%s, driverTag:%d\n"
-                                "XonarAudioEngine::%-30s \n",
-                                " ",
-                                " ", validRates[i].whole, validRates[i].fraction,
-                                " ", format.fNumChannels, formatSampleFormat(format.fSampleFormat), formatRep(format.fNumericRepresentation),
-                                " ", format.fBitDepth, format.fBitWidth, formatAlignment(format.fAlignment),
-                                " ", formatByteOrder(format.fByteOrder), format.fIsMixable ? "true" : "false", format.fDriverTag,
-                                " ");
-#endif
-                        stream->addAvailableFormat(&format, &formatEx, &validRates[i], &validRates[i]); //runtime->hw = *oxygen_hardware[channel];
-                        //i think we have to add the format twice, once as 16 bit and the second time as 32 bit.
-                        //msbits constraint says 24 msbits for 32 bit format, so use formatEx struct.
-                        
-                        
-                        //set fBitDepth=24 and fBitWidth=32 for 32 bit formats to mimic code below
-                        //(Assuming that's VoodooHDA is doing here:
-                        // https://sourceforge.net/p/voodoohda/code/HEAD/tree/tranc/VoodooHDAEngine.cpp#l527)
-                        // ^ copy the struct, don't change the original.
-                        format.fBitDepth = 24;
-                        format.fBitWidth = 32;
-                        /*if(runtime->hw.formats & SNDRV_PCM_FMTBIT_S32_LE) {
-                         err = snd_pcm_hw_constraint_msbits(runtime, 0, 32, 24);
-                         if (err < 0)
-                         return err;
-                         }*/
-                        
-                        
-                        
-                        /*
-                         if (stream->maxNumChannels > 2) {
-                         err = snd_pcm_hw_constraint_step(runtime, 0,
-                         SNDRV_PCM_HW_PARAM_CHANNELS,
-                         2);
-                         if (err < 0)
-                         return err;
-                         }
-                         */
-                        
-                        stream->addAvailableFormat(&format, &formatEx, &validRates[i], &validRates[i]); //runtime->hw = *oxygen_hardware[channel];
+        
+        for(int i=0; i<ARRAY_SIZE(validRates); i++) {
+                if(validRatesbits[i] & filter)
+                        continue;
+                memcpy(&format, &oxygen_hardware[channel], sizeof(IOAudioStreamFormat));
+                if(channel == PCM_MULTICH) {
+                        stream->maxNumChannels = 8;
+                        // copy clemens' hw_step on the number of channels by setting
+                        // ioaudiostream maxnumchannels to 8, but change the actual format
+                        // to 2 channels.
+                        format.fNumChannels = 8;
+                        // ^ this may be unnecessary, a lot will be fixed if we ever
+                        // get this shit to work
                 }
-                loopCount--;
-        }
-#if DEBUG
-        kprintf("XonarAudioEngine::%-30s END\n", __func__);
+                else
+                        stream->maxNumChannels = 2;
+                
+                //ALSA wiki says (https://www.alsa-project.org/wiki/FramesPeriods):
+                //> > The "frame" represents the unit, 1 frame = # channels x sample_bytes.
+                //> > In your case, 1 frame corresponds to 2 channels x 16 bits = 4 bytes.
+                //> >
+                //> > The periods is the number of periods in a ring-buffer.  In OSS, called
+                //> > as "fragments".
+                //> > So,
+                //> >  - buffer_size = period_size * periods
+                //> >  - period_bytes = period_size * bytes_per_frame
+                //> >  - bytes_per_frame = channels * bytes_per_sample
+                
+                //the best we can do to mimic the period and buffer byte constraints is to set
+                //the stream buffer to 32 bytes.
+                /* err = snd_pcm_hw_constraint_step(runtime, 0,
+                 SNDRV_PCM_HW_PARAM_PERIOD_BYTES, 32);
+                 if (err < 0)
+                 return err; */
+                
+                //SNDRV_PCM_HW_PARAM_PERIOD_BYTES = # of bytes between interrupts
+                //(https://elixir.bootlin.com/linux/latest/source/include/uapi/sound/asound.h#L384)
+                //so 32 bytes in a period
+                formatEx.fBytesPerPacket=32;
+                
+                /* err = snd_pcm_hw_constraint_step(runtime, 0,
+                 SNDRV_PCM_HW_PARAM_BUFFER_BYTES, 32);
+                 if (err < 0)
+                 return err;
+                 //SNDRV_PCM_HW_PARAM_BUFFER_BYTES = size of buffer in bytes
+                 */
+                //if there's 32 bytes per packet then 1 frame must be 32 bytes since we
+                //can carry 8 channels each with 4 bytes (???)
+                formatEx.fFramesPerPacket=1;
+                
+                // ^ weird thing is clemens sets PERIOD_BYTES_MIN to 64:
+                //   https://elixir.bootlin.com/linux/v4.14.298/source/sound/pci/oxygen/oxygen_pcm.c#L35
+                //   so the formatEx parameters, will very likely need to be tweaked
+                
+                //It seems by setting the maxNumChannels in IOAudioStream, we are okay because
+                //the IOAudioStreamFormat is still 2, so the below should be satisfied.
+#if DEBUG && (DEBUGLEVEL > 2)
+                
+                kprintf("XonarAudioEngine::%-30s adding format with the following attributes:\n"
+                        "XonarAudioEngine::%-30s sampleRate->whole: %d\t sampleRate->fraction: %d\n"
+                        "XonarAudioEngine::%-30s numChannels:%d\t sampleFormat:%s\t NumericRepresentation:%s\n"
+                        "XonarAudioEngine::%-30s bitDepth:(%d, 24)\t bitWidth:(%d, 32)\t streamAlignment:%s\n"
+                        "XonarAudioEngine::%-30s streamByteOrder:%s, mixable:%s, driverTag:%d\n"
+                        "XonarAudioEngine::%-30s \n",
+                        " ",
+                        " ", validRates[i].whole, validRates[i].fraction,
+                        " ", format.fNumChannels, formatSampleFormat(format.fSampleFormat), formatRep(format.fNumericRepresentation),
+                        " ", format.fBitDepth, format.fBitWidth, formatAlignment(format.fAlignment),
+                        " ", formatByteOrder(format.fByteOrder), format.fIsMixable ? "true" : "false", format.fDriverTag,
+                        " ");
 #endif
+                stream->addAvailableFormat(&format, &formatEx, &validRates[i], &validRates[i]); //runtime->hw = *oxygen_hardware[channel];
+                //i think we have to add the format twice, once as 16 bit and the second time as 32 bit.
+                //msbits constraint says 24 msbits for 32 bit format, so use formatEx struct.
+                
+                
+                //set fBitDepth=24 and fBitWidth=32 for 32 bit formats to mimic code below
+                //(Assuming that's VoodooHDA is doing here:
+                // https://sourceforge.net/p/voodoohda/code/HEAD/tree/tranc/VoodooHDAEngine.cpp#l527)
+                // ^ copy the struct, don't change the original.
+                format.fBitDepth = 24;
+                format.fBitWidth = 32;
+                /*if(runtime->hw.formats & SNDRV_PCM_FMTBIT_S32_LE) {
+                 err = snd_pcm_hw_constraint_msbits(runtime, 0, 32, 24);
+                 if (err < 0)
+                 return err;
+                 }*/
+                
+                
+                
+                /*
+                 if (stream->maxNumChannels > 2) {
+                 err = snd_pcm_hw_constraint_step(runtime, 0,
+                 SNDRV_PCM_HW_PARAM_CHANNELS,
+                 2);
+                 if (err < 0)
+                 return err;
+                 }
+                 */
+                
+                stream->addAvailableFormat(&format, &formatEx, &validRates[i], &validRates[i]); //runtime->hw = *oxygen_hardware[channel];
+        }
         
 }
-int XonarAudioEngine::oxygen_open(IOAudioStream *stream,
+static int oxygen_open(IOAudioStream *stream,
                        unsigned int channel)
 {
-        //struct oxygen *chip = ((XonarAudioEngine *) stream->audioEngine)->chipData;//= snd_pcm_substream_chip(substream);
+        struct oxygen *chip = ((XonarAudioEngine *) stream->audioEngine)->chipData;//= snd_pcm_substream_chip(substream);
         //struct snd_pcm_runtime *runtime = substream->runtime;
         int err;
+        //stream->startingChannelID = channel;
 #if DEBUG
         kprintf("XonarAudioEngine::%-30s BEGIN\n", __func__);
 #if DEBUGLEVEL > 2
-        kprintf("XonarAudioEngine::%-30s adding formats+streams for channel %d\n", " ", channel);
+        kprintf("XonarAudioEngine::%-30s adding formats+streams\n", " ");
 #endif
 #endif
         //runtime->private_data = (void *)(uintptr_t)channel;
-        if (channel == PCM_B && chipData->has_ac97_1 &&
-            (chipData->model.device_config & CAPTURE_2_FROM_AC97_1))
+        if (channel == PCM_B && chip->has_ac97_1 &&
+            (chip->model.device_config & CAPTURE_2_FROM_AC97_1))
                 stream->addAvailableFormat(&ac97_format, &ac97_sampleRate, &ac97_sampleRate);  // runtime->hw =  oxygen_ac97_hardware;
         else
-                filterStreams(stream, channel, 0);
+                ((XonarAudioEngine *) stream->audioEngine)->filterStreams(stream, channel, 0);
         switch (channel) {
                 case PCM_C:
-                        if (chipData->model.device_config & CAPTURE_1_FROM_SPDIF) {
-                                filterStreams(stream, channel, (SNDRV_PCM_RATE_32000
-                                                                | SNDRV_PCM_RATE_64000));
+                        if (chip->model.device_config & CAPTURE_1_FROM_SPDIF) {
+                                
+                                ((XonarAudioEngine *) stream->audioEngine)->filterStreams(stream, channel, (SNDRV_PCM_RATE_32000
+                                                                                                            | SNDRV_PCM_RATE_64000));
                                 //                    runtime->hw.rates &= ~(SNDRV_PCM_RATE_32000 |
                                 //                                           SNDRV_PCM_RATE_64000);
                                 //                    runtime->hw.rate_min = 44100;
                         }
-                        
                         /* fall through */
                 case PCM_A:
                 case PCM_B:
                         //runtime->hw.fifo_size = 0;
                         break;
                 case PCM_MULTICH:
-                        stream->maxNumChannels = chipData->model.dac_channels_pcm;
+                        stream->maxNumChannels = chip->model.dac_channels_pcm;
                         break;
         }
-        if (chipData->model.pcm_hardware_filter) {
-                chipData->model.pcm_hardware_filter(channel, stream);
+        if (chip->model.pcm_hardware_filter) {
+                chip->model.pcm_hardware_filter(channel, stream);
         }
 #if DEBUG && (DEBUGLEVEL > 2)
         kprintf("XonarAudioEngine::%-30s formats added without issue.\n", " ");
 #endif
         // dunno WTF this call translates to for IOAUdio
         // snd_pcm_set_sync(substream);
-        // chip->streams[channel] = stream;
+        chip->streams[channel] = stream;
 #if DEBUG && (DEBUGLEVEL > 2)
         kprintf("XonarAudioEngine::%-30s calling IOLock and checking spdif bits\n", " ");
 #endif
-        IOLockLock(chipData->mutex);
-        chipData->pcm_active |= 1 << channel;
+        IOLockLock(chip->mutex);
+        chip->pcm_active |= 1 << channel;
         if (channel == PCM_SPDIF) {
-                chipData->spdif_pcm_bits = chipData->spdif_bits;
+                chip->spdif_pcm_bits = chip->spdif_bits;
                 //                chip->controls[CONTROL_SPDIF_PCM]->vd[0].access &=
                 //                        ~SNDRV_CTL_ELEM_ACCESS_INACTIVE;
                 //                snd_ctl_notify(chip->card, SNDRV_CTL_EVENT_MASK_VALUE |
                 //                               SNDRV_CTL_EVENT_MASK_INFO,
                 //                               &chip->controls[CONTROL_SPDIF_PCM]->id);
         }
-        IOLockUnlock(chipData->mutex);
+        IOLockUnlock(chip->mutex);
 #if DEBUG
         kprintf("XonarAudioEngine::%-30s END\n", __func__);
 #endif
         return 0;
 }
 
+static unsigned int oxygen_spdif_rate(unsigned int oxygen_rate)
+{
+        switch (oxygen_rate) {
+                case OXYGEN_RATE_32000:
+                        return IEC958_AES3_CON_FS_32000 << OXYGEN_SPDIF_CS_RATE_SHIFT;
+                case OXYGEN_RATE_44100:
+                        return IEC958_AES3_CON_FS_44100 << OXYGEN_SPDIF_CS_RATE_SHIFT;
+                default: /* OXYGEN_RATE_48000 */
+                        return IEC958_AES3_CON_FS_48000 << OXYGEN_SPDIF_CS_RATE_SHIFT;
+                case OXYGEN_RATE_64000:
+                        return 0xb << OXYGEN_SPDIF_CS_RATE_SHIFT;
+                case OXYGEN_RATE_88200:
+                        return IEC958_AES3_CON_FS_88200 << OXYGEN_SPDIF_CS_RATE_SHIFT;
+                case OXYGEN_RATE_96000:
+                        return IEC958_AES3_CON_FS_96000 << OXYGEN_SPDIF_CS_RATE_SHIFT;
+                case OXYGEN_RATE_176400:
+                        return IEC958_AES3_CON_FS_176400 << OXYGEN_SPDIF_CS_RATE_SHIFT;
+                case OXYGEN_RATE_192000:
+                        return IEC958_AES3_CON_FS_192000 << OXYGEN_SPDIF_CS_RATE_SHIFT;
+        }
+}
 
-unsigned int XonarAudioEngine::oxygen_format(const IOAudioStreamFormat *format)
+
+
+void XonarAudioEngine::oxygen_update_spdif_source(struct oxygen *chip)
+{
+#if DEBUG
+        kprintf("XonarAudioEngine::%-30s BEGIN\n", __func__);
+#endif
+        UInt32 old_control, new_control;
+        UInt16 old_routing, new_routing;
+        unsigned int oxygen_rate;
+        
+        old_control = oxygen_read32(chip, OXYGEN_SPDIF_CONTROL);
+        old_routing = oxygen_read16(chip, OXYGEN_PLAY_ROUTING);
+        if (chip->pcm_active & (1 << PCM_SPDIF)) {
+                new_control = old_control | OXYGEN_SPDIF_OUT_ENABLE;
+                new_routing = (old_routing & ~OXYGEN_PLAY_SPDIF_MASK)
+                | OXYGEN_PLAY_SPDIF_SPDIF;
+                oxygen_rate = (old_control >> OXYGEN_SPDIF_OUT_RATE_SHIFT)
+                & OXYGEN_I2S_RATE_MASK;
+                /* S/PDIF rate was already set by the caller */
+        } else if ((chip->pcm_active & (1 << PCM_MULTICH)) &&
+                   chip->spdif_playback_enable) {
+                new_routing = (old_routing & ~OXYGEN_PLAY_SPDIF_MASK)
+                | OXYGEN_PLAY_SPDIF_MULTICH_01;
+                oxygen_rate = oxygen_read16(chip, OXYGEN_I2S_MULTICH_FORMAT)
+                & OXYGEN_I2S_RATE_MASK;
+                new_control = (old_control & ~OXYGEN_SPDIF_OUT_RATE_MASK) |
+                (oxygen_rate << OXYGEN_SPDIF_OUT_RATE_SHIFT) |
+                OXYGEN_SPDIF_OUT_ENABLE;
+        } else {
+                new_control = old_control & ~OXYGEN_SPDIF_OUT_ENABLE;
+                new_routing = old_routing;
+                oxygen_rate = OXYGEN_RATE_44100;
+        }
+        if (old_routing != new_routing) {
+                oxygen_write32(chip, OXYGEN_SPDIF_CONTROL,
+                               new_control & ~OXYGEN_SPDIF_OUT_ENABLE);
+                oxygen_write16(chip, OXYGEN_PLAY_ROUTING, new_routing);
+        }
+        if (new_control & OXYGEN_SPDIF_OUT_ENABLE)
+                oxygen_write32(chip, OXYGEN_SPDIF_OUTPUT_BITS,
+                               oxygen_spdif_rate(oxygen_rate) |
+                               ((chip->pcm_active & (1 << PCM_SPDIF)) ?
+                                chip->spdif_pcm_bits : chip->spdif_bits));
+        oxygen_write32(chip, OXYGEN_SPDIF_CONTROL, new_control);
+#if DEBUG
+        kprintf("XonarAudioEngine::%-30s END\n", __func__);
+#endif
+}
+
+
+
+
+static unsigned int oxygen_format(const IOAudioStreamFormat *format)
 {
 #if DEBUG
         kprintf("XonarAudioEngine::%-30s bitWidth %d, byteOrder %d\n", __func__,
@@ -473,7 +537,7 @@ unsigned int XonarAudioEngine::oxygen_format(const IOAudioStreamFormat *format)
                 return OXYGEN_FORMAT_16;
 }
 
-unsigned int  XonarAudioEngine::oxygen_rate(const IOAudioSampleRate *sampleRate)
+static unsigned int oxygen_rate(const IOAudioSampleRate *sampleRate)
 {
         switch (sampleRate->whole) {
                 case 32000:
@@ -523,7 +587,23 @@ static unsigned int oxygen_play_channels(const IOAudioStreamFormat *format)
         }
 }
 
+static const unsigned int channel_base_registers[PCM_COUNT] = {
+        [PCM_A] = OXYGEN_DMA_A_ADDRESS,
+        [PCM_B] = OXYGEN_DMA_B_ADDRESS,
+        [PCM_C] = OXYGEN_DMA_C_ADDRESS,
+        [PCM_SPDIF] = OXYGEN_DMA_SPDIF_ADDRESS,
+        [PCM_MULTICH] = OXYGEN_DMA_MULTICH_ADDRESS,
+        [PCM_AC97] = OXYGEN_DMA_AC97_ADDRESS,
+};
 
+IOPhysicalAddress XonarAudioEngine::getSampleBufferAddress(unsigned int channel, const IOAudioStreamDirection direction) {
+        
+        return sampleBuffers[channel].substreams[direction]->getPhysicalAddress();
+}
+IOBufferMemoryDescriptor *XonarAudioEngine::streamBuffer(unsigned int channel, const IOAudioStreamDirection direction) {
+        
+        return sampleBuffers[channel].substreams[direction];
+}
 void XonarAudioEngine::xonar_enable_output(struct oxygen *chip)
 {
         struct xonar_generic *data =(struct xonar_generic*) chip->model_data;
@@ -953,7 +1033,7 @@ static int rolloff_get(struct snd_kcontrol *ctl,
 }
 
 int XonarAudioEngine::rolloff_put(IOAudioControl *SelectorControl, XonarAudioEngine *engine,
-                                  const void *oldData, UInt32 oldDataSize, const void* newData, UInt32 newDataSize)
+const void *oldData, UInt32 oldDataSize, const void* newData, UInt32 newDataSize)
 {
         struct oxygen *chip = engine->chipData;
         struct xonar_pcm179x *data = (struct xonar_pcm179x*) chip->model_data;
@@ -977,7 +1057,7 @@ int XonarAudioEngine::rolloff_put(IOAudioControl *SelectorControl, XonarAudioEng
         IOLockUnlock(chip->mutex);
         //return changed;
         return kIOReturnSuccess;
-        
+
 }
 
 //static const struct snd_kcontrol_new rolloff_control = {
@@ -1027,7 +1107,7 @@ static int oxygen_ac97_wait(struct oxygen *chip, unsigned int mask)
 
 
 static inline void oxygen_write_ac97(struct oxygen *chip, unsigned int codec,
-                                     unsigned int index, UInt16 data)
+                       unsigned int index, UInt16 data)
 {
         unsigned int count, succeeded;
         UInt32 reg;
@@ -1154,7 +1234,7 @@ int XonarAudioEngine::add_pcm1796_controls(struct oxygen *chip, PCIAudioDevice *
                 RollOffSelector->release();
                 PCM1796Port->release();
                 
-                
+            
         }
 #if DEBUG
         kprintf("XonarAudioEngine::%-30s END\n", __func__);
@@ -1278,31 +1358,22 @@ void XonarAudioEngine::xonar_hdmi_uart_input(struct oxygen *chip)
 void XonarAudioEngine::xonar_hdmi_pcm_hardware_filter(unsigned int channel,
                                                       IOAudioStream *stream)
 {
-#if DEBUG && (DEBUGLEVEL > 2)
-        kprintf("XonarAudioEngine::%-30s BEGIN\n", __func__);
-#endif
         if (channel == PCM_MULTICH) {
 #if DEBUG && (DEBUGLEVEL > 2)
-                kprintf("XonarAudioEngine::%-30s hardware filter for PCM_MULTICH, clearing & re-adding streams!\n"
-                        "XonarAudioEngine::%-30s ",
-                        " ",
+                kprintf("XonarAudioEngine::%-30s hardware filter for PCM_MULTICH, clearing & re-adding streams!\n",
                         " ");
 #endif
-                
+
                 //                hardware->rates = SNDRV_PCM_RATE_44100 |
                 //                                  SNDRV_PCM_RATE_48000 |
                 //                                  SNDRV_PCM_RATE_96000 |
                 //                                  SNDRV_PCM_RATE_192000;
                 //                hardware->rate_min = 44100;
-                ((XonarAudioEngine*)stream->audioEngine)->filterStreams(stream, channel, (SNDRV_PCM_RATE_32000 |
-                                                SNDRV_PCM_RATE_64000 |
-                                                SNDRV_PCM_RATE_88200 |
-                                                SNDRV_PCM_RATE_176400 ));
+                ((XonarAudioEngine *) stream->audioEngine)->filterStreams(stream, channel, (SNDRV_PCM_RATE_32000 |
+                                                                                            SNDRV_PCM_RATE_64000 |
+                                                                                            SNDRV_PCM_RATE_88200 |
+                                                                                            SNDRV_PCM_RATE_176400 ));
         }
-#if DEBUG && (DEBUGLEVEL > 2)
-        kprintf("XonarAudioEngine::%-30s END\n", __func__);
-#endif
-
 }
 
 void XonarAudioEngine::wm8776_adc_hardware_filter(unsigned int channel,
@@ -1320,7 +1391,7 @@ void XonarAudioEngine::wm8776_adc_hardware_filter(unsigned int channel,
                 //         SNDRV_PCM_RATE_88200 |
                 //         SNDRV_PCM_RATE_96000;
                 // hardware->rate_max = 96000;
-                ((XonarAudioEngine*)stream->audioEngine)->filterStreams(stream, channel, (SNDRV_PCM_RATE_176400 |
+                ((XonarAudioEngine *) stream->audioEngine)->filterStreams(stream, channel, (SNDRV_PCM_RATE_176400 |
                                                                                             SNDRV_PCM_RATE_192000));
         }
 }
@@ -1839,11 +1910,7 @@ Done:
 
 bool XonarAudioEngine::initHardware(IOService *provider)
 {
-        spdifEngine = new XonarSPDIFAudioEngine;
-        ac97Engine = new XonarAC97AudioEngine;
-        inputStream = NULL;
-        outputStream = NULL;
-        inputStream2 = NULL;
+        
 #if DEBUG
         kprintf("XonarAudioEngine::%-30s BEGIN\n", __func__);
 #endif
@@ -1857,7 +1924,8 @@ bool XonarAudioEngine::initHardware(IOService *provider)
          now we must complete oxygen_pcm_init
          */
         
-        
+ 
+        IOAudioStream *audioStream;
 #if DEBUG && (DEBUGLEVEL > 1)
         kprintf("XonarAudioEngine::%-30s oxygen_pcm_init()\n", " ");
 #endif
@@ -1884,45 +1952,35 @@ bool XonarAudioEngine::initHardware(IOService *provider)
                 //    return err;
                 if (outs) {
                         // add multich_ops fns
-                        outputStream = createAudioStream(kIOAudioStreamDirectionOutput, DEFAULT_BUFFER_BYTES_MULTICH, PCM_MULTICH);
-                        if (!outputStream->stream) {
-#if DEBUG
-                                kprintf("XonarAudioEngine::%-30s Creation of PCM_MULTICH stream failed!\n", __func__);
-#endif
+                        audioStream = createAudioStream(kIOAudioStreamDirectionOutput, DEFAULT_BUFFER_BYTES_MULTICH, PCM_MULTICH);
+                        if (!audioStream) {
                                 goto Done;
                         }
-                        outputStream->stream->setName("MultiChannel OUT");
-                        addAudioStream(outputStream->stream);
-                        outputStream->stream->release();
+                        audioStream->setName("MultiChannel OUT");
+                        addAudioStream(audioStream);
+                        audioStream->release();
                         
                 }
                 if (chipData->model.device_config & CAPTURE_0_FROM_I2S_1) {
                         //add rec_a_ops fns
-                        inputStream = createAudioStream(kIOAudioStreamDirectionInput, DEFAULT_BUFFER_BYTES, PCM_A);
-                        
-                        if (!inputStream->stream) {
-#if DEBUG
-                                kprintf("XonarAudioEngine::%-30s Creation of REC_A stream failed!\n", __func__);
-#endif
+                        audioStream = createAudioStream(kIOAudioStreamDirectionInput, DEFAULT_BUFFER_BYTES, PCM_A);
+                        if (!audioStream) {
                                 goto Done;
                         }
-                        inputStream->stream->setName("MultiChannel IN");
-                        addAudioStream(inputStream->stream);
-                        inputStream->stream->release();
+                        audioStream->setName("MultiChannel IN");
+                        addAudioStream(audioStream);
+                        audioStream->release();
                 }
                 else if (chipData->model.device_config & CAPTURE_0_FROM_I2S_2) {
                         //add rec_b_ops fns
-                        inputStream = createAudioStream(kIOAudioStreamDirectionInput, DEFAULT_BUFFER_BYTES, PCM_B);
-                        
-                        if (!inputStream->stream) {
-#if DEBUG
-                                kprintf("XonarAudioEngine::%-30s Creation of REC_B stream failed!\n", __func__);
-#endif
+                        audioStream = createAudioStream(kIOAudioStreamDirectionInput, DEFAULT_BUFFER_BYTES, PCM_B);
+                        if (!audioStream) {
                                 goto Done;
                         }
-                        inputStream->stream->setName("MultiChannel IN");
-                        addAudioStream(inputStream->stream);
-                        inputStream->stream->release();
+                        audioStream->setName("MultiChannel IN");
+                        addAudioStream(audioStream);
+                        audioStream->release();
+                        
                 }
                 
                 // with the OOP approach of APPUL's IOAudio, we always have a way to access the
@@ -1944,47 +2002,104 @@ bool XonarAudioEngine::initHardware(IOService *provider)
                 //                                          DEFAULT_BUFFER_BYTES,
                 //                                          BUFFER_BYTES_MAX);
                 
-                
+  
         }
 #if !defined(MULTICH_OUTPUT_ONLY)
-                spdifEngine->init(this);
-                if(((PCIAudioDevice*) provider)->activateAudioEngine(spdifEngine)) {
-                        kprintf("XonarAudioEngine::%-30s SPDIF engine creation failed.\n", __func__);
+        outs = !!(chipData->model.device_config & PLAYBACK_1_TO_SPDIF);
+        ins = !!(chipData->model.device_config & CAPTURE_1_FROM_SPDIF);
+        if (outs | ins) {
+                //err = snd_pcm_new(chip->card, "Digital", 1, outs, ins, &pcm);
+                //if (err < 0)
+                //    return err;
+                if (outs) {
+                        //add spdif_ops fns
+                        audioStream = createAudioStream(kIOAudioStreamDirectionOutput, DEFAULT_BUFFER_BYTES, PCM_SPDIF);
+                        if (!audioStream) {
+                                goto Done;
+                        }
+                        audioStream->setName("Digital OUT");
+                        addAudioStream(audioStream);
+                        audioStream->release();
                 }
-                else {
-                        spdifEngine->release();
-                        kprintf("XonarAudioEngine::%-30s SPDIF engine successfully created.\n", __func__);
+                if (ins) {
+                        //add rc_c_ops fns
+                        audioStream = createAudioStream(kIOAudioStreamDirectionInput, DEFAULT_BUFFER_BYTES, PCM_C);
+                        if (!audioStream) {
+                                goto Done;
+                        }
+                        audioStream->setName("Digital IN");
+                        addAudioStream(audioStream);
+                        audioStream->release();
                 }
-                ac97Engine->init(this);
-                if(((PCIAudioDevice*) provider)->activateAudioEngine(ac97Engine)) {
-                        kprintf("XonarAudioEngine::%-30s AC97 engine creation failed.\n", __func__);
-                }
-                else{
-                        ac97Engine->release();
-                        kprintf("XonarAudioEngine::%-30s AC97 engine successfully created.\n", __func__);
 
-                }
+                //        pcm->private_data = chip;
+                //        strcpy(pcm->name, "Digital");
+                //        snd_pcm_lib_preallocate_pages_for_all(pcm, SNDRV_DMA_TYPE_DEV,
+                //                                              snd_dma_pci_data(chipData->pci),
+                //                                              DEFAULT_BUFFER_BYTES,
+                //                                              BUFFER_BYTES_MAX);
+                
+                
+        }
+        if (chipData->has_ac97_1) {
+                outs = !!(chipData->model.device_config & PLAYBACK_2_TO_AC97_1);
+                ins = !!(chipData->model.device_config & CAPTURE_2_FROM_AC97_1);
+        } else {
+                outs = 0;
+                ins = !!(chipData->model.device_config & CAPTURE_2_FROM_I2S_2);
+        }
 
+        if (outs | ins) {
+                //err = snd_pcm_new(chip->card, outs ? "AC97" : "Analog2",
+                //                          2, outs, ins, &pcm);
+                //if (err < 0)
+                //    return err;
+                if (outs) {
+                        //add ac97_ops fns
+                        audioStream = createAudioStream(kIOAudioStreamDirectionOutput, DEFAULT_BUFFER_BYTES, PCM_AC97);
+                        if (!audioStream) {
+                                goto Done;
+                        }
+                        oxygen_write8_masked(chipData, OXYGEN_REC_ROUTING,
+                                             OXYGEN_REC_B_ROUTE_AC97_1,
+                                             OXYGEN_REC_B_ROUTE_MASK);
+                        
+                        audioStream->setName(outs ? "AC97" : "Analog2");
+                        addAudioStream(audioStream);
+                        audioStream->release();
+                }
+                if (ins) {
+                        //add rec_b_ops fns
+                        audioStream = createAudioStream(kIOAudioStreamDirectionInput, DEFAULT_BUFFER_BYTES, PCM_B);
+                        if (!audioStream) {
+                                goto Done;
+                        }
+                        //            snd_pcm_lib_preallocate_pages_for_all(pcm, SNDRV_DMA_TYPE_DEV,
+                        //                                                  snd_dma_pci_data(chip->pci),
+                        //                                                  DEFAULT_BUFFER_BYTES,
+                        //                                                  BUFFER_BYTES_MAX);
+                        
+                        audioStream->setName(outs ? "Front Panel" : "Analog 2");
+                        addAudioStream(audioStream);
+                        audioStream->release();
+                }
+        }
         ins = !!(chipData->model.device_config & CAPTURE_3_FROM_I2S_3);
         if (ins) {
                 //err = snd_pcm_new(chip->card,  3, 0, ins, &pcm);
                 //if (err < 0)
                 //    return err;
                 //add rec_c fns
-                inputStream2 = createAudioStream(kIOAudioStreamDirectionInput, DEFAULT_BUFFER_BYTES, PCM_C);
-                
+                audioStream = createAudioStream(kIOAudioStreamDirectionInput, DEFAULT_BUFFER_BYTES, PCM_C);
                 oxygen_write8_masked(chipData, OXYGEN_REC_ROUTING,
                                      OXYGEN_REC_C_ROUTE_I2S_ADC_3,
                                      OXYGEN_REC_C_ROUTE_MASK);
-                if (!inputStream2->stream) {
-#if DEBUG
-                        kprintf("XonarAudioEngine::%-30s Creation of REC_C stream failed!\n", __func__);
-#endif
+                if (!audioStream) {
                         goto Done;
                 }
-                inputStream2->stream->setName("Analog 3");
-                addAudioStream(inputStream2->stream);
-                //inputStream2->stream->release();
+                audioStream->setName("Analog 3");
+                addAudioStream(audioStream);
+                audioStream->release();
                 
                 //            pcm->private_data = chip;
                 //            strcpy(pcm->name, "Analog 3");
@@ -2000,13 +2115,13 @@ bool XonarAudioEngine::initHardware(IOService *provider)
         //end oxygen_pcm_init
         
         /* The remaining portions of oxygen_pci_probe focus on initialising PCM and the mixer.
-         * from what i can gather, these portions of the init from the Linux Driver are handled
-         * radically differently from OSX, and so this is where OSX-specific/new code will need to
-         * handle these differences, where some of the code in oxygen_mixer.c/oxygen_pcm.c may be
-         * used for the aforementioned purposes
-         */
+          * from what i can gather, these portions of the init from the Linux Driver are handled
+          * radically differently from OSX, and so this is where OSX-specific/new code will need to
+          * handle these differences, where some of the code in oxygen_mixer.c/oxygen_pcm.c may be
+          * used for the aforementioned purposes
+          */
         
-        //((PCIAudioDevice*)provider)->oxygen_mixer_init();
+        ((PCIAudioDevice*)provider)->oxygen_mixer_init();
         //oxygen_proc_init(chipData);
 #if !defined(MULTICH_OUTPUT_ONLY)
 #if DEBUG && (DEBUGLEVEL > 2)
@@ -2038,7 +2153,7 @@ bool XonarAudioEngine::initHardware(IOService *provider)
         // Set the number of sample frames in each buffer
         setNumSampleFramesPerBuffer(NUM_SAMPLE_FRAMES);
         
-        setDescription("Xonar Audio Engine (MAIN)");
+        setDescription(chipData->model.shortname);
         result = true;
 #if DEBUG
         kprintf("XonarAudioEngine::%-30s END\n", __func__);
@@ -2055,7 +2170,7 @@ void XonarAudioEngine::free()
         kprintf("XonarAudioEngine::%-30s\n", __func__);
 #endif
         // We need to free our resources when we're going away
-        
+
 #if DEBUG && (DEBUGLEVEL > 2)
         kprintf("XonarAudioEngine::%-30s freeing chipData->model_data\n", " ");
 #endif
@@ -2071,31 +2186,14 @@ void XonarAudioEngine::free()
 #if DEBUG && (DEBUGLEVEL > 2)
         kprintf("XonarAudioEngine::%-30s freeing substream buffers\n"," ");
 #endif
-//        for(int i=0;i < PCM_COUNT; i++) {
-        if(outputStream) {
+        for(int i=0;i < PCM_COUNT; i++) {
 #if DEBUG && (DEBUGLEVEL > 2)
-                kprintf("XonarAudioEngine::%-30s freeing output stream\n", " ");
+                kprintf("XonarAudioEngine::%-30s freeing substream %d\n", " ", i);
 #endif
-                outputStream->buffer->IOGeneralMemoryDescriptor::free();
-        }
-        if(inputStream) {
-#if DEBUG && (DEBUGLEVEL > 2)
-                kprintf("XonarAudioEngine::%-30s freeing input stream 1\n", " ");
-#endif
-                if(inputStream->buffer)
-                        inputStream->buffer->IOGeneralMemoryDescriptor::free();
-        }
-        if(inputStream2) {
-#if DEBUG && (DEBUGLEVEL > 2)
-                kprintf("XonarAudioEngine::%-30s freeing input stream 2\n", " ");
-#endif
-                if(inputStream2->buffer)
-                        inputStream2->buffer->IOGeneralMemoryDescriptor::free();
-                
-                //                if (sampleBuffers[i].substreams[0] != NULL)
-                //                        sampleBuffers[i].substreams[0]->IOGeneralMemoryDescriptor::free();
-                //                if (sampleBuffers[i].substreams[1] != NULL)
-                //                        sampleBuffers[i].substreams[1]->IOGeneralMemoryDescriptor::free();
+                if (sampleBuffers[i].substreams[0] != NULL)
+                        sampleBuffers[i].substreams[0]->IOGeneralMemoryDescriptor::free();
+                if (sampleBuffers[i].substreams[1] != NULL)
+                        sampleBuffers[i].substreams[1]->IOGeneralMemoryDescriptor::free();
         }
         super::free();
 #if DEBUG
@@ -2103,43 +2201,42 @@ void XonarAudioEngine::free()
 #endif
 }
 
-IOStream *XonarAudioEngine::createAudioStream(IOAudioStreamDirection direction, UInt32 sampleBufferSize, uint source)
+IOAudioStream *XonarAudioEngine::createAudioStream(IOAudioStreamDirection direction, UInt32 sampleBufferSize, uint source)
 {
-        IOStream *newStream = new IOStream;
         //when calling createaudiostream, we are "in" oxygen_pcm_init.
         //this function emulates snd_pcm_new, because each function is creating a stream.
-        newStream->stream = new IOAudioStream;
+        IOAudioStream *audioStream = new IOAudioStream;
 #if DEBUG
         kprintf("XonarAudioEngine::%-30s BEGIN\n", __func__);
 #endif
         //create the buffers.
         if(direction == kIOAudioStreamDirectionInput)
-                newStream->buffer = IOBufferMemoryDescriptor::inTaskWithOptions(kernel_task, kIODirectionIn | kIOMemoryPhysicallyContiguous, sampleBufferSize);
+                sampleBuffers[source].substreams[direction] = IOBufferMemoryDescriptor::inTaskWithOptions(kernel_task, kIODirectionIn | kIOMemoryPhysicallyContiguous, sampleBufferSize);
         else
-                newStream->buffer = IOBufferMemoryDescriptor::inTaskWithOptions(kernel_task, kIODirectionOut | kIOMemoryPhysicallyContiguous, sampleBufferSize);
-        
+                sampleBuffers[source].substreams[direction] = IOBufferMemoryDescriptor::inTaskWithOptions(kernel_task, kIODirectionOut | kIOMemoryPhysicallyContiguous, sampleBufferSize);
+        //sampleBuffers[source].substreams[direction].sample = sampleBuffers[source].substreams[direction].obj->getPhysicalAddress();
 
 #if DEBUG && (DEBUGLEVEL > 1)
-        kprintf("XonarAudioEngine::%-30s buffer creation COMPLETE, calling oxygen_open, direction %d, sample buff address: 0x%08llx\n",
-                " ", direction, newStream->buffer->getPhysicalAddress());
+        kprintf("XonarAudioEngine::%-30s buffer creation COMPLETE, calling oxygen_open, sample buff address: 0x%08llx\n",
+                " ", sampleBuffers[source].substreams[direction]->getPhysicalAddress());
 #endif
         // call oxygen_open
-        newStream->stream->initWithAudioEngine(this, direction, 1);
-        oxygen_open(newStream->stream, source);
+        audioStream->initWithAudioEngine(this, direction, 1);
+        oxygen_open(audioStream, source);
         
         // call oxygen_*_hw_params
-        //        if(source == PCM_A)
-        //                oxygen_rec_a_hw_params(audioStream, 0, NULL, NULL, NULL);
-        //        else if(source == PCM_B)
-        //                oxygen_rec_b_hw_params(audioStream, 0, NULL, NULL, NULL);
-        //        else if(source == PCM_C)
-        //                oxygen_rec_c_hw_params(audioStream, 0, NULL, NULL, NULL);
-        //        else if(source == PCM_MULTICH)
-        //                oxygen_multich_hw_params(audioStream, 0, NULL, NULL, NULL);
-        //        else if(source == PCM_AC97)
-        //                oxygen_hw_params(audioStream, 0, PCM_AC97, NULL, NULL);
-        //        else if(source == PCM_SPDIF)
-        //                spdifEngine->oxygen_spdif_hw_params(audioStream, 0, NULL, NULL, NULL);
+        if(source == PCM_A)
+                oxygen_rec_a_hw_params(audioStream, 0, NULL, NULL, NULL);
+        else if(source == PCM_B)
+                oxygen_rec_b_hw_params(audioStream, 0, NULL, NULL, NULL);
+        else if(source == PCM_C)
+                oxygen_rec_c_hw_params(audioStream, 0, NULL, NULL, NULL);
+        else if(source == PCM_MULTICH)
+                oxygen_multich_hw_params(audioStream, 0, NULL, NULL, NULL);
+        else if(source == PCM_AC97)
+                oxygen_hw_params(audioStream, 0, PCM_AC97, NULL, NULL);
+        else if(source == PCM_SPDIF)
+                oxygen_spdif_hw_params(audioStream, 0, NULL, NULL, NULL);
         
         //per alsa documentation (https://www.kernel.org/doc/html/latest/sound/kernel-api/writing-an-alsa-driver.html#operators)
         //hw_params is only called when all of the info about the stream is known
@@ -2147,20 +2244,18 @@ IOStream *XonarAudioEngine::createAudioStream(IOAudioStreamDirection direction, 
 #if DEBUG && (DEBUGLEVEL > 1)
         kprintf("XonarAudioEngine::%-30s setting sample buffer\n", " ");
 #endif
-        newStream->stream->setSampleBuffer(newStream->buffer->getBytesNoCopy(), newStream->buffer->getCapacity());
+        audioStream->setSampleBuffer(sampleBuffers[source].substreams[direction]->getBytesNoCopy(), sampleBuffers[source].substreams[direction]->getCapacity());
         
 #if DEBUG && (DEBUGLEVEL > 1)
         kprintf("XonarAudioEngine::%-30s setting sample format\n", " ");
 #endif
-        //we shouldn't call the driver because the SPDIF and AC97
-        //need the data from this call before they can do anything else.
-        newStream->stream->setFormat(&oxygen_hardware[source], false);
+        audioStream->setFormat(&oxygen_hardware[source]);
 #if DEBUG
         kprintf("XonarAudioEngine::%-30s END\n", __func__);
 #endif
         //we use a mask variable to know what streams we have to stop
         channel_mask |= (1 << source);
-        return newStream;
+        return audioStream;
 }
 
 
@@ -2189,14 +2284,6 @@ void XonarAudioEngine::stop(IOService *provider)
         // There may be nothing needed here
         
         super::stop(provider);
-//#if DEBUG
-//        kprintf("XonarAudioEngine::%-30s trying to stop SPDIF engine (if it exists)\n", __func__);
-//        spdifEngine->stop(provider);
-//#endif
-//#if DEBUG
-//        kprintf("XonarAudioEngine::%-30s trying to stop AC97 engine (if it exists)\n", __func__);
-//        spdifEngine->stop(provider);
-//#endif
 #if DEBUG
 #if DEBUGLEVEL > 1
         kprintf("XonarAudioEngine::%-30s try to release submodel here..\n", __func__);
@@ -2212,8 +2299,8 @@ IOReturn XonarAudioEngine::performAudioEngineStart()
         kprintf("XonarAudioEngine::%-30s BEGIN\n", __func__);
 #endif
         int ret = kIOReturnError;
-        
-        
+
+
 #if DEBUG && (DEBUGLEVEL > 2)
         kprintf("XonarAudioEngine::%-30s getting workloop\n", " ");
 #endif
@@ -2278,7 +2365,7 @@ IOReturn XonarAudioEngine::performAudioEngineStart()
         // Add audio - I/O start code here
         
         //#error performAudioEngineStart() - driver will not work until audio engine start code is added
-        
+
         ret = kIOReturnSuccess;
         //didn't realise we had to set the state on our own....
         //OOOOK APPUL, kind of stupid not to set it after
@@ -2287,16 +2374,16 @@ IOReturn XonarAudioEngine::performAudioEngineStart()
         setState(kIOAudioEngineRunning);
         oxygen_trigger();
 #if DEBUG
-        //        ((PCIAudioDevice*) audioDevice)->pciDevice->extendedConfigWrite16(OXYGEN_INTERRUPT_STATUS, 1);
+//        ((PCIAudioDevice*) audioDevice)->pciDevice->extendedConfigWrite16(OXYGEN_INTERRUPT_STATUS, 1);
         kprintf("XonarAudioEngine::%-30s pcm_running    0x%08x, DMA_STATUS 0x%08x\n"
                 "XonarAudioEngine::%-30s INTERRUPT_MASK 0x%08x, INTERRUPT_STATUS 0x%08x\n",
                 " ", chipData->pcm_running, oxygen_read8(chipData, OXYGEN_DMA_STATUS),
                 " ", oxygen_read16(chipData, OXYGEN_INTERRUPT_MASK), oxygen_read16(chipData, OXYGEN_INTERRUPT_STATUS));
         
 #endif
-#if DEBUG
-        kprintf("XonarAudioEngine::%-30s END\n", __func__);
-#endif
+        #if DEBUG
+                kprintf("XonarAudioEngine::%-30s END\n", __func__);
+        #endif
 Done:
         return ret;
 }
@@ -2320,8 +2407,8 @@ IOReturn XonarAudioEngine::performAudioEngineStop()
         setState(kIOAudioEngineStopped);
         
         // Assuming we don't need interrupts after stopping the audio engine, we can disable them here
-        //        assert(interruptEventSource_main);
-        //        interruptEventSource_main->disable();
+//        assert(interruptEventSource_main);
+//        interruptEventSource_main->disable();
         // Add audio - I/O stop code here
         
         //#error performAudioEngineStop() - driver will not work until audio engine stop code is added
@@ -2343,19 +2430,35 @@ UInt32 XonarAudioEngine::getCurrentSampleFrame()
         // frame returned by this function.  If it is too large a value, sound data that hasn't been played will be
         // erased.
         
-        
-        //apparently we don't care at all about the inputs. so, this engine only needs to stay on top
-        // of the MULTICH output stream.
-        UInt32 curr_addr;
-        curr_addr = oxygen_read32(chipData, channel_base_registers[PCM_MULTICH]);
-        
+        //#error getCurrentSampleFrame() - driver will not work until correct sample frame is returned
+
+//for(int i=0; i< PCM_COUNT; i++)
+//        for(int j=0; j < 2; j++ ) {
+//                if(!sampleBuffers[i].substreams[j])
+//                        continue;
+                        // Change to return the real value
+                        //        static snd_pcm_uframes_t oxygen_pointer(struct snd_pcm_substream *substream)
+                        //        {
+                        //                struct oxygen *chip = snd_pcm_substream_chip(substream);
+                        //                struct snd_pcm_runtime *runtime = substream->runtime;
+                        //                unsigned int channel = oxygen_substream_channel(substream);
+                                        UInt32 curr_addr;
+                        //
+                        //                /* no spinlock, this read should be atomic */
+                                         curr_addr = oxygen_read32(chipData, channel_base_registers[PCM_MULTICH]);
 #if DEBUG
-        kprintf("curr_addr is 0x%08llx\n", curr_addr - outputStream->buffer->getPhysicalAddress());
+        kprintf("curr_addr is 0x%08x\n", curr_addr - getSampleBufferAddress(PCM_MULTICH, kIOAudioStreamDirectionOutput));
 #endif
-        
-        
-        return curr_addr - outputStream->buffer->getPhysicalAddress();
-        
+        return curr_addr - getSampleBufferAddress(PCM_MULTICH, kIOAudioStreamDirectionOutput);
+        //return curr_addr - (UInt32)getSampleBufferAddress(i, j ? kIOAudioStreamDirectionInput:kIOAudioStreamDirectionOutput );
+                                         
+                        //        }
+                        
+                        //return 0;
+
+                        
+              //  }
+//        return 0;
 }
 
 
@@ -2385,7 +2488,7 @@ IOReturn XonarAudioEngine::performFormatChange(IOAudioStream *audioStream, const
         formatExDefault.fFramesPerPacket = 1;
         
         //clear the device before updating the format
-        if(source == PCM_A)
+         if(source == PCM_A)
                 oxygen_rec_a_hw_params(audioStream, 1, newFormat, &formatExDefault, newSampleRate);
         else if(source == PCM_B)
                 oxygen_rec_b_hw_params(audioStream, 1, newFormat, &formatExDefault, newSampleRate);
@@ -2393,10 +2496,10 @@ IOReturn XonarAudioEngine::performFormatChange(IOAudioStream *audioStream, const
                 oxygen_rec_c_hw_params(audioStream, 1, newFormat, &formatExDefault, newSampleRate);
         else if(source == PCM_MULTICH)
                 oxygen_multich_hw_params(audioStream, 1, newFormat, &formatExDefault, newSampleRate);
-        //        else if(source == PCM_AC97)
-        //                oxygen_hw_params(audioStream, 1, PCM_AC97, newFormat, &formatExDefault);
-        //        else if(source == PCM_SPDIF)
-        //                oxygen_spdif_hw_params(audioStream, 1, newFormat, &formatExDefault, newSampleRate);
+        else if(source == PCM_AC97)
+                oxygen_hw_params(audioStream, 1, PCM_AC97, newFormat, &formatExDefault);
+        else if(source == PCM_SPDIF)
+                oxygen_spdif_hw_params(audioStream, 1, newFormat, &formatExDefault, newSampleRate);
         
         //    if (newSampleRate) {
         //        switch (newSampleRate->whole) {
@@ -2429,7 +2532,7 @@ void XonarAudioEngine::oxygen_gpio_changed(struct oxygen* chip, XonarAudioEngine
 #endif
         if (chip->model.gpio_changed)
                 chip->model.gpio_changed(chip, engineInstance);
-        
+
 #if DEBUG
         kprintf("XonarAudioEngine::%-30s END\n", __func__);
 #endif
@@ -2565,32 +2668,32 @@ bool XonarAudioEngine::interruptFilter(OSObject *owner, IOFilterInterruptEventSo
          *edit: seems like we'll need the elapsed_streams/snd_pcm_period collapsed to
          * go in
          */
-        // for (i = 0; i < PCM_COUNT; ++i)
-        //       if ((elapsed_streams & (1 << i)) && chip->streams[i])
-        //         snd_pcm_period_elapsed(chip->streams[i]);
-        
-        if (status & OXYGEN_INT_SPDIF_IN_DETECT) {
-                IOSimpleLockLock(chip->reg_lock);
-                i = oxygen_read32(chip, OXYGEN_SPDIF_CONTROL);
-                if (i & (OXYGEN_SPDIF_SENSE_INT | OXYGEN_SPDIF_LOCK_INT |
-                         OXYGEN_SPDIF_RATE_INT)) {
-                        /* write the interrupt bit(s) to clear */
-                        oxygen_write32(chip, OXYGEN_SPDIF_CONTROL, i);
-                        //Linux Call below:
-                        //    schedule_work(&chip->spdif_input_bits_work);
-                        //Experimental OSX-equivalent call below...
-                        /* Conceptually i *think* this function is the IOWorkLoop context,
-                         * so by using the dynamic cast (thanks osxbook), i hope to recover
-                         * the calling (single) class, and then use its member functions to perform
-                         * the work. in this case, checking the spdif bits*/
-#if DEBUG
-                        kprintf("XonarAudioEngine::%-30s status & OXYGEN_INT_SPDIF_IN true. calling oxygen_spdif_input_bits_changed (or so i hope)\n", __func__);
-#endif
-                        callingInstance->workLoop->runAction((Action)callingInstance->oxygen_spdif_input_bits_changed, callingInstance, callingInstance->dev_id);
+       // for (i = 0; i < PCM_COUNT; ++i)
+         //       if ((elapsed_streams & (1 << i)) && chip->streams[i])
+                        //         snd_pcm_period_elapsed(chip->streams[i]);
                         
-                }
-                IOSimpleLockUnlock(chip->reg_lock);
-        }
+                        if (status & OXYGEN_INT_SPDIF_IN_DETECT) {
+                                IOSimpleLockLock(chip->reg_lock);
+                                i = oxygen_read32(chip, OXYGEN_SPDIF_CONTROL);
+                                if (i & (OXYGEN_SPDIF_SENSE_INT | OXYGEN_SPDIF_LOCK_INT |
+                                         OXYGEN_SPDIF_RATE_INT)) {
+                                        /* write the interrupt bit(s) to clear */
+                                        oxygen_write32(chip, OXYGEN_SPDIF_CONTROL, i);
+                                        //Linux Call below:
+                                        //    schedule_work(&chip->spdif_input_bits_work);
+                                        //Experimental OSX-equivalent call below...
+                                        /* Conceptually i *think* this function is the IOWorkLoop context,
+                                         * so by using the dynamic cast (thanks osxbook), i hope to recover
+                                         * the calling (single) class, and then use its member functions to perform
+                                         * the work. in this case, checking the spdif bits*/
+#if DEBUG
+                                        kprintf("XonarAudioEngine::%-30s status & OXYGEN_INT_SPDIF_IN true. calling oxygen_spdif_input_bits_changed (or so i hope)\n", __func__);
+#endif
+                                        callingInstance->workLoop->runAction((Action)callingInstance->oxygen_spdif_input_bits_changed, callingInstance, callingInstance->dev_id);
+                                        
+                                }
+                                IOSimpleLockUnlock(chip->reg_lock);
+                        }
         
         if (status & OXYGEN_INT_GPIO) {
 #if DEBUG
@@ -2744,24 +2847,174 @@ void XonarAudioEngine::oxygen_update_dac_routing(struct oxygen *chip)
 }
 
 
+
+
+static int monitor_volume_info(struct snd_kcontrol *ctl,
+                               struct snd_ctl_elem_info *info)
+{
+        info->type = SNDRV_CTL_ELEM_TYPE_INTEGER;
+        info->count = 1;
+        info->value.integer.min = 0;
+        info->value.integer.max = 1;
+        return 0;
+}
+
+static int monitor_get(struct snd_kcontrol *ctl,
+                       struct snd_ctl_elem_value *value)
+{
+        struct oxygen *chip = (struct oxygen*) ctl->private_data;
+        UInt8 bit = ctl->private_value;
+        int invert = ctl->private_value & (1 << 8);
+        
+        value->value.integer.value[0] =
+        !!invert ^ !!(oxygen_read8(chip, OXYGEN_ADC_MONITOR) & bit);
+        return 0;
+}
+
+static int monitor_put(struct snd_kcontrol *ctl,
+                       struct snd_ctl_elem_value *value)
+{
+        struct oxygen *chip = (struct oxygen*) ctl->private_data;
+        UInt8 bit = ctl->private_value;
+        int invert = ctl->private_value & (1 << 8);
+        UInt8 oldreg, newreg;
+        int changed;
+        
+        IOSimpleLockLock(chip->reg_lock);
+        oldreg = oxygen_read8(chip, OXYGEN_ADC_MONITOR);
+        if ((!!value->value.integer.value[0] ^ !!invert) != 0)
+                newreg = oldreg | bit;
+        else
+                newreg = oldreg & ~bit;
+        changed = newreg != oldreg;
+        if (changed)
+                oxygen_write8(chip, OXYGEN_ADC_MONITOR, newreg);
+        IOSimpleLockUnlock(chip->reg_lock);
+        //return changed;
+        return kIOReturnSuccess;
+
+}
+
+static int ac97_switch_get(struct snd_kcontrol *ctl,
+                           struct snd_ctl_elem_value *value)
+{
+        struct oxygen *chip = (struct oxygen*) ctl->private_data;
+        unsigned int codec = (ctl->private_value >> 24) & 1;
+        unsigned int index = ctl->private_value & 0xff;
+        unsigned int bitnr = (ctl->private_value >> 8) & 0xff;
+        int invert = ctl->private_value & (1 << 16);
+        UInt16 reg;
+        
+        IOLockLock(chip->mutex);
+        reg = oxygen_read_ac97(chip, codec, index);
+        IOLockUnlock(chip->mutex);
+        if (!(reg & (1 << bitnr)) ^ !invert)
+                value->value.integer.value[0] = 1;
+        else
+                value->value.integer.value[0] = 0;
+        return 0;
+}
+
+
+static int mic_fmic_source_info(struct snd_kcontrol *ctl,
+                                struct snd_ctl_elem_info *info)
+{
+        static const char *const names[] = { "Mic Jack", "Front Panel" };
+        
+        return snd_ctl_enum_info(info, 1, 2, names);
+}
+
+static int mic_fmic_source_get(struct snd_kcontrol *ctl,
+                               struct snd_ctl_elem_value *value)
+{
+        struct oxygen *chip = (struct oxygen*) ctl->private_data;
+        
+        IOLockLock(chip->mutex);
+        value->value.enumerated.item[0] =
+        !!(oxygen_read_ac97(chip, 0, CM9780_JACK) & CM9780_FMIC2MIC);
+        IOLockUnlock(chip->mutex);
+        return 0;
+}
+
+static int mic_fmic_source_put(struct snd_kcontrol *ctl,
+                               struct snd_ctl_elem_value *value)
+{
+        struct oxygen *chip = (struct oxygen*) ctl->private_data;
+        UInt16 oldreg, newreg;
+        int change;
+        
+        IOLockLock(chip->mutex);
+        oldreg = oxygen_read_ac97(chip, 0, CM9780_JACK);
+        if (value->value.enumerated.item[0])
+                newreg = oldreg | CM9780_FMIC2MIC;
+        else
+                newreg = oldreg & ~CM9780_FMIC2MIC;
+        change = newreg != oldreg;
+        if (change)
+                oxygen_write_ac97(chip, 0, CM9780_JACK, newreg);
+        IOLockUnlock(chip->mutex);
+        return change;
+}
+
+static int ac97_fp_rec_volume_info(struct snd_kcontrol *ctl,
+                                   struct snd_ctl_elem_info *info)
+{
+        info->type = SNDRV_CTL_ELEM_TYPE_INTEGER;
+        info->count = 2;
+        info->value.integer.min = 0;
+        info->value.integer.max = 7;
+        return 0;
+}
+
+static int ac97_fp_rec_volume_get(struct snd_kcontrol *ctl,
+                                  struct snd_ctl_elem_value *value)
+{
+        struct oxygen *chip = (struct oxygen*) ctl->private_data;
+        UInt16 reg;
+        
+        IOLockLock(chip->mutex);
+        reg = oxygen_read_ac97(chip, 1, AC97_REC_GAIN);
+        IOLockUnlock(chip->mutex);
+        value->value.integer.value[0] = reg & 7;
+        value->value.integer.value[1] = (reg >> 8) & 7;
+        return 0;
+}
+
+static int ac97_fp_rec_volume_put(struct snd_kcontrol *ctl,
+                                  struct snd_ctl_elem_value *value)
+{
+        struct oxygen *chip = (struct oxygen*) ctl->private_data;
+        UInt16 oldreg, newreg;
+        int change;
+        
+        IOLockLock(chip->mutex);
+        oldreg = oxygen_read_ac97(chip, 1, AC97_REC_GAIN);
+        newreg = oldreg & ~0x0707;
+        newreg = newreg | (value->value.integer.value[0] & 7);
+        newreg = newreg | ((value->value.integer.value[0] & 7) << 8);
+        change = newreg != oldreg;
+        if (change)
+                oxygen_write_ac97(chip, 1, AC97_REC_GAIN, newreg);
+        IOLockUnlock(chip->mutex);
+        return change;
+}
+
+
+
+static DECLARE_TLV_DB_SCALE(monitor_db_scale, -600, 600, 0);
+static DECLARE_TLV_DB_SCALE(ac97_db_scale, -3450, 150, 0);
+static DECLARE_TLV_DB_SCALE(ac97_rec_db_scale, 0, 150, 0);
+
+
+
+
 int XonarAudioEngine::oxygen_hw_params(IOAudioStream *substream, int formatChange, UInt32 channel,
                                        const IOAudioStreamFormat *newFormat, const IOAudioStreamFormatExtension *newFormatEx)
 {
         
-        
+
         const IOAudioStreamFormatExtension *formatEx;
-        int direction = substream->getDirection();
-        
-        UInt32 address;
-        if(direction)  {
-                if(channel == PCM_B)
-                        address = inputStream->buffer->getPhysicalAddress();
-                else
-                        address = inputStream2->buffer->getPhysicalAddress();
-        }
-        else
-                address = outputStream->buffer->getPhysicalAddress();
-        
+        //unsigned int channel;
 #if DEBUG
         kprintf("XonarAudioEngine::%-30s BEGIN\n", __func__);
 #if DEBUGLEVEL > 2
@@ -2776,8 +3029,6 @@ int XonarAudioEngine::oxygen_hw_params(IOAudioStream *substream, int formatChang
                 //     channel = substream->getFormat()->fDriverTag;
                 formatEx = substream->getFormatExtension();
         }
-
-
         //kprintf("XonarAudioEngine::%-30s try to print the address anyways, even though it probably will cause a crash: %llx\n", __func__,
         //        getSampleBufferAddress(channel, substream->getDirection()) );
         
@@ -2793,7 +3044,7 @@ int XonarAudioEngine::oxygen_hw_params(IOAudioStream *substream, int formatChang
         kprintf("XonarAudioEngine::%-30s before buffer read\n", " ");
 #endif
         oxygen_write32(chipData, channel_base_registers[channel],
-                       address);
+                       getSampleBufferAddress(channel, substream->getDirection()));
 #if DEBUG && (DEBUGLEVEL > 2)
         kprintf("XonarAudioEngine::%-30s after buffer read\n", " ");
         kprintf("XonarAudioEngine::%-30s channel is %d, substream->getSampleBufferSize %d, formatEx->fBytesPerPacket %d\n",
@@ -2869,7 +3120,7 @@ int XonarAudioEngine::oxygen_rec_a_hw_params(IOAudioStream *substream, int forma
                         newSampleRate->whole, " ", newSampleRate->fraction);
 #endif
         }
-        
+               
         int err;
         
         err = oxygen_hw_params(substream, formatChange, PCM_A, newFormat, newFormatEx);
@@ -2938,7 +3189,7 @@ int XonarAudioEngine::oxygen_rec_b_hw_params(IOAudioStream *substream, int forma
         err = oxygen_hw_params(substream, formatChange, PCM_B, newFormat, newFormatEx);
         if (err < 0)
                 return err;
-        
+
         is_ac97 = chipData->has_ac97_1 &&
         (chipData->model.device_config & CAPTURE_2_FROM_AC97_1);
         
@@ -3000,7 +3251,7 @@ int XonarAudioEngine::oxygen_rec_c_hw_params(IOAudioStream *substream, int forma
 #endif
         }
         
-        
+
         bool is_spdif;
         int err;
         
@@ -3040,6 +3291,64 @@ int XonarAudioEngine::oxygen_rec_c_hw_params(IOAudioStream *substream, int forma
         return 0;
 }
 
+int XonarAudioEngine::oxygen_spdif_hw_params(IOAudioStream *substream, int formatChange,
+                                             const IOAudioStreamFormat *newFormat, const IOAudioStreamFormatExtension *newFormatEx,
+                                             const IOAudioSampleRate *newSampleRate)
+{
+#if DEBUG
+        kprintf("XonarAudioEngine::%-30s BEGIN\n", __func__);
+#if DEBUGLEVEL > 2
+        kprintf("XonarAudioEngine::%-30s substream->getFormat()->fDriverTag:%d%-6s" "substream->getFormat():%p,\n"
+                "XonarAudioEngine::%-30s engine->getSampleRate()->whole:%d%-10s" "engine->getSampleRate()->fraction:%d\n",
+                " ", substream->getFormat()->fDriverTag, " ", substream->getFormat(),
+                " ", getSampleRate()->whole, " ", getSampleRate()->fraction);
+#endif
+#endif
+        if(formatChange){
+#if DEBUG && (DEBUGLEVEL > 2)
+                kprintf("XonarAudioEngine::%-30s newFormat->fDriverTag:%d\n", " ", newFormat->fDriverTag);
+#endif
+                if(!newSampleRate)
+                        // if it's null, it's probs cause we called performFormatChange
+                        // upon setting the sample format for the first time. so we
+                        // use ol' reliable, aka AC NINE SEVEN
+                        newSampleRate = &ac97_sampleRate;
+#if DEBUG && (DEBUGLEVEL > 2)
+                kprintf("XonarAudioEngine::%-30s newSampleRate->whole:%d%-10s fraction:%d\n", " ",
+                        newSampleRate->whole, " ", newSampleRate->fraction);
+#endif
+        }
+        
+        int err;
+        
+        //the only thing i can think of right now is to send the stream with its associated format,
+        // and use that to set the hardware parameters. that is what we want to do, right? set the hardware up
+        // for the format description of the current stream (????)
+        err = oxygen_hw_params(substream, formatChange, PCM_SPDIF, newFormat, newFormatEx);
+        
+        if (err < 0)
+                return err;
+        
+        IOLockLock(chipData->mutex);
+        IOSimpleLockLock(chipData->reg_lock);
+        oxygen_clear_bits32(chipData, OXYGEN_SPDIF_CONTROL,
+                            OXYGEN_SPDIF_OUT_ENABLE);
+        oxygen_write8_masked(chipData, OXYGEN_PLAY_FORMAT,
+                             oxygen_format(formatChange ? newFormat : substream->getFormat()) << OXYGEN_SPDIF_FORMAT_SHIFT,
+                             OXYGEN_SPDIF_FORMAT_MASK);
+        oxygen_write32_masked(chipData, OXYGEN_SPDIF_CONTROL,
+                              oxygen_rate(newFormat ? newSampleRate :
+                                          getSampleRate()) << OXYGEN_SPDIF_OUT_RATE_SHIFT,
+                              OXYGEN_SPDIF_OUT_RATE_MASK);
+        oxygen_update_spdif_source(chipData);
+        IOSimpleLockUnlock(chipData->reg_lock);
+        IOLockUnlock(chipData->mutex);
+#if DEBUG
+        kprintf("XonarAudioEngine::%-30s END\n", __func__);
+#endif
+        
+        return 0;
+}
 
 int XonarAudioEngine::oxygen_multich_hw_params(IOAudioStream *substream, int formatChange,
                                                const IOAudioStreamFormat *newFormat, const IOAudioStreamFormatExtension *newFormatEx,
@@ -3073,7 +3382,7 @@ int XonarAudioEngine::oxygen_multich_hw_params(IOAudioStream *substream, int for
         err = oxygen_hw_params(substream, formatChange, PCM_MULTICH, newFormat, newFormatEx);
         if (err < 0)
                 return err;
-        
+
         IOLockLock(chipData->mutex);
         IOSimpleLockLock(chipData->reg_lock);
 #if DEBUG && (DEBUGLEVEL > 2)
@@ -3102,11 +3411,11 @@ int XonarAudioEngine::oxygen_multich_hw_params(IOAudioStream *substream, int for
                               OXYGEN_I2S_FORMAT_MASK |
                               OXYGEN_I2S_MCLK_MASK |
                               OXYGEN_I2S_BITS_MASK);
-        
+
 #if DEBUG && (DEBUGLEVEL > 2)
         kprintf("XonarAudioEngine::%-30s before update_spdif_source write\n", " ");
 #endif
-        spdifEngine->oxygen_update_spdif_source(chipData);
+        oxygen_update_spdif_source(chipData);
         IOSimpleLockUnlock(chipData->reg_lock);
 #if DEBUG && (DEBUGLEVEL > 2)
         kprintf("XonarAudioEngine::%-30s before set_dac_params\n", " ");
@@ -3214,7 +3523,7 @@ int XonarAudioEngine::oxygen_trigger () {
         return 0;
         //}
         
-        
+
         
 }
 void XonarAudioEngine::oxygen_spdif_hw_free()
@@ -3234,7 +3543,7 @@ int XonarAudioEngine::oxygen_prepare(unsigned int channel)
         kprintf("XonarAudioEngine::%-30s BEGIN (channel %d)\n", __func__, channel);
 #endif
         
-        
+
         unsigned int channel_mask = 1 << channel;
         
         IOSimpleLockLock(chipData->reg_lock);
@@ -3254,3 +3563,318 @@ int XonarAudioEngine::oxygen_prepare(unsigned int channel)
         
         return 0;
 }
+
+static const struct {
+        unsigned int pcm_dev;
+        struct snd_kcontrol_new controls[2];
+} monitor_controls[] = {
+        {
+                .pcm_dev = CAPTURE_0_FROM_I2S_1,
+                .controls = {
+                        {
+                                .iface = SNDRV_CTL_ELEM_IFACE_MIXER,
+                                .name = "Analog Input Monitor Playback Switch",
+                                .info = snd_ctl_boolean_mono_info,
+                                .get = monitor_get,
+                                .put = monitor_put,
+                                .private_value = OXYGEN_ADC_MONITOR_A,
+                        },
+                        {
+                                .iface = SNDRV_CTL_ELEM_IFACE_MIXER,
+                                .name = "Analog Input Monitor Playback Volume",
+                                .access = SNDRV_CTL_ELEM_ACCESS_READWRITE |
+                                SNDRV_CTL_ELEM_ACCESS_TLV_READ,
+                                .info = monitor_volume_info,
+                                .get = monitor_get,
+                                .put = monitor_put,
+                                .private_value = OXYGEN_ADC_MONITOR_A_HALF_VOL
+                                | (1 << 8),
+                                .tlv = { .p = monitor_db_scale, },
+                        },
+                },
+        },
+        {
+                .pcm_dev = CAPTURE_0_FROM_I2S_2,
+                .controls = {
+                        {
+                                .iface = SNDRV_CTL_ELEM_IFACE_MIXER,
+                                .name = "Analog Input Monitor Playback Switch",
+                                .info = snd_ctl_boolean_mono_info,
+                                .get = monitor_get,
+                                .put = monitor_put,
+                                .private_value = OXYGEN_ADC_MONITOR_B,
+                        },
+                        {
+                                .iface = SNDRV_CTL_ELEM_IFACE_MIXER,
+                                .name = "Analog Input Monitor Playback Volume",
+                                .access = SNDRV_CTL_ELEM_ACCESS_READWRITE |
+                                SNDRV_CTL_ELEM_ACCESS_TLV_READ,
+                                .info = monitor_volume_info,
+                                .get = monitor_get,
+                                .put = monitor_put,
+                                .private_value = OXYGEN_ADC_MONITOR_B_HALF_VOL
+                                | (1 << 8),
+                                .tlv = { .p = monitor_db_scale, },
+                        },
+                },
+        },
+        {
+                .pcm_dev = CAPTURE_2_FROM_I2S_2,
+                .controls = {
+                        {
+                                .iface = SNDRV_CTL_ELEM_IFACE_MIXER,
+                                .name = "Analog Input Monitor Playback Switch",
+                                .index = 1,
+                                .info = snd_ctl_boolean_mono_info,
+                                .get = monitor_get,
+                                .put = monitor_put,
+                                .private_value = OXYGEN_ADC_MONITOR_B,
+                        },
+                        {
+                                .iface = SNDRV_CTL_ELEM_IFACE_MIXER,
+                                .name = "Analog Input Monitor Playback Volume",
+                                .index = 1,
+                                .access = SNDRV_CTL_ELEM_ACCESS_READWRITE |
+                                SNDRV_CTL_ELEM_ACCESS_TLV_READ,
+                                .info = monitor_volume_info,
+                                .get = monitor_get,
+                                .put = monitor_put,
+                                .private_value = OXYGEN_ADC_MONITOR_B_HALF_VOL
+                                | (1 << 8),
+                                .tlv = { .p = monitor_db_scale, },
+                        },
+                },
+        },
+        {
+                .pcm_dev = CAPTURE_3_FROM_I2S_3,
+                .controls = {
+                        {
+                                .iface = SNDRV_CTL_ELEM_IFACE_MIXER,
+                                .name = "Analog Input Monitor Playback Switch",
+                                .index = 2,
+                                .info = snd_ctl_boolean_mono_info,
+                                .get = monitor_get,
+                                .put = monitor_put,
+                                .private_value = OXYGEN_ADC_MONITOR_C,
+                        },
+                        {
+                                .iface = SNDRV_CTL_ELEM_IFACE_MIXER,
+                                .name = "Analog Input Monitor Playback Volume",
+                                .index = 2,
+                                .access = SNDRV_CTL_ELEM_ACCESS_READWRITE |
+                                SNDRV_CTL_ELEM_ACCESS_TLV_READ,
+                                .info = monitor_volume_info,
+                                .get = monitor_get,
+                                .put = monitor_put,
+                                .private_value = OXYGEN_ADC_MONITOR_C_HALF_VOL
+                                | (1 << 8),
+                                .tlv = { .p = monitor_db_scale, },
+                        },
+                },
+        },
+        {
+                .pcm_dev = CAPTURE_1_FROM_SPDIF,
+                .controls = {
+                        {
+                                .iface = SNDRV_CTL_ELEM_IFACE_MIXER,
+                                .name = "Digital Input Monitor Playback Switch",
+                                .info = snd_ctl_boolean_mono_info,
+                                .get = monitor_get,
+                                .put = monitor_put,
+                                .private_value = OXYGEN_ADC_MONITOR_C,
+                        },
+                        {
+                                .iface = SNDRV_CTL_ELEM_IFACE_MIXER,
+                                .name = "Digital Input Monitor Playback Volume",
+                                .access = SNDRV_CTL_ELEM_ACCESS_READWRITE |
+                                SNDRV_CTL_ELEM_ACCESS_TLV_READ,
+                                .info = monitor_volume_info,
+                                .get = monitor_get,
+                                .put = monitor_put,
+                                .private_value = OXYGEN_ADC_MONITOR_C_HALF_VOL
+                                | (1 << 8),
+                                .tlv = { .p = monitor_db_scale, },
+                        },
+                },
+        },
+};
+
+
+static void mute_ac97_ctl(struct oxygen *chip, unsigned int control)
+{
+        unsigned int priv_idx;
+        UInt16 value;
+        
+        if (!chip->controls[control])
+                return;
+        
+        //have to fix the line below
+        //priv_idx = chip->controls[control]->private_value & 0xff;
+        value = oxygen_read_ac97(chip, 0, priv_idx);
+        if (!(value & 0x8000)) {
+                oxygen_write_ac97(chip, 0, priv_idx, value | 0x8000);
+                if (chip->model.ac97_switch)
+                        chip->model.ac97_switch(chip, priv_idx, 0x8000);
+                //sendChangeNotification seems like what we're going to have to use to notify about the change.
+                //snd_ctl_notify(chip->card, SNDRV_CTL_EVENT_MASK_VALUE,
+                //                 &chip->controls[control]->id);
+        }
+}
+
+static int ac97_switch_put(struct snd_kcontrol *ctl,
+                           struct snd_ctl_elem_value *value)
+{
+        struct oxygen *chip = (struct oxygen*) ctl->private_data;
+        unsigned int codec = (ctl->private_value >> 24) & 1;
+        unsigned int index = ctl->private_value & 0xff;
+        unsigned int bitnr = (ctl->private_value >> 8) & 0xff;
+        int invert = ctl->private_value & (1 << 16);
+        UInt16 oldreg, newreg;
+        int change;
+        
+        IOLockLock(chip->mutex);
+        oldreg = oxygen_read_ac97(chip, codec, index);
+        newreg = oldreg;
+        if (!value->value.integer.value[0] ^ !invert)
+                newreg |= 1 << bitnr;
+        else
+                newreg &= ~(1 << bitnr);
+        change = newreg != oldreg;
+        if (change) {
+                oxygen_write_ac97(chip, codec, index, newreg);
+                if (codec == 0 && chip->model.ac97_switch)
+                        chip->model.ac97_switch(chip, index, newreg & 0x8000);
+                if (index == AC97_LINE) {
+                        oxygen_write_ac97_masked(chip, 0, CM9780_GPIO_STATUS,
+                                                 newreg & 0x8000 ?
+                                                 CM9780_GPO0 : 0, CM9780_GPO0);
+                        if (!(newreg & 0x8000)) {
+                                mute_ac97_ctl(chip, CONTROL_MIC_CAPTURE_SWITCH);
+                                mute_ac97_ctl(chip, CONTROL_CD_CAPTURE_SWITCH);
+                                mute_ac97_ctl(chip, CONTROL_AUX_CAPTURE_SWITCH);
+                        }
+                } else if ((index == AC97_MIC || index == AC97_CD ||
+                            index == AC97_VIDEO || index == AC97_AUX) &&
+                           bitnr == 15 && !(newreg & 0x8000)) {
+                        mute_ac97_ctl(chip, CONTROL_LINE_CAPTURE_SWITCH);
+                        oxygen_write_ac97_masked(chip, 0, CM9780_GPIO_STATUS,
+                                                 CM9780_GPO0, CM9780_GPO0);
+                }
+        }
+        IOLockUnlock(chip->mutex);
+        return change;
+}
+
+static int ac97_volume_info(struct snd_kcontrol *ctl,
+                            struct snd_ctl_elem_info *info)
+{
+        int stereo = (ctl->private_value >> 16) & 1;
+        
+        info->type = SNDRV_CTL_ELEM_TYPE_INTEGER;
+        info->count = stereo ? 2 : 1;
+        info->value.integer.min = 0;
+        info->value.integer.max = 0x1f;
+        return 0;
+}
+
+static int ac97_volume_get(struct snd_kcontrol *ctl,
+                           struct snd_ctl_elem_value *value)
+{
+        struct oxygen *chip = (struct oxygen*) ctl->private_data;
+        unsigned int codec = (ctl->private_value >> 24) & 1;
+        int stereo = (ctl->private_value >> 16) & 1;
+        unsigned int index = ctl->private_value & 0xff;
+        UInt16 reg;
+        
+        IOLockLock(chip->mutex);
+        reg = oxygen_read_ac97(chip, codec, index);
+        IOLockUnlock(chip->mutex);
+        if (!stereo) {
+                value->value.integer.value[0] = 31 - (reg & 0x1f);
+        } else {
+                value->value.integer.value[0] = 31 - ((reg >> 8) & 0x1f);
+                value->value.integer.value[1] = 31 - (reg & 0x1f);
+        }
+        return 0;
+}
+
+static int ac97_volume_put(struct snd_kcontrol *ctl,
+                           struct snd_ctl_elem_value *value)
+{
+        struct oxygen *chip = (struct oxygen*) ctl->private_data;
+        unsigned int codec = (ctl->private_value >> 24) & 1;
+        int stereo = (ctl->private_value >> 16) & 1;
+        unsigned int index = ctl->private_value & 0xff;
+        UInt16 oldreg, newreg;
+        int change;
+        
+        IOLockLock(chip->mutex);
+        oldreg = oxygen_read_ac97(chip, codec, index);
+        if (!stereo) {
+                newreg = oldreg & ~0x1f;
+                newreg |= 31 - (value->value.integer.value[0] & 0x1f);
+        } else {
+                newreg = oldreg & ~0x1f1f;
+                newreg |= (31 - (value->value.integer.value[0] & 0x1f)) << 8;
+                newreg |= 31 - (value->value.integer.value[1] & 0x1f);
+        }
+        change = newreg != oldreg;
+        if (change)
+                oxygen_write_ac97(chip, codec, index, newreg);
+        IOLockUnlock(chip->mutex);
+        return change;
+}
+
+#define AC97_SWITCH(xname, codec, index, bitnr, invert) { \
+.iface = SNDRV_CTL_ELEM_IFACE_MIXER, \
+.name = xname, \
+.info = snd_ctl_boolean_mono_info, \
+.get = ac97_switch_get, \
+.put = ac97_switch_put, \
+.private_value = ((codec) << 24) | ((invert) << 16) | \
+((bitnr) << 8) | (index), \
+}
+#define AC97_VOLUME(xname, codec, index, stereo) { \
+.iface = SNDRV_CTL_ELEM_IFACE_MIXER, \
+.name = xname, \
+.access = SNDRV_CTL_ELEM_ACCESS_READWRITE | \
+SNDRV_CTL_ELEM_ACCESS_TLV_READ, \
+.info = ac97_volume_info, \
+.get = ac97_volume_get, \
+.put = ac97_volume_put, \
+.tlv = { .p = ac97_db_scale, }, \
+.private_value = ((codec) << 24) | ((stereo) << 16) | (index), \
+}
+static const struct snd_kcontrol_new ac97_controls[] = {
+        AC97_VOLUME("Mic Capture Volume", 0, AC97_MIC, 0),
+        AC97_SWITCH("Mic Capture Switch", 0, AC97_MIC, 15, 1),
+        AC97_SWITCH("Mic Boost (+20dB)", 0, AC97_MIC, 6, 0),
+        {
+                .iface = SNDRV_CTL_ELEM_IFACE_MIXER,
+                .name = "Mic Source Capture Enum",
+                .info = mic_fmic_source_info,
+                .get = mic_fmic_source_get,
+                .put = mic_fmic_source_put,
+        },
+        AC97_SWITCH("Line Capture Switch", 0, AC97_LINE, 15, 1),
+        AC97_VOLUME("CD Capture Volume", 0, AC97_CD, 1),
+        AC97_SWITCH("CD Capture Switch", 0, AC97_CD, 15, 1),
+        AC97_VOLUME("Aux Capture Volume", 0, AC97_AUX, 1),
+        AC97_SWITCH("Aux Capture Switch", 0, AC97_AUX, 15, 1),
+};
+
+static const struct snd_kcontrol_new ac97_fp_controls[] = {
+        AC97_VOLUME("Front Panel Playback Volume", 1, AC97_HEADPHONE, 1),
+        AC97_SWITCH("Front Panel Playback Switch", 1, AC97_HEADPHONE, 15, 1),
+        {
+                .iface = SNDRV_CTL_ELEM_IFACE_MIXER,
+                .name = "Front Panel Capture Volume",
+                .access = SNDRV_CTL_ELEM_ACCESS_READWRITE |
+                SNDRV_CTL_ELEM_ACCESS_TLV_READ,
+                .info = ac97_fp_rec_volume_info,
+                .get = ac97_fp_rec_volume_get,
+                .put = ac97_fp_rec_volume_put,
+                .tlv = { .p = ac97_rec_db_scale, },
+        },
+        AC97_SWITCH("Front Panel Capture Switch", 1, AC97_REC_GAIN, 15, 1),
+};
