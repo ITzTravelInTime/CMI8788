@@ -21,17 +21,16 @@
 
 IOReturn XonarAudioEngine::clipOutputSamples(const void *mixBuf, void *sampleBuf, UInt32 firstSampleFrame, UInt32 numSampleFrames, const IOAudioStreamFormat *streamFormat, IOAudioStream *audioStream)
 {
-#if DEBUG && (DEBUGLEVEL > 1)
+
         kprintf("XonarAudioEngine::%-30s START\n", __func__);
-#endif
         UInt32 sampleIndex, maxSampleIndex;
         float *floatMixBuf;
-        SInt16 *outputBuf;
+        SInt32 *outputBuf;
         
         // Start by casting the void * mix and sample buffers to the appropriate types - float * for the mix buffer
         // and SInt16 * for the sample buffer (because our sample hardware uses signed 16-bit samples)
         floatMixBuf = (float *)mixBuf;
-        outputBuf = (SInt16 *)sampleBuf;
+        outputBuf = (SInt32 *)sampleBuf;
         
         // We calculate the maximum sample index we are going to clip and convert
         // This is an index into the entire sample and mix buffers
@@ -55,14 +54,14 @@ IOReturn XonarAudioEngine::clipOutputSamples(const void *mixBuf, void *sampleBuf
                 // Scale the -1.0 to 1.0 range to the appropriate scale for signed 16-bit samples and then
                 // convert to SInt16 and store in the hardware sample buffer
                 if (inSample >= 0) {
-                        outputBuf[sampleIndex] = (SInt16) (inSample * 32767.0);
+                        outputBuf[sampleIndex] = ((SInt32)((SInt16)(inSample * 32767.0)) << 16); //direct conversion to 32 bits produces sample artifacts, so let's use this simple trick for now.
                 } else {
-                        outputBuf[sampleIndex] = (SInt16) (inSample * 32768.0);
+                        outputBuf[sampleIndex] = ((SInt32)((SInt16)(inSample * 32768.0)) << 16); //direct conversion to 32 bits produces sample artifacts, so let's use this simple trick for now.
                 }
         }
-#if DEBUG && (DEBUGLEVEL > 1)
+    
         kprintf("XonarAudioEngine::%-30s END\n", __func__);
-#endif
+    
         return kIOReturnSuccess;
 }
 
@@ -85,9 +84,8 @@ IOReturn XonarAudioEngine::clipOutputSamples(const void *mixBuf, void *sampleBuf
 //        audioStream - the audio stream this function is operating on
 IOReturn XonarAudioEngine::convertInputSamples(const void *sampleBuf, void *destBuf, UInt32 firstSampleFrame, UInt32 numSampleFrames, const IOAudioStreamFormat *streamFormat, IOAudioStream *audioStream)
 {
-#if DEBUG && (DEBUGLEVEL > 1)
         kprintf("XonarAudioEngine::%-30s START\n", __func__);
-#endif
+
         UInt32 numSamplesLeft;
         float *floatDestBuf;
         SInt16 *inputBuf;
@@ -120,9 +118,9 @@ IOReturn XonarAudioEngine::convertInputSamples(const void *sampleBuf, void *dest
                 ++floatDestBuf;
                 --numSamplesLeft;
         }
-#if DEBUG && (DEBUGLEVEL > 1)
+
         kprintf("XonarAudioEngine::%-30s END\n", __func__);
-#endif
+
         return kIOReturnSuccess;
 }
 
