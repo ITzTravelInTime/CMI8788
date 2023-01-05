@@ -138,19 +138,30 @@ bool XonarD2XAudioEngine::init(XonarAudioEngine *audioEngine, struct oxygen *chi
         bool result = false;
         
         printf("XonarD2XAudioEngine[%p]::init(%p)\n", this, chip);
-        
+    
+        if (!audioEngine)
+            goto Done;
+    
+        if (!chip) {
+            goto Done;
+        }
+    
+        if (!chip->model_data) {
+            goto Done;
+        }
+    
+        if (!deviceRegisters) //extra check in case things gets messed up
+            goto Done;
+    
         data_size = chip->model.model_data_size;
         //chip->model_data = IOMalloc(chip->model.model_data_size);
         deviceRegisters = (struct xonar_pcm179x*) chip->model_data;
         engineInstance = audioEngine;
         
-        if (!chip) {
-                goto Done;
-        }
-        
         if (!super::init(NULL)) {
                 goto Done;
         }
+    
         switch(submodel) {
                 case MODEL_D2:
                         xonar_d2_init(chip, audioEngine);

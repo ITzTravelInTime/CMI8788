@@ -317,28 +317,45 @@ void PCIAudioDevice::free()
         kprintf("XonarAudioDevice::free()\n");
         
         if (deviceRegisters) {
+            if (deviceRegisters->reg_lock)
                 IOSimpleLockFree(deviceRegisters->reg_lock);
+            
+            if (deviceRegisters->mutex)
                 IOLockFree(deviceRegisters->mutex);
+            
+            if (deviceRegisters->ac97_mutex)
                 IOLockFree(deviceRegisters->ac97_mutex);
-                IOFree(deviceRegisters, sizeof(struct oxygen));
-                deviceRegisters = NULL;
+            
+            IOFree(deviceRegisters, sizeof(struct oxygen));
+            deviceRegisters = NULL;
         }
+    
         if (deviceMap)
                 OSSafeReleaseNULL(deviceMap);
+    
         super::free();
 }
 
 bool PCIAudioDevice::createAudioEngine()
 {
-        accessibleEngineInstance = new XonarAudioEngine;
-        //At this point, we should be at the chip->model.init() part of the oxygen_pci_probe function.
-        //chip->model.init() is handled by the init() method of the submodel's class that we wish to instantiate.
-        //that is: XonarHDAVAudioEngine::init() contains the code for xonar_hdav_init, etc.
+    bool result = false;
+    
+    accessibleEngineInstance = new XonarAudioEngine;
+    
+    //At this point, we should be at the chip->model.init() part of the oxygen_pci_probe function.
+    //chip->model.init() is handled by the init() method of the submodel's class that we wish to instantiate.
+    //that is: XonarHDAVAudioEngine::init() contains the code for xonar_hdav_init, etc.
+    
+    if (!accessibleEngineInstance)
+        goto Done;
+    
+    if (!accessibleEngineInstance->init(deviceRegisters, subdev_id))
+        goto Done;
+    
 #if DEBUG
         kprintf("PCIAudioDevice::%-32s BEGIN\n", __func__);
 #endif
-        bool result = false;
-        
+    
         switch(subdev_id){
                 case MODEL_HDAV:
                         submodelInstance = new XonarHDAVAudioEngine;
@@ -367,6 +384,7 @@ bool PCIAudioDevice::createAudioEngine()
                         submodelInstance = new XonarGenericAudioEngine;
                         break;
         }
+    
         if (!submodelInstance)
                 goto Done;
         
