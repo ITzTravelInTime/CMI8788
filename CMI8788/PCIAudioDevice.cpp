@@ -518,13 +518,10 @@ bool PCIAudioDevice::createAudioEngine()
         // this call (or so i think)
         accessibleEngineInstance->oxygen_trigger();
     
-        accessibleEngineInstance->release();
-        
         //activateAudioEngine(submodelInstance, false);
         
         // Once the audio engine has been activated, release it so that when the driver gets terminated,
         // it gets freed
-        submodelInstance->release();
         
         result = true;
         
@@ -532,10 +529,10 @@ Done:
         /* release both the submodel and accessible(main) engine instance
          * so that they will automatically free after calling PCIAudioDriver::free()
          */
-        if (!result && submodelInstance)
+        if (submodelInstance)
                 submodelInstance->release();
         
-        if (!result && accessibleEngineInstance)
+        if (accessibleEngineInstance)
                 accessibleEngineInstance->release();
         
 #if DEBUG
