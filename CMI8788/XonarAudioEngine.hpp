@@ -56,8 +56,10 @@
 #endif
 #endif
 
+#ifndef _IOKIT_IOFILTERINTERRUPTEVENTSOURCE_H
 class IOFilterInterruptEventSource;
 class IOInterruptEventSource;
+#endif
 
 //have to add this here if we want to use it in a prototype
 #define PCIAudioDevice com_CMedia_CMI8788_PCIAudioDevice

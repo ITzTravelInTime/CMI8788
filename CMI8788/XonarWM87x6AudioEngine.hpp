@@ -7,9 +7,17 @@
 
 #define XonarWM87x6AudioEngine com_CMedia_CMI8788_XonarWM87x6AudioEngine
 
+#ifndef _IOKIT_IOFILTERINTERRUPTEVENTSOURCE_H
 class IOFilterInterruptEventSource;
 class IOInterruptEventSource;
+#endif
+
+#ifndef _XONARAUDIOENGINE_H
+#define XonarAudioEngine com_CMedia_CMI8788_XonarAudioEngine
+
 class XonarAudioEngine;
+#endif
+
 class XonarWM87x6AudioEngine : public IOAudioEngine
 {
         friend class XonarAudioEngine;

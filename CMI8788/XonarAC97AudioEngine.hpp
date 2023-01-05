@@ -46,9 +46,15 @@
 
 #include <IOKit/audio/IOAudioStream.h>
 
+#ifndef _IOKIT_IOFILTERINTERRUPTEVENTSOURCE_H
 class IOFilterInterruptEventSource;
 class IOInterruptEventSource;
+#endif
+
+#ifndef _XONARAUDIOENGINE_H
 struct IOStream;
+#endif
+
 #define XonarAC97AudioEngine com_CMedia_CMI8788_XonarAC97AudioEngine
 
 #define XonarAudioEngine com_CMedia_CMI8788_XonarAudioEngine

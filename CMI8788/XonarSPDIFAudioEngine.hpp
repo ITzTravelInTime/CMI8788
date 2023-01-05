@@ -51,10 +51,16 @@ struct IOStream;
 
 #define XonarSPDIFAudioEngine com_CMedia_CMI8788_XonarSPDIFAudioEngine
 
+#ifndef _IOKIT_IOFILTERINTERRUPTEVENTSOURCE_H
 class IOFilterInterruptEventSource;
 class IOInterruptEventSource;
+#endif
+
+#ifndef _XONARAUDIOENGINE_H
 #define XonarAudioEngine com_CMedia_CMI8788_XonarAudioEngine
+
 class XonarAudioEngine;
+#endif
 
 class XonarSPDIFAudioEngine : public IOAudioEngine {
 

@@ -7,8 +7,10 @@
 
 #define XonarGenericAudioEngine com_CMedia_CMI8788_XonarGenericAudioEngine
 
+#ifndef _IOKIT_IOFILTERINTERRUPTEVENTSOURCE_H
 class IOFilterInterruptEventSource;
 class IOInterruptEventSource;
+#endif
 
 class XonarGenericAudioEngine : public IOAudioEngine
 {

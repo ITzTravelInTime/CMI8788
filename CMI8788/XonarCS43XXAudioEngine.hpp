@@ -6,8 +6,10 @@
 
 #define XonarCS43XXAudioEngine com_CMedia_CMI8788_XonarCS43XXAudioEngine
 
+#ifndef _IOKIT_IOFILTERINTERRUPTEVENTSOURCE_H
 class IOFilterInterruptEventSource;
 class IOInterruptEventSource;
+#endif
 
 class XonarCS43XXAudioEngine : public IOAudioEngine
 {

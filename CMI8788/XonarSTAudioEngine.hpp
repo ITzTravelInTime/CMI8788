@@ -47,11 +47,16 @@
 
 #include "XonarAudioEngine.hpp"
 
-#define XonarSTAudioEngine com_CMedia_CMI8788_XonarSTAudioEngine
+#ifndef _XONARAUDIOENGINE_H
+#define XonarAudioEngine com_CMedia_CMI8788_XonarAudioEngine
 
+class XonarAudioEngine;
+#endif
 
+#ifndef _IOKIT_IOFILTERINTERRUPTEVENTSOURCE_H
 class IOFilterInterruptEventSource;
 class IOInterruptEventSource;
+#endif
 
 class XonarSTAudioEngine : public IOAudioEngine
 {

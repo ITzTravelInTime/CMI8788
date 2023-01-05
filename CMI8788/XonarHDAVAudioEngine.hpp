@@ -49,8 +49,10 @@
 
 #define XonarHDAVAudioEngine com_CMedia_CMI8788_XonarHDAVAudioEngine
 
+#ifndef _IOKIT_IOFILTERINTERRUPTEVENTSOURCE_H
 class IOFilterInterruptEventSource;
 class IOInterruptEventSource;
+#endif
 
 class XonarHDAVAudioEngine : public IOAudioEngine
 {
