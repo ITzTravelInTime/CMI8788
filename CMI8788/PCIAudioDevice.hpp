@@ -52,6 +52,8 @@
 #define XonarSPDIFAudioEngine com_CMedia_CMI8788_XonarSPDIFAudioEngine
 #define XonarAC97AudioEngine com_CMedia_CMI8788_XonarAC97AudioEngine
 
+#define allocation_mask ((0x000000007FFFFFFFULL) & (~((PAGE_SIZE) - 1)))
+
 class XonarAudioEngine;
 class XonarAC97AudioEngine;
 class XonarSPDIFAudioEngine;

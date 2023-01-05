@@ -2113,10 +2113,10 @@ IOStream *XonarAudioEngine::createAudioStream(IOAudioStreamDirection direction, 
         kprintf("XonarAudioEngine::%-30s BEGIN\n", __func__);
 #endif
         //create the buffers.
-        if(direction == kIOAudioStreamDirectionInput)
-                newStream->buffer = IOBufferMemoryDescriptor::inTaskWithOptions(kernel_task, kIODirectionIn | kIOMemoryPhysicallyContiguous, sampleBufferSize);
-        else
-                newStream->buffer = IOBufferMemoryDescriptor::inTaskWithOptions(kernel_task, kIODirectionOut | kIOMemoryPhysicallyContiguous, sampleBufferSize);
+    if(direction == kIOAudioStreamDirectionInput)
+        newStream->buffer = IOBufferMemoryDescriptor::inTaskWithPhysicalMask(kernel_task, kIODirectionIn | kIOMemoryPhysicallyContiguous, sampleBufferSize, allocation_mask);
+    else
+        newStream->buffer = IOBufferMemoryDescriptor::inTaskWithPhysicalMask(kernel_task, kIODirectionOut | kIOMemoryPhysicallyContiguous, sampleBufferSize, allocation_mask);
         
 
 #if DEBUG && (DEBUGLEVEL > 1)

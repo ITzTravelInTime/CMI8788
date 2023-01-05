@@ -2211,9 +2211,9 @@ IOAudioStream *XonarAudioEngine::createAudioStream(IOAudioStreamDirection direct
 #endif
         //create the buffers.
         if(direction == kIOAudioStreamDirectionInput)
-                sampleBuffers[source].substreams[direction] = IOBufferMemoryDescriptor::inTaskWithOptions(kernel_task, kIODirectionIn | kIOMemoryPhysicallyContiguous, sampleBufferSize);
+            newStream->buffer = IOBufferMemoryDescriptor::inTaskWithPhysicalMask(kernel_task, kIODirectionIn | kIOMemoryPhysicallyContiguous, sampleBufferSize, allocation_mask);
         else
-                sampleBuffers[source].substreams[direction] = IOBufferMemoryDescriptor::inTaskWithOptions(kernel_task, kIODirectionOut | kIOMemoryPhysicallyContiguous, sampleBufferSize);
+            newStream->buffer = IOBufferMemoryDescriptor::inTaskWithPhysicalMask(kernel_task, kIODirectionOut | kIOMemoryPhysicallyContiguous, sampleBufferSize, allocation_mask);
         //sampleBuffers[source].substreams[direction].sample = sampleBuffers[source].substreams[direction].obj->getPhysicalAddress();
 
 #if DEBUG && (DEBUGLEVEL > 1)

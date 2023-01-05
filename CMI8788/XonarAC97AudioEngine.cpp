@@ -279,9 +279,9 @@ IOStream *XonarAC97AudioEngine::createAudioStream(IOAudioStreamDirection directi
 #endif
         //create the buffers.
         if(direction == kIOAudioStreamDirectionInput)
-                newStream->buffer = IOBufferMemoryDescriptor::inTaskWithOptions(kernel_task, kIODirectionIn | kIOMemoryPhysicallyContiguous, sampleBufferSize);
+            newStream->buffer = IOBufferMemoryDescriptor::inTaskWithPhysicalMask(kernel_task, kIODirectionIn | kIOMemoryPhysicallyContiguous, sampleBufferSize, allocation_mask);
         else
-                newStream->buffer = IOBufferMemoryDescriptor::inTaskWithOptions(kernel_task, kIODirectionOut | kIOMemoryPhysicallyContiguous, sampleBufferSize);
+            newStream->buffer = IOBufferMemoryDescriptor::inTaskWithPhysicalMask(kernel_task, kIODirectionOut | kIOMemoryPhysicallyContiguous, sampleBufferSize, allocation_mask);
         
 #if DEBUG && (DEBUGLEVEL > 1)
         kprintf("XonarAC97AudioEngine::%-26s buffer creation COMPLETE, calling oxygen_open, direction %d, sample buff address: 0x%08llx\n",
