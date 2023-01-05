@@ -139,19 +139,20 @@ bool XonarD2XAudioEngine::init(XonarAudioEngine *audioEngine, struct oxygen *chi
         
         printf("XonarD2XAudioEngine[%p]::init(%p)\n", this, chip);
     
-        if (!audioEngine)
-            goto Done;
-    
-        if (!chip) {
+        if (!audioEngine){
+            printf("XonarD2XAudioEngine[%p]::init(%p) referenced audio engine is NULL\n", this, chip);
             goto Done;
         }
-    
-        if (!chip->model_data) {
+        
+        if (!chip){
+            printf("XonarD2XAudioEngine[%p]::init(%p)  referenced chip data is NULL\n", this, chip);
             goto Done;
         }
-    
-        if (!deviceRegisters) //extra check in case things gets messed up
+        
+        if (!chip->model_data){
+            printf("XonarD2XAudioEngine[%p]::init(%p) referenced chip->mode_data is NULL \n", this, chip);
             goto Done;
+        }
     
         data_size = chip->model.model_data_size;
         //chip->model_data = IOMalloc(chip->model.model_data_size);
