@@ -338,6 +338,10 @@ void PCIAudioDevice::free()
 
 bool PCIAudioDevice::createAudioEngine()
 {
+#if DEBUG
+    kprintf("PCIAudioDevice::%-32s BEGIN\n", __func__);
+#endif
+    
     bool result = false;
     
     accessibleEngineInstance = new XonarAudioEngine;
@@ -346,15 +350,20 @@ bool PCIAudioDevice::createAudioEngine()
     //chip->model.init() is handled by the init() method of the submodel's class that we wish to instantiate.
     //that is: XonarHDAVAudioEngine::init() contains the code for xonar_hdav_init, etc.
     
-    if (!accessibleEngineInstance)
+    if (!accessibleEngineInstance){
+        kprintf("PCIAudioDevice::%-32s Audio engine allocation failure\n", __func__);
         goto Done;
+    }
     
-    if (!accessibleEngineInstance->init(deviceRegisters, subdev_id))
+    if (!accessibleEngineInstance->init(deviceRegisters, subdev_id)){
+        kprintf("PCIAudioDevice::%-32s Audio engine initialization failure\n", __func__);
         goto Done;
+    }
     
-#if DEBUG
-        kprintf("PCIAudioDevice::%-32s BEGIN\n", __func__);
-#endif
+    if (!deviceRegisters->model_data){
+        kprintf("PCIAudioDevice::%-32s deviceRegisters->model_data not allocated\n", __func__);
+        goto Done;
+    }
     
         switch(subdev_id){
                 case MODEL_HDAV:
@@ -480,8 +489,7 @@ bool PCIAudioDevice::createAudioEngine()
         
         // Active the audio engine - this will cause the audio engine to have start() and initHardware() called on it
         // After this function returns, that audio engine should be ready to begin vending audio services to the system
-        activateAudioEngine(accessibleEngineInstance);
-        accessibleEngineInstance->release();
+    
 //        accessibleEngineInstance->spdifEngine->init(accessibleEngineInstance);
 //        kprintf("After the init\n");
 //        activateAudioEngine(accessibleEngineInstance->spdifEngine);
@@ -500,6 +508,8 @@ bool PCIAudioDevice::createAudioEngine()
 //                kprintf("XonarAudioEngine::%-30s AC97 engine successfully created.\n", __func__);
 //        }
 
+        activateAudioEngine(accessibleEngineInstance);
+    
         // the best way to integrate the trigger function is to put it **after**
         // the audioEngineStart call--more specifically when we prepare the
         // stream for the respective channel. this way we can set the mask to
@@ -507,12 +517,14 @@ bool PCIAudioDevice::createAudioEngine()
         // the engine is not 'running' until it is activated, so we have to do it after
         // this call (or so i think)
         accessibleEngineInstance->oxygen_trigger();
+    
+        accessibleEngineInstance->release();
         
         //activateAudioEngine(submodelInstance, false);
         
         // Once the audio engine has been activated, release it so that when the driver gets terminated,
         // it gets freed
-        //submodelInstance->release();
+        submodelInstance->release();
         
         result = true;
         
